@@ -5,7 +5,8 @@
 VAR_GLOBAL
 	
 	ConveyerAxis : AXIS_REF;
-
+	bConveyerReadyToMove : BOOL;
+	bConveyerReadyToPick : BOOL;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

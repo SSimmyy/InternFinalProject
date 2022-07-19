@@ -3,14 +3,68 @@
   <POU Name="Main3" Id="{48f3aa79-5c81-4de9-a7df-ef8cb0b063c9}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main3
 VAR
-	Sequence_3 : Sequence3;
+	Sequence3 		: Sequence3;
+	Reset3 			: Reset3;
+	nState 			: INT;
+	fbPower			: MC_Power;
+	powerOutputs 	: ST_McOutputs;
+	sequenceError: BOOL;
+	reset3Done: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[CASE nState OF
+	0:
+		fbPower(
+			Axis:= GVL.ConveyerAxis, 
+			Enable:= TRUE, 
+			Enable_Positive:= TRUE, 
+			Enable_Negative:= TRUE,  
+			Status=> , 
+			Busy=> powerOutputs.Busy, 
+			Active=> powerOutputs.Active, 
+			Error=> powerOutputs.Error, 
+			ErrorID=> powerOutputs.ErrorID);
+		IF NOT powerOutputs.Error THEN
+			nState := 1;
+		ELSE
+			nState := 9999;
+		END_IF
+	
+	1:
+		Reset3(
+			bResetDone => reset3Done);
+		IF reset3Done THEN
+			nState := 2;
+		END_IF
+		
+	2:
+		Sequence3(
+			bReadyToMove := GVL.bConveyerReadyToMove,
+			bMoveError => sequenceError,
+			bReadyToPick => GVL.bConveyerReadyToPick);
+		IF sequenceError THEN
+			nState := 9999;
+		END_IF
+END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Main3">
       <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="16" Count="4" />
+      <LineId Id="24" Count="3" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="29" Count="1" />
+      <LineId Id="32" Count="1" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="62" Count="1" />
+      <LineId Id="66" Count="3" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="50" Count="3" />
+      <LineId Id="55" Count="2" />
+      <LineId Id="12" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>
