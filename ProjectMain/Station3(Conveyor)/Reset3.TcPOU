@@ -1,0 +1,91 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Reset3" Id="{597c4e31-3a66-476b-85d2-28696bcee506}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Reset3
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	bResetDone : BOOL;
+END_VAR
+VAR
+	fbReset : MC_Reset;
+	ResetOut: ST_McOutputs;
+	fbMoveRelative: MC_MoveRelative;
+	RelativeOut : ST_McOutputs;
+	nState : INT;
+	
+	
+
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+	
+0:
+	bResetDone := FALSE;
+	fbReset(
+		Axis:= GVL.ConveyerAxis, 
+		Execute:= TRUE, 
+		Done=> ResetOut.Done, 
+		Busy=> ResetOut.Busy, 
+		Error=> ResetOut.Error, 
+		ErrorID=> ResetOut.ErrorID);
+		IF NOT fbReset.Error THEN
+			nState := 1;
+		ELSE
+			nState := 999;
+		END_IF
+1:
+	fbMoveRelative(
+		Axis:= GVL.ConveyerAxis, 
+		Execute:= TRUE, 
+		Distance:= 16,
+		Done=> RelativeOut.Done, 
+		Busy=> RelativeOut.Busy, 
+		Active=> RelativeOut.Active, 
+		CommandAborted=> RelativeOut.CommandAborted, 
+		Error=> RelativeOut.Error, 
+		ErrorID=> RelativeOut.ErrorID);
+		IF NOT fbMoveRelative.Error THEN
+			nState := 2;
+		ELSE
+			nState := 999;
+		END_IF
+2:
+	bResetDone := TRUE;
+	nState := 0;
+	
+999:
+	
+END_CASE
+
+	
+]]></ST>
+    </Implementation>
+    <LineIds Name="Reset3">
+      <LineId Id="31" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="39" Count="5" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="45" Count="1" />
+      <LineId Id="81" Count="1" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="50" Count="3" />
+      <LineId Id="60" Count="4" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="79" Count="1" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="71" Count="3" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="29" Count="1" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

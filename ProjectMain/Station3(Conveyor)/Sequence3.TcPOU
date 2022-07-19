@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Sequence3" Id="{e15a6fb5-808f-4738-8ea3-952c583c643e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Sequence3
+VAR_INPUT
+	bReadyToMove : BOOL;
+END_VAR
+VAR_OUTPUT
+	bMoveError : BOOL;
+	bHaltError : BOOL;
+	bReadyToPick : BOOL;
+END_VAR
+VAR
+	bSensor : BOOL;
+	nState : INT;
+	
+	fbMoveVelocity: MC_MoveVelocity;
+	fbHalt: MC_Halt;
+END_VAR
+VAR_IN_OUT
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[CASE nState OF
+	
+0:
+	IF NOT bSensor THEN
+		fbMoveVelocity(
+			Axis:= GVL.ConveyerAxis, 
+			Execute:= TRUE, 
+			Velocity:= 10, 
+			Direction:= MC_Positive_Direction, 
+			BufferMode:= , 
+			InVelocity=> , 
+			Busy=> , 
+			Active=> , 
+			CommandAborted=> , 
+			Error=> bMoveError, 
+			ErrorID=>);
+		ELSE
+			bReadyToPick := TRUE;
+			nState := 1;
+	END_IF
+	
+1:
+	IF NOT bReadyToMove THEN
+		fbHalt(
+			Axis:= GVL.ConveyerAxis, 
+			Execute:= TRUE, 
+			Done=> , 
+			Busy=> , 
+			Active=> , 
+			CommandAborted=> , 
+			Error=> bHaltError, 
+			ErrorID=> );
+		ELSE
+			bReadyToPick := FALSE;
+			nState := 0;
+			
+	END_IF
+END_CASE]]></ST>
+    </Implementation>
+    <LineIds Name="Sequence3">
+      <LineId Id="37" Count="0" />
+      <LineId Id="219" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="265" Count="10" />
+      <LineId Id="263" Count="0" />
+      <LineId Id="276" Count="0" />
+      <LineId Id="309" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="264" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="293" Count="0" />
+      <LineId Id="298" Count="7" />
+      <LineId Id="296" Count="0" />
+      <LineId Id="307" Count="0" />
+      <LineId Id="311" Count="0" />
+      <LineId Id="308" Count="0" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="220" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

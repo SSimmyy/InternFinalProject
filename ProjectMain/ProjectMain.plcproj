@@ -1,0 +1,181 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FileVersion>1.0.0.0</FileVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{e15a974b-8582-482d-a514-2936aa96f1f2}</ProjectGuid>
+    <SubObjectsSortedByName>True</SubObjectsSortedByName>
+    <DownloadApplicationInfo>true</DownloadApplicationInfo>
+    <WriteProductVersion>true</WriteProductVersion>
+    <GenerateTpy>false</GenerateTpy>
+    <Name>ProjectMain</Name>
+    <ProgramVersion>3.1.4023.0</ProgramVersion>
+    <Application>{5e9299d3-b1fc-46c4-8a0a-aee83431fcbf}</Application>
+    <TypeSystem>{1e111871-0700-4447-8582-e123d9f553af}</TypeSystem>
+    <Implicit_Task_Info>{3e024d25-df93-45f2-b1ab-9e33154e5c8a}</Implicit_Task_Info>
+    <Implicit_KindOfTask>{e217307b-ab54-4bd5-9dd9-aaaa069a3d2b}</Implicit_KindOfTask>
+    <Implicit_Jitter_Distribution>{4c4fcccc-6cbb-4b0f-9362-473d041ed13c}</Implicit_Jitter_Distribution>
+    <LibraryReferences>{863f9ea1-d65a-418c-9e64-9112cabf3fa4}</LibraryReferences>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="DUTs\MoveState_t.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="PlcTask.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Faults1.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Forces1.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Main1.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Reset1.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Sequence1.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\Faults2.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\Forces2.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\Main2.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\Reset2.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\Sequence2.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Faults3.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Forces3.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Main3.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Reset3.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Sequence3.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station4%28xts1%29\Faults4.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station4%28xts1%29\Forces4.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station4%28xts1%29\Main4.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station4%28xts1%29\Reset4.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station4%28xts1%29\Sequence4.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station5%28xts2%29\Faults5.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station5%28xts2%29\Forces5.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station5%28xts2%29\Main5.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station5%28xts2%29\Reset5.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station5%28xts2%29\Sequence5.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station6%28Vision%29\Faults6.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station6%28Vision%29\Forces6.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station6%28Vision%29\Main6.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station6%28Vision%29\Reset6.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station6%28Vision%29\Sequence6.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DUTs" />
+    <Folder Include="GVLs" />
+    <Folder Include="Station1%28Codian%29" />
+    <Folder Include="Station2%28XYmover%29" />
+    <Folder Include="Station3%28Conveyor%29" />
+    <Folder Include="Station4%28xts1%29" />
+    <Folder Include="Station5%28xts2%29" />
+    <Folder Include="Station6%28Vision%29" />
+    <Folder Include="VISUs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PlaceholderReference Include="Tc2_MC2">
+      <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_NCI">
+      <DefaultResolution>Tc2_NCI, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_NCI</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_PlcInterpolation">
+      <DefaultResolution>Tc2_PlcInterpolation, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_PlcInterpolation</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_Standard">
+      <DefaultResolution>Tc2_Standard, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_Standard</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_System">
+      <DefaultResolution>Tc2_System, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_System</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_Module">
+      <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_Module</Namespace>
+    </PlaceholderReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ProjectMain.tmc">
+      <SubType>Content</SubType>
+    </None>
+  </ItemGroup>
+  <ProjectExtensions>
+    <PlcProjectOptions>
+      <XmlArchive>
+        <Data>
+          <o xml:space="preserve" t="OptionKey">
+      <v n="Name">"&lt;ProjectRoot&gt;"</v>
+      <d n="SubKeys" t="Hashtable" />
+      <d n="Values" t="Hashtable" />
+    </o>
+        </Data>
+        <TypeList>
+          <Type n="Hashtable">System.Collections.Hashtable</Type>
+          <Type n="OptionKey">{54dd0eac-a6d8-46f2-8c27-2f43c7e49861}</Type>
+          <Type n="String">System.String</Type>
+        </TypeList>
+      </XmlArchive>
+    </PlcProjectOptions>
+  </ProjectExtensions>
+</Project>
