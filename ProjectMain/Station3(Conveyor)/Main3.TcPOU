@@ -5,11 +5,12 @@
 VAR
 	Sequence3 		: Sequence3;
 	Reset3 			: Reset3;
+	Faults3			: Faults3;
 	nState 			: INT;
 	fbPower			: MC_Power;
 	powerOutputs 	: ST_McOutputs;
-	sequenceError: BOOL;
-	reset3Done: BOOL;
+	reset3Done		: BOOL;
+	
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -37,15 +38,20 @@ END_VAR
 		IF reset3Done THEN
 			nState := 2;
 		END_IF
+		IF Reset3.bResetError THEN
+			nState := 9999;
+		END_IF
 		
 	2:
 		Sequence3(
 			bReadyToMove := GVL.bConveyerReadyToMove,
-			bMoveError => sequenceError,
 			bReadyToPick => GVL.bConveyerReadyToPick);
-		IF sequenceError THEN
+		IF Sequence3.bSequenceError THEN
 			nState := 9999;
 		END_IF
+	
+	9999:
+		Faults3();
 END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Main3">
@@ -60,10 +66,14 @@ END_CASE]]></ST>
       <LineId Id="34" Count="0" />
       <LineId Id="59" Count="0" />
       <LineId Id="62" Count="1" />
-      <LineId Id="66" Count="3" />
+      <LineId Id="66" Count="2" />
+      <LineId Id="71" Count="2" />
+      <LineId Id="69" Count="0" />
       <LineId Id="37" Count="0" />
-      <LineId Id="50" Count="3" />
+      <LineId Id="50" Count="1" />
+      <LineId Id="53" Count="0" />
       <LineId Id="55" Count="2" />
+      <LineId Id="74" Count="2" />
       <LineId Id="12" Count="0" />
     </LineIds>
   </POU>

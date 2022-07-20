@@ -9,6 +9,7 @@ VAR_OUTPUT
 	bMoveError : BOOL;
 	bHaltError : BOOL;
 	bReadyToPick : BOOL;
+	bSequenceError : BOOL;
 END_VAR
 VAR
 	bSensor : BOOL;
@@ -37,6 +38,11 @@ END_VAR
 			CommandAborted=> , 
 			Error=> bMoveError, 
 			ErrorID=>);
+			
+			IF bMoveError THEN
+				nState := 999;
+			END_IF
+			
 		ELSE
 			bReadyToPick := TRUE;
 			nState := 1;
@@ -58,6 +64,14 @@ END_VAR
 			nState := 0;
 			
 	END_IF
+	
+999:
+	IF NOT bMoveError AND NOT bHaltError THEN
+		nState := 0;
+		bSequenceError := FALSE;
+	ELSE
+		bSequenceError := TRUE;
+	END_IF
 END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Sequence3">
@@ -67,6 +81,10 @@ END_CASE]]></ST>
       <LineId Id="262" Count="0" />
       <LineId Id="265" Count="10" />
       <LineId Id="263" Count="0" />
+      <LineId Id="334" Count="0" />
+      <LineId Id="330" Count="0" />
+      <LineId Id="332" Count="1" />
+      <LineId Id="331" Count="0" />
       <LineId Id="276" Count="0" />
       <LineId Id="309" Count="0" />
       <LineId Id="277" Count="0" />
@@ -81,6 +99,11 @@ END_CASE]]></ST>
       <LineId Id="308" Count="0" />
       <LineId Id="306" Count="0" />
       <LineId Id="297" Count="0" />
+      <LineId Id="335" Count="1" />
+      <LineId Id="338" Count="1" />
+      <LineId Id="344" Count="0" />
+      <LineId Id="341" Count="1" />
+      <LineId Id="340" Count="0" />
       <LineId Id="220" Count="0" />
     </LineIds>
   </POU>
