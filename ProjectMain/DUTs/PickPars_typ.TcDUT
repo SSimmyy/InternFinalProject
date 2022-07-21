@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="PickPars_typ" Id="{d087dfb7-ff8c-4aaf-b542-399780117ac0}">
+    <Declaration><![CDATA[TYPE PickPars_typ :
+STRUCT
+	
+	Place		: Vector3Position_typ;
+	Elevator	: Vector3Position_typ;
+	ConvXTS 	: Vector3Position_typ;
+	HomePos		: Vector3Position_typ;
+	DumpPos		: Vector3Position_typ;
+	LoadTime	: TIME;
+	UnloadTime	: TIME;
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

@@ -7,12 +7,408 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
+	
+	Delta					: Delta;
+	myRoute					: Route;	// test Route;
+	
+	// ========= Example Application Variables =========
+	
+	nextStation				: USINT := 4;
+	
+	lowVelocity				: LREAL := 200; 	// mm/s
+	mediumVelocity			: LREAL := 800;		// mm/s
+	highVelocity			: LREAL := 2000; 	// mm/s
+
+	
+	// ========= Helper, State, & Index Variables =========
+	
+	i						: UINT;					// index variable; gets reused in various FOR loops
+	n						: UINT;					// secondary index variable, for enabling movers
+	allMoversEnabled		: BOOL;					// helper flag for verifying enable status of all movers
+	
+	MainState				: MainState_enum;		// enumeration for the Main state machine
+	MainCommands			: MainCommands_typ;		// command struct for cycling thru the state machine
+	
+	SystemCommands			: SystemCommands_typ;	// command struct for system-wide XTS & Delta commands
+	
+		
+	// ========= Linked NC Variables & References =========
+	XTS_CA_GroupRef			: AXES_GROUP_REF;							// linked to the Collision Avoidance group and passed cyclically to every Mover object
+	
+	// ========== Conveyor Tracking Objects ==========
+
+	{attribute 'tcinitsymbol'}	TRACK_FRAME	: MC_COORD_REF;
+	{attribute 'tcinitsymbol'}	WORLD_FRAME : MC_COORD_REF;
+
+	ReleaseTimer: TON;
+	DeltaState: UINT;
+	VisuPars: Visu_typ;
+	
+	one: BOOL;
+	two: BOOL;
+	zero: BOOL;
+	xStart :BOOL;
+	DwellTimer: TON;
+	PickParams: PickPars_typ;
+	
+	xTempMoveMover: BOOL;
+	PickFromXTS: INT;
+	gState: INT;
+	loadTon: TON;
+	xstoploop: BOOL;
+	bTest: BOOL;
+	xTest: LREAL;
+	yTest: LREAL;
+	zTest: LREAL;
+	iNumBuffered: INT;
+	iNumToSend : INT:=3;
+	xSTop : bool;
+	
+	xDoQue: BOOL;
+	xSendTwo: BOOL;
+	bSendMover: BOOL;
+	bTrack: BOOL;
+	WorkTon:TON;
+	iCounter: INT;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[Delta.Cyclic();
+
+CASE DeltaState OF
+	0:	// ---------------------------------------------------- Manual Mode
+	
+		// Accept manual command to move-to a location
+		IF SystemCommands.Delta.MoveDirectTo THEN
+			SystemCommands.Delta.MoveDirectTo		:= FALSE;
+				Delta.MoveDirectTo( VisuPars.MoveDirect_X, VisuPars.MoveDirect_Y, VisuPars.MoveDirect_Z );			
+		END_IF
+		
+		// Go-home command
+		IF SystemCommands.Delta.ReturnHome THEN
+			SystemCommands.Delta.ReturnHome		:= FALSE;
+			
+			Delta.ReturnHome();
+		END_IF
+
+		IF SystemCommands.Delta.PickFromElevator THEN
+			SystemCommands.Delta.PickFromElevator := FALSE;
+			Delta.TraverseAtHeightTo(PickParams.Elevator.X, PickParams.Elevator.Y, PickParams.Elevator.Z, PickParams.Elevator.Z +15);		
+		END_IF
+
+		IF SystemCommands.Delta.PlaceOnXTS THEN
+			SystemCommands.Delta.PlaceOnXTS := FALSE;
+			Delta.TraverseAtHeightTo(PickParams.Place.X, PickParams.Elevator.Y, PickParams.Place.Z, PickParams.Place.Z +15);		
+		END_IF
+
+		IF SystemCommands.Delta.PlaceOnXTS THEN
+			SystemCommands.Delta.PlaceOnXTS := FALSE;
+			Delta.TraverseAtHeightTo(PickParams.ConvXTS.X, PickParams.ConvXTS.Y, PickParams.ConvXTS.Z, PickParams.ConvXTS.Z +15);		
+		END_IF	
+END_CASE
+
+IF bTest THEN
+	bTest := FALSE;
+	Delta.MoveDirectTo(xTest, yTest, zTest);	
+END_IF
+
+//This is where you would call the Delta logic and interact with the XTS
+(*
+CASE gState OF
+	
+0: IF xStart THEN
+		gState := 10;
+	END_IF
+10:   // check for defence work
+
+	IF xstop THEN
+		gState := 0;
+	END_IF
+
+	WorkTon(IN:= (SyncManager.ReachableCount = 0), PT:=T#500MS , Q=> , ET=> );
+	
+// Logic check on if we have one to pick from conveyor, else go pick from elevator
+	IF SyncManager.ReachableCount > 0 AND (NOT WorkTon.Q) THEN  // got one to get		
+		gState := 200;
+	ELSIF (WorkTon.Q) THEN
+
+		gState := 100;
+	END_IF
+
+100: // pick from elevator and put on outgoing xts
+		IF iCounter >= 10 THEN
+			IF Station[1].MoverInPosition THEN
+				SystemCommands.MoverRelease := TRUE;
+				iCounter := 0;
+			END_IF
+		ELSE
+			iCounter := iCounter + 1;
+			gState := 105;
+			Delta.MoveDirectTo( PickParams.Elevator.x, PickParams.Elevator.y, PickParams.Elevator.z + 20 );	
+		END_IF
+
+105:
+		IF Delta.MovePathDone THEN
+			Delta.MoveDirectTo( PickParams.Elevator.x, PickParams.Elevator.y, PickParams.Elevator.z  );	
+			main.Delta.EnableAir();		
+			gState := 110;
+		END_IF
+
+110: 
+		IF Delta.MovePathDone THEN		
+			loadTon(IN:= FALSE, PT:=PickParams.LoadTime , Q=> , ET=> );
+			gState := 115;
+		END_IF
+
+115:
+			loadTon(IN:= TRUE, PT:=PickParams.LoadTime , Q=> , ET=> );
+			IF loadTon.Q THEN
+				gState := 120;
+			END_IF
+			
+120:
+		Delta.MoveDirectTo( PickParams.Elevator.x, PickParams.Elevator.y, PickParams.Elevator.z + 20 );	
+		gState := 125;
+125:
+		IF Delta.MovePathDone THEN
+			Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z + 10 );	
+			gState := 127;
+		END_IF
+127:
+		IF Delta.MovePathDone THEN
+			gState := 128;
+		END_IF
+128:	
+		IF Station[1].MoverInPosition THEN
+			Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z);	
+			loadTon(IN:= FALSE, PT:=PickParams.UnloadTime , Q=> , ET=> );		
+			gState := 130;
+		END_IF
+
+130:
+		IF Delta.MovePathDone THEN
+			main.Delta.DisableAir();	
+			gState := 132;	
+		END_IF
+132:
+		loadTon(IN:= TRUE, PT:=PickParams.UnloadTime , Q=> , ET=> );
+		IF loadTon.Q THEN
+			gState := 135;
+		
+		END_IF
+		
+135:
+		Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z + 20 );	
+		gState := 140;
+140:
+		IF Delta.MovePathDone THEN
+			IF NOT xSendTwo THEN	
+				SystemCommands.MoverRelease := TRUE;
+				xSendTwo := FALSE;
+				gState := 10;
+			END_IF
+		END_IF	
+		
+		
+200: // get from xts conveyor
+	IF SyncManager.ReachableCount > 0 THEN
+		Delta.TrackConveyor(SyncManager.NextTrackable.MasterRefPos, SyncManager.NextTrackable.ConveyorAxis, Main.TRACK_FRAME);
+	END_IF
+
+	IF Delta.TrackConveyorActive THEN
+	//	Delta.SetCoordTrafo(MAIN.WORLD_FRAME);
+		gState := 1000;
+	END_IF
+(*
+202: // pick from elevator and put on outgoing xts
+
+		Delta.MoveDirectTo( PickParams.ConvXTS.x, PickParams.ConvXTS.y, PickParams.ConvXTS.z + 20 );	
+		gState := 205;
+205:
+		IF Delta.MovePathDone THEN
+			Delta.MoveDirectTo( PickParams.ConvXTS.x, PickParams.ConvXTS.y, PickParams.ConvXTS.z  );	
+			main.Delta.EnableAir();		
+			gState := 210;
+		END_IF
+
+210: 
+		IF Delta.MovePathDone THEN
+			main.Delta.EnableAir();	
+			loadTon(IN:= FALSE, PT:=PickParams.LoadTime , Q=> , ET=> );
+			gState := 215;
+		END_IF
+
+215:
+			loadTon(IN:= TRUE, PT:=PickParams.LoadTime , Q=> , ET=> );
+			IF loadTon.Q THEN
+				SyncManager.NextTrackable.PuckLoaded := FALSE;
+				gState := 220;
+			END_IF
+220:
+			IF Station[1].MoverInPosition THEN
+				gState := 224;
+			ELSE
+				gState := 300;
+			END_IF
+224:
+		Delta.MoveDirectTo( PickParams.ConvXTS.x, PickParams.ConvXTS.y, PickParams.ConvXTS.z + 20 );	
+		gState := 225;
+		
+			
+225:
+		IF Delta.MovePathDone THEN
+			Delta.SetCoordTrafo( WORLD_FRAME );
+			gState := 226;
+		END_IF
+
+226:
+			Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z + 10 );	
+			gState := 227;
+227:
+		IF Delta.MovePathDone THEN
+			Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z);	
+			loadTon(IN:= FALSE, PT:=PickParams.UnloadTime , Q=> , ET=> );		
+			gState := 230;
+		END_IF
+230:
+		IF Delta.MovePathDone THEN
+			main.Delta.DisableAir();	
+			gState := 232;	
+		END_IF
+232:
+		loadTon(IN:= TRUE, PT:=PickParams.UnloadTime , Q=> , ET=> );
+		IF loadTon.Q THEN
+			gState := 235;
+		END_IF
+		
+235:
+		Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z + 20 );	
+		gState := 240;
+		
+240:
+		IF Delta.MovePathDone THEN
+			IF NOT xSendTwo THEN	
+				SystemCommands.MoverRelease := TRUE;
+				xSendTwo := FALSE;
+			END_IF
+			gState := 10;			
+		END_IF	*)
+
+300: // Dump Puck
+
+		Delta.MoveDirectTo( PickParams.DumpPos.x, PickParams.DumpPos.y, PickParams.DumpPos.z);	
+		loadTon(IN:= FALSE, PT:=PickParams.UnloadTime , Q=> , ET=> );		
+		gState := 330;
+	
+330:
+		IF Delta.MovePathDone THEN
+			main.Delta.DisableAir();	
+			gState := 332;	
+		END_IF
+332:
+		loadTon(IN:= TRUE, PT:=PickParams.UnloadTime , Q=> , ET=> );
+		IF loadTon.Q THEN
+			gState := 335;
+		END_IF
+		
+335:
+		Delta.MoveDirectTo( PickParams.DumpPos.x, PickParams.DumpPos.y, PickParams.DumpPos.z + 20 );	
+		gState := 340;
+340:
+		IF Delta.MovePathDone THEN
+		//	SystemCommands.MoverRelease := TRUE;
+			gState := 10;			
+		END_IF	
+		
+400: // go home
+		Delta.MoveDirectTo( PickParams.HomePos.x, PickParams.HomePos.y, PickParams.HomePos.z);	
+		gState := 430;
+	
+430:
+		IF Delta.MovePathDone THEN	
+		main.Delta.EnableAir();
+			gState := 200;			
+		END_IF	
+		
+1000: // Check if in sync
+		Delta.MoveDirectTo( 0, 0, 0);
+		
+		gState := 1005;	
+	
+1005: // Wait for move to complete
+	IF Delta.MovePathDone THEN	
+		Delta.MoveDirectTo( 0, 0, 20);
+		gState := 1015;
+	END_IF	
+	
+1015: // Wait for move to complete
+	IF Delta.MovePathDone THEN	
+		Delta.SetCoordTrafo(MAIN.WORLD_FRAME);
+			gState := 1020;			
+	END_IF	
+
+1020: // Check if trafo is complete then go to home
+	IF Delta.SetCoordTrafoDone THEN
+		gState := 1025;
+	END_IF
+	
+1025: // Check if a mover is in position
+	IF Station[1].MoverInPosition THEN
+			gState := 1030; // Go to place on conveyor
+		ELSE
+			gState := 300; // Dump
+	END_IF
+	
+1030:
+		Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z);	
+		loadTon(IN:= FALSE, PT:=PickParams.UnloadTime , Q=> , ET=> );		
+		gState := 1035;
+
+1035:
+		IF Delta.MovePathDone THEN
+			main.Delta.DisableAir();	
+			gState := 1040;	
+		END_IF
+1040:
+		loadTon(IN:= TRUE, PT:=PickParams.UnloadTime , Q=> , ET=> );
+		IF loadTon.Q THEN
+			gState := 1045;
+		END_IF
+		
+1045:
+		Delta.MoveDirectTo( PickParams.Place.x, PickParams.Place.y, PickParams.Place.z + 20 );	
+		gState := 1050;
+		
+1050:
+		IF Delta.MovePathDone THEN
+			IF NOT xSendTwo THEN	
+				SystemCommands.MoverRelease := TRUE;
+				xSendTwo := FALSE;
+			END_IF
+			gState := 10;			
+		END_IF	
+	
+END_CASE
+
+*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+]]></ST>
     </Implementation>
     <LineIds Name="Sequence1">
+      <LineId Id="410" Count="1" />
+      <LineId Id="17" Count="328" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>

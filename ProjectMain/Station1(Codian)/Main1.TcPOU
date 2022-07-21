@@ -3,12 +3,26 @@
   <POU Name="Main1" Id="{d4cb2f5e-1b25-4772-ac9c-f411bc2a3341}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main1
 VAR
-END_VAR
-]]></Declaration>
+	Sequence:Sequence1;
+	Forces:Forces1;
+	Reset:Reset1;
+	Faults:Faults1;	
+
+END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[
+	
+//Cyclic Call to the Station FBs 
+Sequence();
+Forces();
+Reset();
+Faults();
+]]></ST>
     </Implementation>
     <LineIds Name="Main1">
+      <LineId Id="102" Count="0" />
+      <LineId Id="108" Count="0" />
+      <LineId Id="103" Count="4" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

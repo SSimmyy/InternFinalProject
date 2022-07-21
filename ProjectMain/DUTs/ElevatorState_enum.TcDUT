@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="ElevatorState_enum" Id="{02cf413f-e0b2-4b87-a9d9-d045f31c9df0}">
+    <Declaration><![CDATA[{attribute 'strict'}
+TYPE ElevatorState_enum :
+(	
+	PE_IDLE			:= 0,
+	PE_RESET		:= 10,
+	PE_POWER_AXIS	:= 20,
+	PE_RUN			:= 30,
+	PE_DEBUG		:= 3113,
+	PE_ERROR		:= 999
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

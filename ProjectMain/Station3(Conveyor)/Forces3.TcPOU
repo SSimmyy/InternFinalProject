@@ -26,33 +26,18 @@ END_VAR
 	Enable_Positive:= bEnable, 
 	Enable_Negative:= bEnable, 
 	Override:= fOvr, 
-	BufferMode:= , 
-	Options:= , 
-	Status=> , 
 	Busy=> PowerAxis1Out.Busy, 
 	Active=> PowerAxis1Out.Active, 
 	Error=> PowerAxis1Out.Error, 
 	ErrorID=> PowerAxis1Out.ErrorID);
-	
 	
 MoveRelative1(
 	Axis:= GVL.ConveyerAxis, 
 	Execute:= bEnable, 
 	Distance:= MoveRelative1.Distance, 
 	Velocity:= MoveRelative1.Velocity, 
-	Acceleration:= , 
-	Deceleration:= , 
-	Jerk:= , 
 	BufferMode:= MoveRelative1.BufferMode, 
-	Options:= , 
-	Done=> MoveRelative1.Done, 
-	Busy=> MoveRelative1.Busy, 
-	Active=> MoveRelative1.Active, 
-	CommandAborted=> MoveRelative1.CommandAborted, 
-	Error=> MoveRelative1.Error, 
-	ErrorID=> MoveRelative1.ErrorID);
-	
-
+	Options:= );
 	
 IF PowerAxis1.Status THEN
 	AxisReady	:= TRUE;
@@ -61,14 +46,13 @@ ELSE
 END_IF	]]></ST>
     </Implementation>
     <LineIds Name="Forces3">
-      <LineId Id="13" Count="11" />
+      <LineId Id="13" Count="5" />
+      <LineId Id="22" Count="2" />
       <LineId Id="9" Count="0" />
       <LineId Id="39" Count="0" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="57" Count="14" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="53" Count="1" />
-      <LineId Id="27" Count="0" />
+      <LineId Id="57" Count="4" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="53" Count="0" />
       <LineId Id="29" Count="3" />
       <LineId Id="28" Count="0" />
     </LineIds>

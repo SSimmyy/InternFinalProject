@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="Visu_typ" Id="{2b0a5f95-68b2-4eb8-bf98-c32a10b5eac6}">
+    <Declaration><![CDATA[TYPE Visu_typ :
+STRUCT
+	
+	MoveDirect_X		: LREAL;
+	MoveDirect_Y		: LREAL;
+	MoveDirect_Z 		: LREAL;
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

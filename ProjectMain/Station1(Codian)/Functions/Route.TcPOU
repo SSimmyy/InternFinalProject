@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Route" Id="{713184cf-30c7-46eb-b656-8fb4c47941e5}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Route IMPLEMENTS iRoute
+VAR_INPUT
+	
+	MotionParameters	: DeltaMotionParameters_typ;	
+
+END_VAR
+VAR_OUTPUT
+	
+	PathBuffer				: ARRAY[0..32767] OF BYTE;
+	PathData				: MC_PATH_DATA_REF( ADR( PathBuffer ), SIZEOF( PathBuffer ));
+
+END_VAR
+VAR
+	
+	{attribute 'instance-path'}
+	{attribute 'no-init'}
+	InstancePath		: STRING;
+	
+	fbMoveLinearPrep		: MC_MoveLinearAbsolutePreparation;
+
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Methods" Id="{a0a521d2-cf1d-4900-9367-be85332f3637}" />
+    <Folder Name="Properties" Id="{8b543435-ae75-47eb-ba22-e51f257b4f70}" />
+    <Method Name="AddBlendedPoint" Id="{808f2a42-d39a-47ac-95ae-aa8e8bcfee1e}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD AddBlendedPoint : iRoute
+VAR_INPUT
+	X			: LREAL;
+	Y			: LREAL;
+	Z			: LREAL;
+END_VAR
+VAR
+	posVector		: ARRAY[0..2] OF LREAL;
+	toleranceBall	: ARRAY[0..1] OF LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// add a single point at the destination
+posVector[0]		:= X;
+posVector[1]		:= Y;
+posVector[2]		:= Z;
+
+// blending radii follows a ratio recommendation from infosys
+toleranceBall[0]		:= 0.5 * MotionParameters.BlendingRadius;
+toleranceBall[1]		:= MotionParameters.BlendingRadius;
+
+fbMoveLinearPrep.Position			:= ADR( posVector );
+fbMoveLinearPrep.PositionCount		:= 3;
+fbMoveLinearPrep.Velocity			:= MotionParameters.Velocity;
+fbMoveLinearPrep.Acceleration		:= MotionParameters.Acceleration;
+fbMoveLinearPrep.Deceleration		:= MotionParameters.Deceleration;
+fbMoveLinearPrep.Jerk				:= MotionParameters.Jerk;
+fbMoveLinearPrep.BufferMode			:= mcBlendingPrevious;
+
+fbMoveLinearPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+fbMoveLinearPrep.TransitionParameter		:= ADR( toleranceBall );
+fbMoveLinearPrep.TransitionParameterCount	:= 2;
+fbMoveLinearPrep.InvokeId					:= 100;
+
+fbMoveLinearPrep( PathData := PathData );
+
+// return this for method chaining
+AddBlendedPoint		:= THIS^;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="AddViaPoint" Id="{ab1eb623-9748-479b-861d-0ee84722546d}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD AddViaPoint : iRoute
+VAR_INPUT
+	X			: LREAL;
+	Y			: LREAL;
+	Z			: LREAL;
+END_VAR
+VAR
+	posVector			: ARRAY[0..2] OF LREAL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// add a single point at the destination
+posVector[0]		:= X;
+posVector[1]		:= Y;
+posVector[2]		:= Z;
+
+fbMoveLinearPrep.Position			:= ADR( posVector );
+fbMoveLinearPrep.PositionCount		:= 3;
+fbMoveLinearPrep.Velocity			:= MotionParameters.Velocity;
+fbMoveLinearPrep.Acceleration		:= MotionParameters.Acceleration;
+fbMoveLinearPrep.Deceleration		:= MotionParameters.Deceleration;
+fbMoveLinearPrep.Jerk				:= MotionParameters.Jerk;
+fbMoveLinearPrep.BufferMode			:= mcBlendingPrevious;
+
+fbMoveLinearPrep.TransitionMode		:= mcTransModeNone;
+fbMoveLinearPrep.InvokeId			:= 100;
+
+fbMoveLinearPrep( PathData := PathData );
+
+// return this for method chaining
+AddViaPoint		:= THIS^;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ClearRoute" Id="{994e64ef-ef8a-4802-8672-d451288efe16}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD ClearRoute : iRoute
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// clear any existing waypoints in the path buffer
+PathData.ClearPath();
+
+// return this for method chaining
+ClearRoute		:= THIS^;]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Route">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="Route.AddBlendedPoint">
+      <LineId Id="20" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="21" Count="2" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="4" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="36" Count="0" />
+    </LineIds>
+    <LineIds Name="Route.AddViaPoint">
+      <LineId Id="19" Count="1" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="28" Count="5" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="39" Count="0" />
+    </LineIds>
+    <LineIds Name="Route.ClearRoute">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

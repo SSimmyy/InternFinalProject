@@ -3,9 +3,11 @@
   <POU Name="Main3" Id="{48f3aa79-5c81-4de9-a7df-ef8cb0b063c9}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main3
 VAR
-	Sequence3 		: Sequence3;
-	Reset3 			: Reset3;
-	Faults3			: Faults3;
+	Sequence:Sequence3;
+	Forces:Forces3;
+	Reset:Reset3;
+	Faults:Faults3;
+	
 	nState 			: INT := 0;
 	fbPower			: MC_Power;
 	powerOutputs 	: ST_McOutputs;
@@ -38,27 +40,27 @@ END_VAR
 		END_IF
 	
 	1:
-		Reset3(
+		Reset(
 			Execute := TRUE,
 			bResetDone => reset3Done);
 		IF reset3Done THEN
 			nState := 2;
 		END_IF
-		IF Reset3.bResetError THEN
+		IF Reset.bResetError THEN
 			nState := 9999;
 		END_IF
 		
 	2:
 	
-		Sequence3(
+		Sequence(
 			bReadyToMove := GVL.bConveyerReadyToMove,
 			bReadyToPick => GVL.bConveyerReadyToPick);
-		IF Sequence3.bSequenceError THEN
+		IF Sequence.bSequenceError THEN
 			nState := 9999;
 		END_IF
 	
 	9999:
-		Faults3();
+		Faults();
 END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Main3">

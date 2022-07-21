@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="iDelta" Id="{b1c10141-048b-4915-a2fa-88aacf371a42}">
+    <Declaration><![CDATA[INTERFACE iDelta
+]]></Declaration>
+    <Folder Name="Methods" Id="{c034fcca-b79b-4a07-919e-0aa436878a14}" />
+    <Folder Name="Properties" Id="{7f0fa4d5-5926-4280-a4f1-3aa8c199ef0b}" />
+    <Method Name="ExecuteRoute" Id="{372bd43e-1964-4819-9927-4766da54fadd}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD ExecuteRoute : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="MoveDirectTo" Id="{d2077d88-8c04-4ac5-86df-9bb4f09b9f7b}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD MoveDirectTo : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="MoveX" Id="{0b33ef1c-3cf0-449b-9029-982734f1bb91}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD MoveX : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="MoveY" Id="{68ed6926-92dc-4a76-a033-5e0f4cbdece1}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD MoveY : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="MoveZ" Id="{65ef6f9b-1600-4494-8dce-d06a52da1d70}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD MoveZ : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ReturnHome" Id="{cf0bd24f-f8dd-4060-9275-9cd153896c40}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD ReturnHome : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="SetAcceleration" Id="{59eed68b-e3b3-46b8-8d4d-101f238de2b4}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetAcceleration : BOOL
+VAR_INPUT
+	Acceleration	: LREAL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="SetDeceleration" Id="{92e76549-e495-400b-8163-d30d797cd585}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetDeceleration : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="SetJerk" Id="{f358d58c-b7b1-4086-9187-de99b7eafcec}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetJerk : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="SetVelocity" Id="{50a06832-0f68-4d62-8c3e-aa920e16ea8b}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetVelocity : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="TraverseAtHeightTo" Id="{5f0f7064-58f5-43fc-ac8f-ef9da33cd706}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD TraverseAtHeightTo : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>
