@@ -3,17 +3,22 @@
   <POU Name="Reset3" Id="{597c4e31-3a66-476b-85d2-28696bcee506}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Reset3
 VAR_INPUT
+		Execute : BOOL;
 END_VAR
 VAR_OUTPUT
 	bResetDone : BOOL;
 	bResetError: BOOL;
 END_VAR
 VAR
+	fbPower : MC_Power;
+	powerOutputs : ST_McOutputs;
 	fbReset : MC_Reset;
 	ResetOut: ST_McOutputs;
 	fbMoveRelative: MC_MoveRelative;
 	RelativeOut : ST_McOutputs;
 	nState : INT;
+END_VAR
+VAR_IN_OUT
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -29,15 +34,39 @@ END_VAR
 		Error=> ResetOut.Error, 
 		ErrorID=> ResetOut.ErrorID);
 		IF NOT fbReset.Error THEN
-			nState := 1;
+			IF fbReset.Done THEN
+				nState := 1;
+			END_IF
 		ELSE
 			nState := 999;
 		END_IF
+		
 1:
+	fbPower(
+			Axis:= GVL.ConveyerAxis, 
+			Enable:= TRUE, 
+			Enable_Positive:= TRUE, 
+			Enable_Negative:= TRUE,  
+			Status=> , 
+			Busy=> powerOutputs.Busy, 
+			Active=> powerOutputs.Active, 
+			Error=> powerOutputs.Error, 
+			ErrorID=> powerOutputs.ErrorID);
+		IF NOT fbPower.Error THEN
+			IF fbPower.Status THEN
+				nState := 2;
+			END_IF	
+		ELSE
+			nState := 9999;
+		END_IF		
+		
+
+2:
 	fbMoveRelative(
 		Axis:= GVL.ConveyerAxis, 
 		Execute:= TRUE, 
-		Distance:= 16,
+		Distance:= 5000,
+		Velocity := 700,
 		Done=> RelativeOut.Done, 
 		Busy=> RelativeOut.Busy, 
 		Active=> RelativeOut.Active, 
@@ -45,13 +74,18 @@ END_VAR
 		Error=> RelativeOut.Error, 
 		ErrorID=> RelativeOut.ErrorID);
 		IF NOT fbMoveRelative.Error THEN
-			nState := 2;
+			IF fbMoveRelative.Done THEN
+				nState := 3;
+			END_IF
 		ELSE
 			nState := 999;
 		END_IF
-2:
+3:
 	bResetDone := TRUE;
-	nState := 0;
+	IF Execute THEN
+		nState := 3;
+	END_IF
+	
 	
 999:
 	IF NOT fbMoveRelative.Error AND NOT fbReset.Error THEN
@@ -72,18 +106,26 @@ END_CASE
       <LineId Id="70" Count="0" />
       <LineId Id="39" Count="5" />
       <LineId Id="38" Count="0" />
-      <LineId Id="45" Count="1" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="139" Count="2" />
       <LineId Id="81" Count="1" />
       <LineId Id="47" Count="0" />
+      <LineId Id="146" Count="1" />
+      <LineId Id="151" Count="15" />
+      <LineId Id="150" Count="0" />
+      <LineId Id="148" Count="1" />
       <LineId Id="37" Count="0" />
       <LineId Id="50" Count="3" />
+      <LineId Id="145" Count="0" />
       <LineId Id="60" Count="4" />
       <LineId Id="48" Count="0" />
-      <LineId Id="66" Count="1" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="142" Count="2" />
       <LineId Id="79" Count="1" />
       <LineId Id="68" Count="0" />
       <LineId Id="65" Count="0" />
       <LineId Id="35" Count="0" />
+      <LineId Id="172" Count="2" />
       <LineId Id="100" Count="2" />
       <LineId Id="71" Count="0" />
       <LineId Id="103" Count="0" />

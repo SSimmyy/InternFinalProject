@@ -16,7 +16,16 @@ VAR
 	nState : INT;
 	
 	fbMoveVelocity: MC_MoveVelocity;
-	fbHalt: MC_Halt;
+	fbStop: MC_Halt;
+	bVelocityBusy: BOOL;
+	bVelocityActive : BOOL;
+	bVelocityExecute: BOOL;
+	fbReset: MC_Reset;
+	fbPower: MC_Power;
+	bVelocityAborted: BOOL;
+	bStopExecute: BOOL;
+	bResetExecute: BOOL;
+	bPowerExecute: BOOL;
 END_VAR
 VAR_IN_OUT
 END_VAR
@@ -28,43 +37,50 @@ END_VAR
 	IF NOT bSensor THEN
 		fbMoveVelocity(
 			Axis:= GVL.ConveyerAxis, 
-			Execute:= TRUE, 
-			Velocity:= 10, 
-			Direction:= MC_Positive_Direction, 
+			Execute:= bVelocityExecute, 
+			Velocity:= 600, 
+			Direction := MC_Negative_Direction,
 			BufferMode:= , 
-			InVelocity=> , 
-			Busy=> , 
-			Active=> , 
-			CommandAborted=> , 
+			Busy=> bVelocityBusy, 
+			Active=> bVelocityActive, 
+			CommandAborted=> bVelocityAborted, 
 			Error=> bMoveError, 
 			ErrorID=>);
-			
+			IF NOT fbMoveVelocity.Busy THEN
+				bVelocityExecute := TRUE;
+			END_IF
 			IF bMoveError THEN
 				nState := 999;
 			END_IF
-			
 		ELSE
-			bReadyToPick := TRUE;
+			bVelocityExecute := FALSE;
 			nState := 1;
 	END_IF
 	
 1:
-	IF NOT bReadyToMove THEN
-		fbHalt(
+	IF NOT GVL.bConveyerReadyToMove THEN
+		fbStop(
 			Axis:= GVL.ConveyerAxis, 
-			Execute:= TRUE, 
+			Execute:= bStopExecute, 
 			Done=> , 
 			Busy=> , 
 			Active=> , 
 			CommandAborted=> , 
 			Error=> bHaltError, 
 			ErrorID=> );
-		ELSE
-			bReadyToPick := FALSE;
-			nState := 0;
+			bStopExecute := TRUE;
+		IF fbStop.Done THEN
+			bReadyToPick := TRUE;
+			bSensor := FALSE;
 			
+		END_IF
+			
+		ELSE
+			GVL.bConveyerReadyToMove := FALSE;
+			bStopExecute := FALSE;
+			nState := 0;
 	END_IF
-	
+			
 999:
 	IF NOT bMoveError AND NOT bHaltError THEN
 		nState := 0;
@@ -79,14 +95,16 @@ END_CASE]]></ST>
       <LineId Id="219" Count="0" />
       <LineId Id="225" Count="0" />
       <LineId Id="262" Count="0" />
-      <LineId Id="265" Count="10" />
+      <LineId Id="265" Count="3" />
+      <LineId Id="365" Count="0" />
+      <LineId Id="270" Count="0" />
+      <LineId Id="272" Count="3" />
       <LineId Id="263" Count="0" />
-      <LineId Id="334" Count="0" />
+      <LineId Id="427" Count="2" />
       <LineId Id="330" Count="0" />
       <LineId Id="332" Count="1" />
-      <LineId Id="331" Count="0" />
       <LineId Id="276" Count="0" />
-      <LineId Id="309" Count="0" />
+      <LineId Id="376" Count="0" />
       <LineId Id="277" Count="0" />
       <LineId Id="264" Count="0" />
       <LineId Id="242" Count="0" />
@@ -94,12 +112,20 @@ END_CASE]]></ST>
       <LineId Id="293" Count="0" />
       <LineId Id="298" Count="7" />
       <LineId Id="296" Count="0" />
+      <LineId Id="370" Count="0" />
+      <LineId Id="366" Count="0" />
+      <LineId Id="368" Count="0" />
+      <LineId Id="372" Count="0" />
+      <LineId Id="418" Count="0" />
+      <LineId Id="369" Count="0" />
+      <LineId Id="367" Count="0" />
       <LineId Id="307" Count="0" />
-      <LineId Id="311" Count="0" />
-      <LineId Id="308" Count="0" />
-      <LineId Id="306" Count="0" />
+      <LineId Id="430" Count="0" />
+      <LineId Id="426" Count="0" />
+      <LineId Id="378" Count="0" />
       <LineId Id="297" Count="0" />
-      <LineId Id="335" Count="1" />
+      <LineId Id="380" Count="0" />
+      <LineId Id="336" Count="0" />
       <LineId Id="338" Count="1" />
       <LineId Id="344" Count="0" />
       <LineId Id="341" Count="1" />
