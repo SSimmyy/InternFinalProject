@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="GVL_XTS" Id="{3404d2b3-9f1a-4859-8222-a6fc00aa0894}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+	bDeltaRelease 		: BOOL;
+	bDeltaReleased 		: BOOL;
+	mover0InPosition 	: BOOL;
+	mover1InPosition 	: BOOL;
+	mover2InPosition 	: BOOL;
+	mover3InPosition 	: BOOL;
+	bXYRelease			: BOOL;
+	bXYReleased			: BOOL;
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

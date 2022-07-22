@@ -3,29 +3,19 @@
   <POU Name="Sequence3" Id="{e15a6fb5-808f-4738-8ea3-952c583c643e}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Sequence3
 VAR_INPUT
-	bReadyToMove : BOOL;
 END_VAR
 VAR_OUTPUT
 	bMoveError : BOOL;
-	bHaltError : BOOL;
-	bReadyToPick : BOOL;
 	bSequenceError : BOOL;
 END_VAR
 VAR
-	bSensor : BOOL;
 	nState : INT;
-	
 	fbMoveVelocity: MC_MoveVelocity;
-	fbStop: MC_Halt;
-	bVelocityBusy: BOOL;
-	bVelocityActive : BOOL;
-	bVelocityExecute: BOOL;
-	fbReset: MC_Reset;
-	fbPower: MC_Power;
-	bVelocityAborted: BOOL;
-	bStopExecute: BOOL;
+	fbHalt: MC_Halt;
+	bHaltExecute: BOOL;
 	bResetExecute: BOOL;
 	bPowerExecute: BOOL;
+	bVelocityExecute : BOOL;
 END_VAR
 VAR_IN_OUT
 END_VAR
@@ -34,18 +24,13 @@ END_VAR
       <ST><![CDATA[CASE nState OF
 	
 0:
-	IF NOT bSensor THEN
+	IF NOT GVL_Conveyer.bSensor THEN
 		fbMoveVelocity(
-			Axis:= GVL.ConveyerAxis, 
+			Axis:= GVL_Conveyer.ConveyerAxis, 
 			Execute:= bVelocityExecute, 
 			Velocity:= 600, 
-			Direction := MC_Negative_Direction,
-			BufferMode:= , 
-			Busy=> bVelocityBusy, 
-			Active=> bVelocityActive, 
-			CommandAborted=> bVelocityAborted, 
-			Error=> bMoveError, 
-			ErrorID=>);
+			Direction := MC_Negative_Direction
+			);
 			IF NOT fbMoveVelocity.Busy THEN
 				bVelocityExecute := TRUE;
 			END_IF
@@ -58,31 +43,25 @@ END_VAR
 	END_IF
 	
 1:
-	IF NOT GVL.bConveyerReadyToMove THEN
-		fbStop(
-			Axis:= GVL.ConveyerAxis, 
-			Execute:= bStopExecute, 
-			Done=> , 
-			Busy=> , 
-			Active=> , 
-			CommandAborted=> , 
-			Error=> bHaltError, 
-			ErrorID=> );
-			bStopExecute := TRUE;
-		IF fbStop.Done THEN
-			bReadyToPick := TRUE;
-			bSensor := FALSE;
-			
+	IF NOT GVL_Conveyer.bConveyerReadyToMove THEN
+		fbHalt(
+			Axis:= GVL_Conveyer.ConveyerAxis, 
+			Execute:= bHaltExecute
+			);
+			bHaltExecute := TRUE;
+		IF fbHalt.Done THEN
+			GVL_Conveyer.bConveyerReadyToPick := TRUE;
 		END_IF
 			
-		ELSE
-			GVL.bConveyerReadyToMove := FALSE;
-			bStopExecute := FALSE;
-			nState := 0;
+	ELSE
+		GVL_Conveyer.bConveyerReadyToMove := FALSE;
+		GVL_Conveyer.bConveyerReadyToPick := FALSE;
+		bHaltExecute := FALSE;
+		nState := 0;
 	END_IF
 			
 999:
-	IF NOT bMoveError AND NOT bHaltError THEN
+	IF NOT fbMoveVelocity.Error AND NOT fbHalt.Error THEN
 		nState := 0;
 		bSequenceError := FALSE;
 	ELSE
@@ -97,9 +76,7 @@ END_CASE]]></ST>
       <LineId Id="262" Count="0" />
       <LineId Id="265" Count="3" />
       <LineId Id="365" Count="0" />
-      <LineId Id="270" Count="0" />
-      <LineId Id="272" Count="3" />
-      <LineId Id="263" Count="0" />
+      <LineId Id="460" Count="0" />
       <LineId Id="427" Count="2" />
       <LineId Id="330" Count="0" />
       <LineId Id="332" Count="1" />
@@ -110,17 +87,14 @@ END_CASE]]></ST>
       <LineId Id="242" Count="0" />
       <LineId Id="224" Count="0" />
       <LineId Id="293" Count="0" />
-      <LineId Id="298" Count="7" />
-      <LineId Id="296" Count="0" />
+      <LineId Id="298" Count="2" />
+      <LineId Id="459" Count="0" />
+      <LineId Id="462" Count="2" />
       <LineId Id="370" Count="0" />
-      <LineId Id="366" Count="0" />
-      <LineId Id="368" Count="0" />
-      <LineId Id="372" Count="0" />
-      <LineId Id="418" Count="0" />
-      <LineId Id="369" Count="0" />
       <LineId Id="367" Count="0" />
       <LineId Id="307" Count="0" />
       <LineId Id="430" Count="0" />
+      <LineId Id="466" Count="0" />
       <LineId Id="426" Count="0" />
       <LineId Id="378" Count="0" />
       <LineId Id="297" Count="0" />

@@ -27,7 +27,7 @@ END_VAR
 0:
 	bResetDone := FALSE;
 	fbReset(
-		Axis:= GVL.ConveyerAxis, 
+		Axis:= GVL_Conveyer.ConveyerAxis, 
 		Execute:= TRUE, 
 		Done=> ResetOut.Done, 
 		Busy=> ResetOut.Busy, 
@@ -43,7 +43,7 @@ END_VAR
 		
 1:
 	fbPower(
-			Axis:= GVL.ConveyerAxis, 
+			Axis:= GVL_Conveyer.ConveyerAxis, 
 			Enable:= TRUE, 
 			Enable_Positive:= TRUE, 
 			Enable_Negative:= TRUE,  
@@ -63,7 +63,7 @@ END_VAR
 
 2:
 	fbMoveRelative(
-		Axis:= GVL.ConveyerAxis, 
+		Axis:= GVL_Conveyer.ConveyerAxis, 
 		Execute:= TRUE, 
 		Distance:= 5000,
 		Velocity := 700,

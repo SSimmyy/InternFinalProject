@@ -21,7 +21,7 @@ END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[PowerAxis1(
-	Axis:= GVL.ConveyerAxis, 
+	Axis:= GVL_Conveyer.ConveyerAxis, 
 	Enable:= bEnable, 
 	Enable_Positive:= bEnable, 
 	Enable_Negative:= bEnable, 
@@ -32,7 +32,7 @@ END_VAR
 	ErrorID=> PowerAxis1Out.ErrorID);
 	
 MoveRelative1(
-	Axis:= GVL.ConveyerAxis, 
+	Axis:= GVL_Conveyer.ConveyerAxis, 
 	Execute:= bEnable, 
 	Distance:= MoveRelative1.Distance, 
 	Velocity:= MoveRelative1.Velocity, 

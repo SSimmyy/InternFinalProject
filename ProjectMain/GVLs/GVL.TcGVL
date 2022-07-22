@@ -3,10 +3,9 @@
   <GVL Name="GVL" Id="{c0b59f4c-f1a2-4141-a240-1ec2cdbcdbf6}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-	
-	ConveyerAxis : AXIS_REF;
-	bConveyerReadyToMove : BOOL;
-	bConveyerReadyToPick : BOOL;
+	DeltaCoords : ARRAY[0..20] OF Coords;
+	XYCoords	: ARRAY[0..20] OF Coords;
+	I_bTest	AT %I*:BOOL;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

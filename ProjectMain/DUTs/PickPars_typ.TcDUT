@@ -4,9 +4,9 @@
     <Declaration><![CDATA[TYPE PickPars_typ :
 STRUCT
 	
-	Place		: Vector3Position_typ;
+	PlaceXTS	: Vector3Position_typ;
 	Elevator	: Vector3Position_typ;
-	ConvXTS 	: Vector3Position_typ;
+	Conveyer 	: Vector3Position_typ;
 	HomePos		: Vector3Position_typ;
 	DumpPos		: Vector3Position_typ;
 	LoadTime	: TIME;

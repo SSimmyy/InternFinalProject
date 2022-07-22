@@ -22,7 +22,7 @@ END_VAR
       <ST><![CDATA[CASE nState OF
 	0:
 		fbPower(
-			Axis:= GVL.ConveyerAxis, 
+			Axis:= GVL_Conveyer.ConveyerAxis, 
 			Enable:= TRUE, 
 			Enable_Positive:= TRUE, 
 			Enable_Negative:= TRUE,  
@@ -52,9 +52,7 @@ END_VAR
 		
 	2:
 	
-		Sequence(
-			bReadyToMove := GVL.bConveyerReadyToMove,
-			bReadyToPick => GVL.bConveyerReadyToPick);
+		Sequence();
 		IF Sequence.bSequenceError THEN
 			nState := 9999;
 		END_IF
@@ -83,8 +81,7 @@ END_CASE]]></ST>
       <LineId Id="69" Count="0" />
       <LineId Id="37" Count="0" />
       <LineId Id="90" Count="0" />
-      <LineId Id="50" Count="1" />
-      <LineId Id="53" Count="0" />
+      <LineId Id="50" Count="0" />
       <LineId Id="55" Count="2" />
       <LineId Id="74" Count="2" />
       <LineId Id="12" Count="0" />
