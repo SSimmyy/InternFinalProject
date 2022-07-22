@@ -70,10 +70,22 @@ VAR
 	bTrack: BOOL;
 	WorkTon:TON;
 	iCounter: INT;
+	bEnableDelta: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[Delta.Cyclic();
+      <ST><![CDATA[//Delta Dynamics	
+	(*Delta.MotionParameters.Velocity			:= 1000;
+	Delta.MotionParameters.Acceleration		:= 11000;
+	Delta.MotionParameters.Deceleration		:= 11000;
+	Delta.MotionParameters.Jerk				:= 50000;
+	Delta.MotionParameters.BlendingRadius	:= 5;	*)
+
+Delta.Cyclic();
+
+IF bEnableDelta THEN
+	Delta.Enable();
+END_IF
 
 IF bTest THEN
 	bTest := FALSE;
@@ -81,7 +93,7 @@ IF bTest THEN
 END_IF
 
 //This is where you would call the Delta logic and interact with the XTS
-
+(*
 CASE gState OF
 	
 0: IF xStart THEN
@@ -141,7 +153,7 @@ CASE gState OF
 END_CASE
 
 
-
+*)
 
 
 
@@ -156,7 +168,14 @@ END_CASE
 ]]></ST>
     </Implementation>
     <LineIds Name="Sequence1">
+      <LineId Id="583" Count="0" />
+      <LineId Id="587" Count="0" />
+      <LineId Id="584" Count="2" />
+      <LineId Id="581" Count="1" />
       <LineId Id="410" Count="0" />
+      <LineId Id="589" Count="0" />
+      <LineId Id="588" Count="0" />
+      <LineId Id="590" Count="1" />
       <LineId Id="48" Count="11" />
       <LineId Id="485" Count="2" />
       <LineId Id="498" Count="0" />

@@ -4920,7 +4920,7 @@ This error by initializing operating time is deactivated by following firmware:
 		</Property>
 	</Source>
 	<Source>
-		<GUID>{28111931-0002-0000-1260-AC1F6D25B946}</GUID>
+		<GUID>{28111931-0002-0000-1260-AC1F494783A5}</GUID>
 		<Name LcId="1031">AX8108-0100-0104 (1Ch. 8A servo axis, STO)</Name>
 		<Name LcId="1033">AX8108-0100-0104 (1Ch. 8A servo axis, STO)</Name>
 		<DetailSource>
@@ -25424,13 +25424,619 @@ This error by initializing operating time is deactivated by following firmware:
 				<Remedy LcId="1033">Disconnect the power supply module from the mains (including the 24 V power supply) and start a new attempt. If this error occurs repeatedly, please call the Beckhoff support that is responsible for you.</Remedy>
 			</CauseRemedy>
 		</Event>
+		<Event>
+			<Id>3699488</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder error (position invalid), Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The encoder position is invalid:
+
+Id=1: Got no valid position from the HpfDsl-Ip-Core.
+         Arg = 'Internal status word'
+Id=2: The position extrapolator error limit is reached.
+         Arg = 'Internal status word'
+Id=3: The position extrapolator is too many cycles active.
+         Arg = value of the cycle counter
+
+'Internal status word':
+Bit  0: Enabled : IpCore enable
+Bit  1: rsvd0  
+Bit  2: PosReady : Position ready to use
+Bit  3: StartupDone : Internal startup done
+Bit  4: PosErrorLimitExceeded : Extrapolator position limit exceeded
+Bit  5: rsvd1
+Bit  6: InterruptCorePin
+Bit  7: SyncD : IpCore is synced.
+Bit  8: PRST
+Bit  9: QMLW 
+Bit 10: VPOSerror
+Bit 11: POSerror
+Bit 12: LastPosValid : Position from the previous cycle is valid.
+Bit 13: VRTerror
+Bit 14: SUM 
+Bit 15: InterruptOnlineStatus]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>3</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="1"/>
+		</Event>
+		<Event>
+			<Id>3699584</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder start sequence failed, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The start sequence of the encoder processing failed:
+
+Id=0x01: Enocder start failed with internal error (see 'Arg')
+Id=0x0A: Check of the edge register failed (Arg=edge count)
+Id=0x0B: Check of the summary register faild (Arg=summary register)
+Id=0x0C: Internal error (Arg=internal exit)
+Id=0x0D: File processing error  (Arg=internal exit)
+Id=0x0E: Invalid encoder resolution (Arg=enc resolution)
+Id=0x0F: Invalid encoder range (Arg=enc range)
+Id=0x10: Error in start sequence step (Arg=step number)
+Id=0x11: Supply voltage could not enabled. The encoder resistance is too low. (Arg=restance in Ohm)
+Id=0x12: Position processing init error.
+Id=0x13: Encoder status register [3..0]. Arg=status reg [3..0]
+Id=0x14: Encoder status register [7..4]. Arg=status reg [7..4]
+Id=0x20: Invalid encoder status register 0..Arg= high word =mask,  low word status reg 0
+Id=0x21: Invalid encoder status register 1. Arg= high word =mask,  low word status reg 1
+Id=0x22: Invalid encoder status register 2..Arg= high word =mask,  low word status reg 2
+Id=0x23: Invalid encoder status register 3. Arg= high word =mask,  low word status reg 3
+Id=0x24: Invalid encoder status register 4. Arg= high word =mask,  low word status reg 4
+Id=0x25: Invalid encoder status register 5. Arg= high word =mask,  low word status reg 5
+Id=0x26: Invalid encoder status register 6. Arg= high word =mask,  low word status reg 6
+Id=0x27: Invalid encoder status register 7. Arg= high word =mask,  low word status reg 7
+Id=0x28: The encoder type signals an error (Arg=encoder type)
+Id=0x29: The encoder type not supported (Arg=encoder type)
+Id=0x2A: The encoder type is HF2DSL but no RID 0x90  (Arg=encoder type)
+Id=0x2B: Init non binary encoder failed. The position isn't valid. (Arg=internal enc status)
+Id=0x2C: Init non binary encoder failed. (Arg=internal id)
+Id=0x2D: Init non binary encoder failed. Missing fpga support. (Arg=encoder type)]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699585</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder shutdown failed, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The stop sequence of the encoder failed:
+
+Id=0x01: Enocder stop failed with internal error (see 'Arg')
+Id=0x02: Encoder stop failed. The link isn't down. (Arg=internal status)]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699586</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Parameter access error, Id=0x{0,X}, Cmd={1}, RID=0x{2,X}, Offset={3}, Len={4}, LongMsgErrorCode=0x{5,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[Encoder paramteter access error:
+
+Id=0x01..0x08: Internal error
+Id=0x09: Error while accessing RID, see 'Long message error codes'
+
+Long message error codes:
+  0x4010 Resource address not installed in the encoder
+  0x4011 Incorrect length for resource access given
+  0x4012 Incorrect length for direct resource access given
+  0x4013 Offset address too high
+  0x4014 Invalid offset address
+  0x4015 Invalid "long message" characteristic
+  0x4016 Missing offset address
+  0x4110 Write access not possible
+  0x4111 Read access not possible
+  0x4112 Write access denied
+  0x4113 Read access denied
+  0x4114 Write access for direct resource access denied
+  0x4210 Resource database entry damaged
+  0x4211 Time overrun during resource access
+  0x4212 Internal processing error during resource access
+  0x4311 File name was not found
+  0x4312 Invalid address for file access
+  0x4313 File size may not be altered
+  0x4314 Memory location for files full
+  0x4315 File allocation table damaged
+  0x4316 No file loaded for action
+  0x4317 File exists with the same name]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>5</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699587</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Internal error, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Internal version check failed:
+
+Id=0x1: Invalid IpCore register layout
+Id=0x2: Invalid IpCore version
+Id=0x3: No line error counter available.
+Id=0x4: No Safety-IpCore</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699588</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Cyclic monitoring error, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[Encoder status check:
+
+Id=0x09: Too many errors on the parameter data channel . Arg='Error cnt'
+Id=0x0A: Internal error
+Id=0x10: Encoder status 0 check failed: Arg= HighWord='Mask', LowWord=EncST0 
+Id=0x11: Encoder status 1 check failed: Arg= HighWord='Mask', LowWord=EncST1 
+Id=0x12: Encoder status 2 check failed: Arg= HighWord='Mask', LowWord=EncST2 
+Id=0x13: Encoder status 3 check failed: Arg= HighWord='Mask', LowWord=EncST3 
+Id=0x14: Encoder status 4 check failed: Arg= HighWord='Mask', LowWord=EncST4 
+Id=0x15: Encoder status 5 check failed: Arg= HighWord='Mask', LowWord=EncST5 
+Id=0x16: Encoder status 6 check failed: Arg= HighWord='Mask', LowWord=EncST6 
+Id=0x17: Encoder status 7 check failed: Arg= HighWord='Mask', LowWord=EncST7]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699589</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder file processing, Id=0x{0,X}, WarnArg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[File processing warning:
+Id=0x1: Found no electronic data sheet
+Id=0x2: The file item (Arg) isn't found
+Id=0x3: Internal error]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699590</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Found no encoder (No link to an encoder)!</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The HpfDSL master indicates no communication link to an encoder (motor feedback system).</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">No physical encoder connection.</Cause>
+				<Remedy LcId="1033">Check and fix the encoder connection.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>3699591</Id>
+			<Message LcId="1033"><![CDATA[Ch A, Primary Feedback: HpfDsl: The encoder doesn't meet the specified policies. Resolutionpolicy={0} [Encoder={1}, Requirement={2}], Rangepolicy={3} [Encoder={4}, Requirement={5}]]]></Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The encoder doesn't meet the specified policies. See objects 'encoder policies' and 'encoder info'.]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">No physical encoder connection.</Cause>
+				<Remedy LcId="1033">Check and fix the encoder connection.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>3699592</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder power off (triggered from SafeCu), Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699593</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder interface resistance check failed. Measured resistance is too low! R={0} Ohm</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699594</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Found no verification code for the loaded fpga.</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033"><![CDATA[The loaded fpga is not 'Safe-Motion' verified.]]></Cause>
+				<Remedy LcId="1033">Use a release firmware version.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>3699595</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Internal warning! The error inducer is available.</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699596</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder seems to be offline for {0} cycles. (InternalDbg: {1})</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The drive received no data bits from the encoder for N cycles.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699597</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Invalid encoder parameter, see SubIdx {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The CoE encoder parameter (SubIdx xxx) is invalid.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699598</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder file processing error, FileId=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">An error ocured during processing the encoder file.
+FileId:
+0x01 = Electronic Data Sheet File
+0x02 = User Data File
+0x03 = Position Offset File
+0x04 = Commutation Offset File
+0x05 = Cogging Compensation Coefficients File
+Arg:
+0x01 = No File Header Existing
+0x02 = File Size Error
+0x03 = File Size Not Aligned
+0x04 = Invalid File Header Error 1
+0x05 = Invalid File Header Error 2
+0x06 = Invalid File Header Error 3
+0x07 = Invalid File Header Crc1
+0x08 = Invalid File Header Crc2
+0x10 = Invalid Vendor Key</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699599</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: SafeCU monitored encoder status flag is set! The next fault reset triggers an encoder restart. EncST7..4=0x{0,X}, EncST3..0=0x{1,X}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699600</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Status dump, Encoder Status after {0}ms: Summary=0x{1,X}, Regs 7..4=0x{2,X}, Regs 3..0=0x{3,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Content of the encoder status regs 0x47...0x44 and 0x43..0x40.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699601</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Status dump, Max occured position deviation={0} mdeg</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699602</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Status dump, Error counter VPOS={0}, ACC={1}, VRT={2}, POS={3}, LINK={4}, Encoding={5}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735547</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: Dbg: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>200</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735548</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735549</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735550</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735551</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: Internal Error, Additional Errorcode 0x{0,x}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Internal Error</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>400</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">An unknown hard- or software error has occurred.</Cause>
+				<Remedy LcId="1033">Disconnect the power supply module from the mains (including the 24 V power supply) and start a new attempt. If this error occurs repeatedly, please call the Beckhoff support that is responsible for you.</Remedy>
+			</CauseRemedy>
+		</Event>
 		<Property>
 			<Name>DisplayTxtId</Name>
 			<Value>true</Value>
 		</Property>
 	</Source>
 	<Source>
-		<GUID>{28111931-0002-0000-1260-0E20B9546DFF}</GUID>
+		<GUID>{28111931-0002-0000-1260-0E2043ACFBF2}</GUID>
 		<Name LcId="1031">AX8206-0210-0104 (2Ch. 6A servo axis, safe-motion, multi-FB)</Name>
 		<Name LcId="1033">AX8206-0210-0104 (2Ch. 6A servo axis, safe-motion, multi-FB)</Name>
 		<DetailSource>
@@ -45935,6 +46541,612 @@ This error by initializing operating time is deactivated by following firmware:
 			</CauseRemedy>
 		</Event>
 		<Event>
+			<Id>3699488</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder error (position invalid), Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The encoder position is invalid:
+
+Id=1: Got no valid position from the HpfDsl-Ip-Core.
+         Arg = 'Internal status word'
+Id=2: The position extrapolator error limit is reached.
+         Arg = 'Internal status word'
+Id=3: The position extrapolator is too many cycles active.
+         Arg = value of the cycle counter
+
+'Internal status word':
+Bit  0: Enabled : IpCore enable
+Bit  1: rsvd0  
+Bit  2: PosReady : Position ready to use
+Bit  3: StartupDone : Internal startup done
+Bit  4: PosErrorLimitExceeded : Extrapolator position limit exceeded
+Bit  5: rsvd1
+Bit  6: InterruptCorePin
+Bit  7: SyncD : IpCore is synced.
+Bit  8: PRST
+Bit  9: QMLW 
+Bit 10: VPOSerror
+Bit 11: POSerror
+Bit 12: LastPosValid : Position from the previous cycle is valid.
+Bit 13: VRTerror
+Bit 14: SUM 
+Bit 15: InterruptOnlineStatus]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>3</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="1"/>
+		</Event>
+		<Event>
+			<Id>3699584</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder start sequence failed, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The start sequence of the encoder processing failed:
+
+Id=0x01: Enocder start failed with internal error (see 'Arg')
+Id=0x0A: Check of the edge register failed (Arg=edge count)
+Id=0x0B: Check of the summary register faild (Arg=summary register)
+Id=0x0C: Internal error (Arg=internal exit)
+Id=0x0D: File processing error  (Arg=internal exit)
+Id=0x0E: Invalid encoder resolution (Arg=enc resolution)
+Id=0x0F: Invalid encoder range (Arg=enc range)
+Id=0x10: Error in start sequence step (Arg=step number)
+Id=0x11: Supply voltage could not enabled. The encoder resistance is too low. (Arg=restance in Ohm)
+Id=0x12: Position processing init error.
+Id=0x13: Encoder status register [3..0]. Arg=status reg [3..0]
+Id=0x14: Encoder status register [7..4]. Arg=status reg [7..4]
+Id=0x20: Invalid encoder status register 0..Arg= high word =mask,  low word status reg 0
+Id=0x21: Invalid encoder status register 1. Arg= high word =mask,  low word status reg 1
+Id=0x22: Invalid encoder status register 2..Arg= high word =mask,  low word status reg 2
+Id=0x23: Invalid encoder status register 3. Arg= high word =mask,  low word status reg 3
+Id=0x24: Invalid encoder status register 4. Arg= high word =mask,  low word status reg 4
+Id=0x25: Invalid encoder status register 5. Arg= high word =mask,  low word status reg 5
+Id=0x26: Invalid encoder status register 6. Arg= high word =mask,  low word status reg 6
+Id=0x27: Invalid encoder status register 7. Arg= high word =mask,  low word status reg 7
+Id=0x28: The encoder type signals an error (Arg=encoder type)
+Id=0x29: The encoder type not supported (Arg=encoder type)
+Id=0x2A: The encoder type is HF2DSL but no RID 0x90  (Arg=encoder type)
+Id=0x2B: Init non binary encoder failed. The position isn't valid. (Arg=internal enc status)
+Id=0x2C: Init non binary encoder failed. (Arg=internal id)
+Id=0x2D: Init non binary encoder failed. Missing fpga support. (Arg=encoder type)]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699585</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder shutdown failed, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The stop sequence of the encoder failed:
+
+Id=0x01: Enocder stop failed with internal error (see 'Arg')
+Id=0x02: Encoder stop failed. The link isn't down. (Arg=internal status)]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699586</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Parameter access error, Id=0x{0,X}, Cmd={1}, RID=0x{2,X}, Offset={3}, Len={4}, LongMsgErrorCode=0x{5,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[Encoder paramteter access error:
+
+Id=0x01..0x08: Internal error
+Id=0x09: Error while accessing RID, see 'Long message error codes'
+
+Long message error codes:
+  0x4010 Resource address not installed in the encoder
+  0x4011 Incorrect length for resource access given
+  0x4012 Incorrect length for direct resource access given
+  0x4013 Offset address too high
+  0x4014 Invalid offset address
+  0x4015 Invalid "long message" characteristic
+  0x4016 Missing offset address
+  0x4110 Write access not possible
+  0x4111 Read access not possible
+  0x4112 Write access denied
+  0x4113 Read access denied
+  0x4114 Write access for direct resource access denied
+  0x4210 Resource database entry damaged
+  0x4211 Time overrun during resource access
+  0x4212 Internal processing error during resource access
+  0x4311 File name was not found
+  0x4312 Invalid address for file access
+  0x4313 File size may not be altered
+  0x4314 Memory location for files full
+  0x4315 File allocation table damaged
+  0x4316 No file loaded for action
+  0x4317 File exists with the same name]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>5</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699587</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Internal error, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Internal version check failed:
+
+Id=0x1: Invalid IpCore register layout
+Id=0x2: Invalid IpCore version
+Id=0x3: No line error counter available.
+Id=0x4: No Safety-IpCore</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699588</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Cyclic monitoring error, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[Encoder status check:
+
+Id=0x09: Too many errors on the parameter data channel . Arg='Error cnt'
+Id=0x0A: Internal error
+Id=0x10: Encoder status 0 check failed: Arg= HighWord='Mask', LowWord=EncST0 
+Id=0x11: Encoder status 1 check failed: Arg= HighWord='Mask', LowWord=EncST1 
+Id=0x12: Encoder status 2 check failed: Arg= HighWord='Mask', LowWord=EncST2 
+Id=0x13: Encoder status 3 check failed: Arg= HighWord='Mask', LowWord=EncST3 
+Id=0x14: Encoder status 4 check failed: Arg= HighWord='Mask', LowWord=EncST4 
+Id=0x15: Encoder status 5 check failed: Arg= HighWord='Mask', LowWord=EncST5 
+Id=0x16: Encoder status 6 check failed: Arg= HighWord='Mask', LowWord=EncST6 
+Id=0x17: Encoder status 7 check failed: Arg= HighWord='Mask', LowWord=EncST7]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699589</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder file processing, Id=0x{0,X}, WarnArg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[File processing warning:
+Id=0x1: Found no electronic data sheet
+Id=0x2: The file item (Arg) isn't found
+Id=0x3: Internal error]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699590</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Found no encoder (No link to an encoder)!</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The HpfDSL master indicates no communication link to an encoder (motor feedback system).</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">No physical encoder connection.</Cause>
+				<Remedy LcId="1033">Check and fix the encoder connection.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>3699591</Id>
+			<Message LcId="1033"><![CDATA[Ch A, Primary Feedback: HpfDsl: The encoder doesn't meet the specified policies. Resolutionpolicy={0} [Encoder={1}, Requirement={2}], Rangepolicy={3} [Encoder={4}, Requirement={5}]]]></Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The encoder doesn't meet the specified policies. See objects 'encoder policies' and 'encoder info'.]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">No physical encoder connection.</Cause>
+				<Remedy LcId="1033">Check and fix the encoder connection.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>3699592</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder power off (triggered from SafeCu), Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699593</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder interface resistance check failed. Measured resistance is too low! R={0} Ohm</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699594</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Found no verification code for the loaded fpga.</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033"><![CDATA[The loaded fpga is not 'Safe-Motion' verified.]]></Cause>
+				<Remedy LcId="1033">Use a release firmware version.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>3699595</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Internal warning! The error inducer is available.</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699596</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder seems to be offline for {0} cycles. (InternalDbg: {1})</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The drive received no data bits from the encoder for N cycles.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699597</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Invalid encoder parameter, see SubIdx {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The CoE encoder parameter (SubIdx xxx) is invalid.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699598</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Encoder file processing error, FileId=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">An error ocured during processing the encoder file.
+FileId:
+0x01 = Electronic Data Sheet File
+0x02 = User Data File
+0x03 = Position Offset File
+0x04 = Commutation Offset File
+0x05 = Cogging Compensation Coefficients File
+Arg:
+0x01 = No File Header Existing
+0x02 = File Size Error
+0x03 = File Size Not Aligned
+0x04 = Invalid File Header Error 1
+0x05 = Invalid File Header Error 2
+0x06 = Invalid File Header Error 3
+0x07 = Invalid File Header Crc1
+0x08 = Invalid File Header Crc2
+0x10 = Invalid Vendor Key</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699599</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: SafeCU monitored encoder status flag is set! The next fault reset triggers an encoder restart. EncST7..4=0x{0,X}, EncST3..0=0x{1,X}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699600</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Status dump, Encoder Status after {0}ms: Summary=0x{1,X}, Regs 7..4=0x{2,X}, Regs 3..0=0x{3,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Content of the encoder status regs 0x47...0x44 and 0x43..0x40.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699601</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Status dump, Max occured position deviation={0} mdeg</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3699602</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: HpfDsl: Status dump, Error counter VPOS={0}, ACC={1}, VRT={2}, POS={3}, LINK={4}, Encoding={5}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735547</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: Dbg: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>200</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735548</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735549</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735550</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>3735551</Id>
+			<Message LcId="1033">Ch A, Primary Feedback: Internal Error, Additional Errorcode 0x{0,x}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Internal Error</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>400</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">An unknown hard- or software error has occurred.</Cause>
+				<Remedy LcId="1033">Disconnect the power supply module from the mains (including the 24 V power supply) and start a new attempt. If this error occurs repeatedly, please call the Beckhoff support that is responsible for you.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
 			<Id>4259840</Id>
 			<Message LcId="1033">Ch B, AxisMainSlot: No Error</Message>
 			<Detail>
@@ -49087,6 +50299,612 @@ This error by initializing operating time is deactivated by following firmware:
 		<Event>
 			<Id>5767167</Id>
 			<Message LcId="1033">Ch B, Motor: Internal Error, Additional Errorcode 0x{0,x}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Internal Error</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>400</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">An unknown hard- or software error has occurred.</Cause>
+				<Remedy LcId="1033">Disconnect the power supply module from the mains (including the 24 V power supply) and start a new attempt. If this error occurs repeatedly, please call the Beckhoff support that is responsible for you.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>5796640</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder error (position invalid), Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The encoder position is invalid:
+
+Id=1: Got no valid position from the HpfDsl-Ip-Core.
+         Arg = 'Internal status word'
+Id=2: The position extrapolator error limit is reached.
+         Arg = 'Internal status word'
+Id=3: The position extrapolator is too many cycles active.
+         Arg = value of the cycle counter
+
+'Internal status word':
+Bit  0: Enabled : IpCore enable
+Bit  1: rsvd0  
+Bit  2: PosReady : Position ready to use
+Bit  3: StartupDone : Internal startup done
+Bit  4: PosErrorLimitExceeded : Extrapolator position limit exceeded
+Bit  5: rsvd1
+Bit  6: InterruptCorePin
+Bit  7: SyncD : IpCore is synced.
+Bit  8: PRST
+Bit  9: QMLW 
+Bit 10: VPOSerror
+Bit 11: POSerror
+Bit 12: LastPosValid : Position from the previous cycle is valid.
+Bit 13: VRTerror
+Bit 14: SUM 
+Bit 15: InterruptOnlineStatus]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>3</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="1"/>
+		</Event>
+		<Event>
+			<Id>5796736</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder start sequence failed, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The start sequence of the encoder processing failed:
+
+Id=0x01: Enocder start failed with internal error (see 'Arg')
+Id=0x0A: Check of the edge register failed (Arg=edge count)
+Id=0x0B: Check of the summary register faild (Arg=summary register)
+Id=0x0C: Internal error (Arg=internal exit)
+Id=0x0D: File processing error  (Arg=internal exit)
+Id=0x0E: Invalid encoder resolution (Arg=enc resolution)
+Id=0x0F: Invalid encoder range (Arg=enc range)
+Id=0x10: Error in start sequence step (Arg=step number)
+Id=0x11: Supply voltage could not enabled. The encoder resistance is too low. (Arg=restance in Ohm)
+Id=0x12: Position processing init error.
+Id=0x13: Encoder status register [3..0]. Arg=status reg [3..0]
+Id=0x14: Encoder status register [7..4]. Arg=status reg [7..4]
+Id=0x20: Invalid encoder status register 0..Arg= high word =mask,  low word status reg 0
+Id=0x21: Invalid encoder status register 1. Arg= high word =mask,  low word status reg 1
+Id=0x22: Invalid encoder status register 2..Arg= high word =mask,  low word status reg 2
+Id=0x23: Invalid encoder status register 3. Arg= high word =mask,  low word status reg 3
+Id=0x24: Invalid encoder status register 4. Arg= high word =mask,  low word status reg 4
+Id=0x25: Invalid encoder status register 5. Arg= high word =mask,  low word status reg 5
+Id=0x26: Invalid encoder status register 6. Arg= high word =mask,  low word status reg 6
+Id=0x27: Invalid encoder status register 7. Arg= high word =mask,  low word status reg 7
+Id=0x28: The encoder type signals an error (Arg=encoder type)
+Id=0x29: The encoder type not supported (Arg=encoder type)
+Id=0x2A: The encoder type is HF2DSL but no RID 0x90  (Arg=encoder type)
+Id=0x2B: Init non binary encoder failed. The position isn't valid. (Arg=internal enc status)
+Id=0x2C: Init non binary encoder failed. (Arg=internal id)
+Id=0x2D: Init non binary encoder failed. Missing fpga support. (Arg=encoder type)]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796737</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder shutdown failed, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The stop sequence of the encoder failed:
+
+Id=0x01: Enocder stop failed with internal error (see 'Arg')
+Id=0x02: Encoder stop failed. The link isn't down. (Arg=internal status)]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796738</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Parameter access error, Id=0x{0,X}, Cmd={1}, RID=0x{2,X}, Offset={3}, Len={4}, LongMsgErrorCode=0x{5,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[Encoder paramteter access error:
+
+Id=0x01..0x08: Internal error
+Id=0x09: Error while accessing RID, see 'Long message error codes'
+
+Long message error codes:
+  0x4010 Resource address not installed in the encoder
+  0x4011 Incorrect length for resource access given
+  0x4012 Incorrect length for direct resource access given
+  0x4013 Offset address too high
+  0x4014 Invalid offset address
+  0x4015 Invalid "long message" characteristic
+  0x4016 Missing offset address
+  0x4110 Write access not possible
+  0x4111 Read access not possible
+  0x4112 Write access denied
+  0x4113 Read access denied
+  0x4114 Write access for direct resource access denied
+  0x4210 Resource database entry damaged
+  0x4211 Time overrun during resource access
+  0x4212 Internal processing error during resource access
+  0x4311 File name was not found
+  0x4312 Invalid address for file access
+  0x4313 File size may not be altered
+  0x4314 Memory location for files full
+  0x4315 File allocation table damaged
+  0x4316 No file loaded for action
+  0x4317 File exists with the same name]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>5</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796739</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Internal error, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Internal version check failed:
+
+Id=0x1: Invalid IpCore register layout
+Id=0x2: Invalid IpCore version
+Id=0x3: No line error counter available.
+Id=0x4: No Safety-IpCore</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796740</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Cyclic monitoring error, Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[Encoder status check:
+
+Id=0x09: Too many errors on the parameter data channel . Arg='Error cnt'
+Id=0x0A: Internal error
+Id=0x10: Encoder status 0 check failed: Arg= HighWord='Mask', LowWord=EncST0 
+Id=0x11: Encoder status 1 check failed: Arg= HighWord='Mask', LowWord=EncST1 
+Id=0x12: Encoder status 2 check failed: Arg= HighWord='Mask', LowWord=EncST2 
+Id=0x13: Encoder status 3 check failed: Arg= HighWord='Mask', LowWord=EncST3 
+Id=0x14: Encoder status 4 check failed: Arg= HighWord='Mask', LowWord=EncST4 
+Id=0x15: Encoder status 5 check failed: Arg= HighWord='Mask', LowWord=EncST5 
+Id=0x16: Encoder status 6 check failed: Arg= HighWord='Mask', LowWord=EncST6 
+Id=0x17: Encoder status 7 check failed: Arg= HighWord='Mask', LowWord=EncST7]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796741</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder file processing, Id=0x{0,X}, WarnArg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[File processing warning:
+Id=0x1: Found no electronic data sheet
+Id=0x2: The file item (Arg) isn't found
+Id=0x3: Internal error]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796742</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Found no encoder (No link to an encoder)!</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The HpfDSL master indicates no communication link to an encoder (motor feedback system).</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">No physical encoder connection.</Cause>
+				<Remedy LcId="1033">Check and fix the encoder connection.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>5796743</Id>
+			<Message LcId="1033"><![CDATA[Ch B, Primary Feedback: HpfDsl: The encoder doesn't meet the specified policies. Resolutionpolicy={0} [Encoder={1}, Requirement={2}], Rangepolicy={3} [Encoder={4}, Requirement={5}]]]></Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033"><![CDATA[The encoder doesn't meet the specified policies. See objects 'encoder policies' and 'encoder info'.]]></Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033">No physical encoder connection.</Cause>
+				<Remedy LcId="1033">Check and fix the encoder connection.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>5796744</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder power off (triggered from SafeCu), Id=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796745</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder interface resistance check failed. Measured resistance is too low! R={0} Ohm</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796746</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Found no verification code for the loaded fpga.</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<CauseRemedy Idx="0">
+				<Cause LcId="1033"><![CDATA[The loaded fpga is not 'Safe-Motion' verified.]]></Cause>
+				<Remedy LcId="1033">Use a release firmware version.</Remedy>
+			</CauseRemedy>
+		</Event>
+		<Event>
+			<Id>5796747</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Internal warning! The error inducer is available.</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796748</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder seems to be offline for {0} cycles. (InternalDbg: {1})</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The drive received no data bits from the encoder for N cycles.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>4</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796749</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Invalid encoder parameter, see SubIdx {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">The CoE encoder parameter (SubIdx xxx) is invalid.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796750</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Encoder file processing error, FileId=0x{0,X}, Arg=0x{1,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">An error ocured during processing the encoder file.
+FileId:
+0x01 = Electronic Data Sheet File
+0x02 = User Data File
+0x03 = Position Offset File
+0x04 = Commutation Offset File
+0x05 = Cogging Compensation Coefficients File
+Arg:
+0x01 = No File Header Existing
+0x02 = File Size Error
+0x03 = File Size Not Aligned
+0x04 = Invalid File Header Error 1
+0x05 = Invalid File Header Error 2
+0x06 = Invalid File Header Error 3
+0x07 = Invalid File Header Crc1
+0x08 = Invalid File Header Crc2
+0x10 = Invalid Vendor Key</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796751</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: SafeCU monitored encoder status flag is set! The next fault reset triggers an encoder restart. EncST7..4=0x{0,X}, EncST3..0=0x{1,X}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>100</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>100</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796752</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Status dump, Encoder Status after {0}ms: Summary=0x{1,X}, Regs 7..4=0x{2,X}, Regs 3..0=0x{3,X}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">Content of the encoder status regs 0x47...0x44 and 0x43..0x40.</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796753</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Status dump, Max occured position deviation={0} mdeg</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5796754</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: HpfDsl: Status dump, Error counter VPOS={0}, ACC={1}, VRT={2}, POS={3}, LINK={4}, Encoding={5}</Message>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>2</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>4</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5832699</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: Dbg: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>200</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5832700</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5832701</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5832702</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: {0}</Message>
+			<Detail>
+				<Name LcId="1033">Description</Name>
+				<Text LcId="1033">internal use only</Text>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReset</SourceId>
+				<Id>200</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagReaction</SourceId>
+				<Id>0</Id>
+			</Detail>
+			<Detail>
+				<SourceId>DiagType</SourceId>
+				<Id>201</Id>
+			</Detail>
+		</Event>
+		<Event>
+			<Id>5832703</Id>
+			<Message LcId="1033">Ch B, Primary Feedback: Internal Error, Additional Errorcode 0x{0,x}</Message>
 			<Detail>
 				<Name LcId="1033">Description</Name>
 				<Text LcId="1033">Internal Error</Text>

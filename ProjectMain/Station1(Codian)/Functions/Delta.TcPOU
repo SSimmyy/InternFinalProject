@@ -2,18 +2,14 @@
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
   <POU Name="Delta" Id="{492a738f-fc6d-4715-b733-4ea1b08e2312}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Delta
-
-
 VAR_INPUT
-	
 	MotionParameters	: DeltaMotionParameters_typ;			// Motion parameters used by internal motion function blocks	
-
 	myMCSOverride: LREAL := 100.0;
 	xSetOverride: BOOL;
 	lrGrpOverride: MC_LREAL := 1.0;
 	fbMC_GroupSetOverride : MC_GroupSetOverride;		
-	
 END_VAR
+
 VAR_OUTPUT
 	
 	Ready				: BOOL;
@@ -41,11 +37,6 @@ VAR_OUTPUT
 	MCS_X_REF	: AXIS_REF;
 	MCS_Y_REF	: AXIS_REF;
 	MCS_Z_REF	: AXIS_REF;
-	
-
-	
-	
-	
 END_VAR
 VAR
 	
@@ -534,9 +525,7 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[
-
-MovePathDone		:= fbMovePath.Done;
+          <ST><![CDATA[MovePathDone		:= fbMovePath.Done;
 
 ]]></ST>
         </Implementation>
@@ -587,9 +576,7 @@ VAR
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[
-
-SetCoordTrafoDone	:= fbSetCoordTrafo.Done;]]></ST>
+          <ST><![CDATA[SetCoordTrafoDone	:= fbSetCoordTrafo.Done;]]></ST>
         </Implementation>
       </Get>
     </Property>
@@ -670,9 +657,7 @@ fbTrackBelt( AxesGroup := internalCMGroup, ConveyorBelt := internalTrackAxis );
 END_VAR
 ]]></Declaration>
         <Implementation>
-          <ST><![CDATA[
-
-TrackConveyorActive		:= fbTrackBelt.InSync;]]></ST>
+          <ST><![CDATA[TrackConveyorActive		:= fbTrackBelt.InSync;]]></ST>
         </Implementation>
       </Get>
     </Property>
@@ -690,8 +675,7 @@ VAR
 END_VAR
 ]]></Declaration>
       <Implementation>
-        <ST><![CDATA[
-// clear any existing waypoints in the path buffer
+        <ST><![CDATA[// clear any existing waypoints in the path buffer
 internalPathData.ClearPath();
 
 toleranceBall[0]	:= 0.5 * MotionParameters.BlendingRadius;
@@ -919,7 +903,6 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="53" Count="0" />
     </LineIds>
     <LineIds Name="Delta.MovePathDone.Get">
-      <LineId Id="8" Count="1" />
       <LineId Id="7" Count="0" />
       <LineId Id="10" Count="0" />
       <LineId Id="2" Count="0" />
@@ -942,7 +925,6 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="18" Count="0" />
     </LineIds>
     <LineIds Name="Delta.SetCoordTrafoDone.Get">
-      <LineId Id="6" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="Delta.SetDeceleration">
@@ -978,11 +960,9 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="Delta.TrackConveyorActive.Get">
-      <LineId Id="5" Count="1" />
       <LineId Id="2" Count="0" />
     </LineIds>
     <LineIds Name="Delta.TraverseAtHeightTo">
-      <LineId Id="9" Count="0" />
       <LineId Id="5" Count="0" />
       <LineId Id="10" Count="0" />
       <LineId Id="29" Count="0" />
