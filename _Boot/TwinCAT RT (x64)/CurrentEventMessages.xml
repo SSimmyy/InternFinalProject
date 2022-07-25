@@ -4920,7 +4920,7 @@ This error by initializing operating time is deactivated by following firmware:
 		</Property>
 	</Source>
 	<Source>
-		<GUID>{28111931-0002-0000-1260-AC1F494783A5}</GUID>
+		<GUID>{28111931-0002-0000-1260-AC1F64006800}</GUID>
 		<Name LcId="1031">AX8108-0100-0104 (1Ch. 8A servo axis, STO)</Name>
 		<Name LcId="1033">AX8108-0100-0104 (1Ch. 8A servo axis, STO)</Name>
 		<DetailSource>
@@ -26036,7 +26036,7 @@ Arg:
 		</Property>
 	</Source>
 	<Source>
-		<GUID>{28111931-0002-0000-1260-0E2043ACFBF2}</GUID>
+		<GUID>{28111931-0002-0000-1260-0E20D2006800}</GUID>
 		<Name LcId="1031">AX8206-0210-0104 (2Ch. 6A servo axis, safe-motion, multi-FB)</Name>
 		<Name LcId="1033">AX8206-0210-0104 (2Ch. 6A servo axis, safe-motion, multi-FB)</Name>
 		<DetailSource>

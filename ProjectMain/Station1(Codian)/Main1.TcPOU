@@ -8,11 +8,15 @@ VAR
 	Reset:Reset1;
 	Faults:Faults1;	
 
+	bExecute: BOOL;
+	FB_CoEAX8000SetPositionOffset1:FB_CoEAX8000SetPositionOffset;
+	FB_CoEAX8000SetPositionOffset2:FB_CoEAX8000SetPositionOffset;
+	FB_CoEAX8000SetPositionOffset3:FB_CoEAX8000SetPositionOffset;
+	bExecute2: BOOL;
+	bExecute3: BOOL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[
-	
-//Cyclic Call to the Station FBs 
+      <ST><![CDATA[//Cyclic Call to the Station FBs 
 Sequence();
 Forces();
 Reset();
@@ -20,8 +24,6 @@ Faults();
 ]]></ST>
     </Implementation>
     <LineIds Name="Main1">
-      <LineId Id="102" Count="0" />
-      <LineId Id="108" Count="0" />
       <LineId Id="103" Count="4" />
       <LineId Id="5" Count="0" />
     </LineIds>

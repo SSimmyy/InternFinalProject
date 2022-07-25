@@ -1,25 +1,490 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
-  <POU Name="Main2" Id="{9b4524df-38e7-4dbb-ad83-ce9bbda08e9a}" SpecialFunc="None">
+  <POU Name="Main2" Id="{cef6c1f9-2a01-4b71-81db-f7ed4deb6965}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main2
-VAR
-	Sequence:Sequence2;
-	Forces:Forces2;
-	Reset:Reset2;
-	Faults:Faults2;
+VAR	
+	buffer					: ARRAY[1..4096] OF BYTE;
+	path					: MC_PATH_DATA_REF(ADR(buffer), SIZEOF(buffer));
+	
+	aTargetPos				: ARRAY[1..cAxesCount] OF MC_LREAL;
+	aTransitionParam		: ARRAY[1..2] OF MC_LREAL;
+	
+	fVelFactor				: LREAL := 1.0;
+	
+	fbPower					: FB_PowerAll;
+	fbAddAllAxes			: FB_AddAllAxes;
+	fbGroupEnable			: MC_GroupEnable;
+	fbMoveLinPrep			: MC_MoveLinearAbsolutePreparation;
+	fbMovePath				: MC_MovePath;
+	fbStop					: MC_GroupStop;
+	fbUngroupAxes			: MC_UngroupAllAxes;
+	fbGroupReset			: MC_GroupReset;
+	fbGroupReadStatus		: MC_GroupReadStatus;
+	fbGroupSetOvr			: MC_GroupSetOverride;
+	
+	fbBlockerPrep			: MC_BlockerPreparation;
+	fbBlockerRelease		: MC_ReleaseBlocker;
+	fbBlockerReadStatus		: MC_GroupReadBlockerStatus;
+	fbDwellTimePrep			: MC_DwellTimePreparation;
+	
+	nState					: INT := -5;
+	nNextState				: INT;
+	bMovePrepError			: BOOL;
+	bPickCycle				: BOOL := TRUE;
+	bExecutePath			: BOOL := TRUE;
+	fbHome					: FB_HOME_SEQUENCE;
+	
+	bUserIncrementStep		: BOOL; // user can go to next step
+	bUserInfiniteMovement 	: BOOL :=TRUE; // user can decide if only one movement is executed or infinite movement.
+	bUserStop				: BOOL; // user triggered stop
+	bUserForceUngroup		: BOOL; // user triggered ungroup axes
+	bUserForceReset			: BOOL; // user triggered reset
+	bUserReleaseBlocker		: BOOL; // user release the blocker
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[//Cyclic Call to the Station FBs 
-Sequence();
-Forces();
-Reset();
-Faults();
+      <ST><![CDATA[//	Disclaimer
+  	
+//	THIS publication contains statements about the suitability OF our products FOR certain 
+//	areas OF application. These statements are based on typical features OF our products. 
+//	The examples shown in THIS publication are FOR demonstration purposes only. The 
+//	information provided herein should NOT be regarded as specific operation characteristics. 
+//	It is incumbent on the customer TO check AND decide whether a product is suitable FOR use 
+//	in a particular application. We DO NOT give ANY warranty that the source code which is 
+//	made available with this publication is complete or accurate. 
+  	
+//	THE SAMPLE CODE CONTAINED IN THIS PUBLICATION IS PROVIDED “AS IS” WITHOUT WARRANTY OF ANY 
+//	KIND, EITHER EXPRESSED, IMPLIED OR STATUTORY, INCLUDING WITHOUT LIMITATION, ANY WARRANTY 
+//	WITH RESPECT TO NON-INFRINGEMENT, FREEDOM FROM PROPRIETARY RIGHTS OF THIRD PARTIES OR 
+//	FITNESS FOR ANY PARTICULAR PURPOSE. 
+  	
+//	THIS publication may be changed FROM TIME TO TIME without prior notice. No liability 
+//	is assumed FOR errors AND/OR omissions. Our products are described in detail in our 
+//	data sheets AND documentations. Product-specific warnings AND cautions must be observed. 
+//	FOR the latest version OF our data sheets AND documentations visit our website 
+//	(www.beckhoff.de). 
+  	
+//	© Beckhoff Automation GmbH & Co. KG
+  	
+//	The reproduction, distribution AND utilization OF THIS document as well as the 
+//	communication OF its contents TO others without express authorization is prohibited. 
+//	Offenders will be held liable FOR the payment OF damages. All rights reserved in the 
+//	event of the grant of a patent, utility model or design.
+  	
+//  =========================================================================================
+//  PnpSimpleSampleWithBlocker V1.0
+//  =========================================================================================
+
+//  =========================================================================================
+//	Set variable bUserIncrementStep:= TRUE to go to the next step
+//	Variable bUserInfiniteMovement defines if only one movement or infinite
+//	movement is executed.
+
+//  Inside the pick path a standstill job is defined with MC_DwellTimePreparation.
+
+//  Inside the place path a Blocker with BlockerID = 1 is defined.
+//  If the blocking job is active (fbBlockerReadStatus.Blocked = TRUE), the group standstill in moving.
+//  The blocking job can be left with a rising edge of bUserReleaseBlocker.
+//  =========================================================================================
+
+
+
+fbGroupReadStatus(
+	AxesGroup:= GVL_XY.stGroupRef , 
+	Enable:= TRUE , 
+	Valid=> , 
+	Busy=> , 
+	GroupMoving=> , 
+	GroupHoming=> , 
+	GroupErrorStop=> , 
+	GroupNotReady=> , 
+	GroupStandby=> , 
+	GroupStopping=> , 
+	GroupDisabled=> , 
+	Error=> , 
+	ErrorId=> );
+IF fbGroupReadStatus.Error THEN
+	nState := 9998;
+ELSIF NOT fbGroupReadStatus.Valid THEN
+	nState := 9999;	
+END_IF
+
+fbGroupSetOvr(
+	AxesGroup:= GVL_XY.stGroupRef, 
+	Enable:= TRUE, 
+	VelFactor:= fVelFactor , 
+	Enabled=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorId=> , 
+	ActualVelFactor=> );
+
+IF fbGroupSetOvr.Error THEN
+	nState := 9999;
+END_IF
+	
+	
+
+
+fbPower();
+
+CASE nState OF
+
+-5: 
+ 
+	fbHome();
+	
+	IF fbHome.HomeDone THEN
+		nState := -4;
+	END_IF
+
+-4:
+	IF bUserIncrementStep THEN
+		nNextState := nState +1; 
+		nState := 101;
+		fbAddAllAxes(Execute:= FALSE);
+		fbGroupEnable(AxesGroup:=GVL_XY.stGroupRef , Execute:=FALSE);
+		fbMovePath(AxesGroup:=GVL_XY.stGroupRef ,PathData:=path ,Execute:= FALSE);
+		bMovePrepError := FALSE;
+	END_IF
+-3:	
+	fbPower.Enable := TRUE;
+	
+	IF fbPower.Status THEN
+		IF bUserIncrementStep THEN
+			nNextState := nState +1;
+			nState := 101;
+		END_IF
+	ELSIF	fbPower.Error THEN
+		nState := nState +1000;	
+	END_IF
+	
+-2:
+	//Add all axes to group
+	fbAddAllAxes(Execute:= TRUE);
+	
+	IF fbAddAllAxes.Done THEN
+		IF bUserIncrementStep THEN
+			fbAddAllAxes(Execute:= FALSE);
+			nNextState := nState +1;
+			nState := 101;
+		END_IF
+	ELSIF fbAddAllAxes.Error THEN
+		nState := nState +1000;
+	END_IF
+	
+-1:	
+	//Enable Group
+	fbGroupEnable(AxesGroup:=GVL_XY.stGroupRef , Execute:=TRUE);
+	 
+	IF fbGroupEnable.Done THEN
+		IF bUserIncrementStep THEN
+			fbGroupEnable(AxesGroup:=GVL_XY.stGroupRef , Execute:=FALSE);
+			nNextState := nState +1;
+			nState := 101;
+		END_IF
+	ELSIF fbGroupEnable.Error THEN
+		nState := nState +1000;
+	END_IF
+0:
+	//Fill path table and start execution with fbMovePath
+	IF bUserIncrementStep OR bUserInfiniteMovement THEN
+		IF bPickCycle THEN 
+			//Prepare table (MC_MoveLinearAbsolutePreparation)
+			A_PreparePathPick();
+		ELSE
+			//Prepare table (MC_MoveLinearAbsolutePreparation)	
+			A_PreparePathPlace();
+		END_IF	
+		bPickCycle := NOT bPickCycle;		
+		
+		IF bMovePrepError THEN
+			nState := nState +1000;
+		ELSE
+			fbMovePath(AxesGroup:= GVL_XY.stGroupRef, PathData:= path, Execute:= FALSE);
+			IF bUserInfiniteMovement THEN
+				nState := nState +1;
+			ELSIF bUserIncrementStep THEN
+				nNextState := nState + 1;
+				nState := 101;
+			END_IF				
+		END_IF	
+	END_IF	
+	
+1:
+	//Execute prepared movement
+	fbMovePath(
+		AxesGroup:= GVL_XY.stGroupRef , 
+		PathData:= path , 
+		Execute:= bExecutePath
+	);
+	
+	fbBlockerReadStatus(AxesGroup := GVL_XY.stGroupRef, Enable := TRUE);
+	
+	fbBlockerRelease(AxesGroup := GVL_XY.stGroupRef, Execute := bUserReleaseBlocker, BlockerId := fbBlockerReadStatus.BlockerId);
+	IF fbBlockerRelease.Done THEN
+		IF fbBlockerRelease.Error THEN
+			nState := nState + 1000;
+		ELSE
+			fbBlockerRelease(AxesGroup := GVL_XY.stGroupRef, Execute:= FALSE);
+		END_IF
+	END_IF
+	
+	IF fbMovePath.Done THEN
+		IF bUserIncrementStep THEN
+			//ungroup axes
+			nNextState := 50;
+			nState := 101;
+			fbMovePath(AxesGroup:= GVL_XY.stGroupRef, PathData:= path, Execute:= FALSE);
+		ELSIF bUserInfiniteMovement THEN
+			nState := nState -1;
+			fbMovePath(AxesGroup:= GVL_XY.stGroupRef, PathData:= path, Execute:= FALSE);
+		END_IF
+	ELSIF fbMovePath.Error THEN
+		nState := nState + 1000;	
+	END_IF
+20:
+	fbStop(AxesGroup:=GVL_XY.stGroupRef, Execute:= FALSE);
+	fbStop(AxesGroup:=GVL_XY.stGroupRef, Execute:= TRUE, Jerk:= MC_IGNORE);
+	nState := nState + 1;
+21:
+	fbStop(AxesGroup:=GVL_XY.stGroupRef,Execute:= TRUE);
+	IF fbStop.Done THEN
+		IF bUserIncrementStep THEN
+			fbStop(AxesGroup:=GVL_XY.stGroupRef, Execute:= FALSE);
+			nNextState := 0;
+			nState := 101;
+		END_IF 		
+	ELSIF fbStop.Error THEN
+		nState := nState +1000;
+	END_IF
+50:
+	//Disable group and remove all axes 
+	fbUngroupAxes(AxesGroup:= GVL_XY.stGroupRef, Execute:= FALSE);
+	//Check that axes are not moving else we will get a position jump
+	IF fbGroupReadStatus.GroupStandby OR fbGroupReadStatus.GroupErrorStop OR fbGroupReadStatus.GroupNotReady THEN
+		fbUngroupAxes(AxesGroup:= GVL_XY.stGroupRef, Execute:= TRUE);
+		nState := nState + 1;
+	END_IF	
+51:
+	fbUngroupAxes(
+		AxesGroup:= GVL_XY.stGroupRef , 
+		Execute:= TRUE, 
+		Done=> , 
+		Busy=> , 
+		Error=> , 
+		ErrorId=> );
+	
+	IF fbUngroupAxes.Done THEN
+		IF bUserIncrementStep THEN
+			nNextState := -4;
+			nState := 101;
+		END_IF
+	ELSIF fbUngroupAxes.Error THEN
+		nState := nState +1000;
+	END_IF
+80:
+	fbGroupReset(AxesGroup:= GVL_XY.stGroupRef , Execute:= FALSE);
+	fbGroupReset(AxesGroup:= GVL_XY.stGroupRef , Execute:= TRUE);
+	nState := nState +1;
+81:	
+	fbGroupReset(
+		AxesGroup:= GVL_XY.stGroupRef , 
+		Execute:= , 
+		Done=> , 
+		Busy=> , 
+		Error=> , 
+		ErrorId=> );
+	
+	IF fbGroupReset.Done THEN
+		IF bUserIncrementStep THEN
+			IF fbGroupReadStatus.GroupDisabled THEN
+				nNextState := -4;
+			ELSE
+				nNextState := 0;
+			END_IF
+			nState := 101;
+		END_IF				
+	END_IF	
+101:
+	IF (bUserIncrementStep) THEN				
+		nState := nNextState;
+		bUserIncrementStep := FALSE;
+	END_IF
+1000..9999:
+	;//Error				
+END_CASE
+
+IF bUserStop THEN
+	nState := 20;
+	bUserStop := FALSE;
+END_IF
+IF bUserForceUngroup THEN
+	nState := 50;
+	bUserForceUngroup := FALSE;
+END_IF
+IF bUserForceReset THEN
+	nState := 80;
+	bUserForceReset := FALSE;
+END_IF
 ]]></ST>
     </Implementation>
+    <Action Name="A_PreparePathPick" Id="{dcb08973-a115-429b-89e2-ef77d8cbb861}">
+      <Implementation>
+        <ST><![CDATA[path.ClearPath();  //Clear nodes that were in path
+
+fbMoveLinPrep.Position						:= ADR(aTargetPos); //pointer to position array
+fbMoveLinPrep.PositionCount 				:= cAxesCount; //number of axes in group
+fbMoveLinPrep.TransitionParameter			:= ADR (aTransitionParam); //pointer to transition parameter array
+fbMoveLinPrep.TransitionParameterCount		:= 2; //number of transition parameters, has to be set always 2
+fbMoveLinPrep.BufferMode					:= mcBlendingPrevious;
+fbMoveLinPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+//Set dynamics to default values of the axes
+fbMoveLinPrep.Acceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Deceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Jerk							:= MC_DEFAULT;
+
+//1st node
+aTargetPos[1]				:= 0;
+aTargetPos[2]				:= 0;
+
+aTransitionParam[1]			:= 0; //blending distance on previous segment, no influence here
+aTransitionParam[2]			:= 0; //blending distance on this segment, no influence here
+fbMoveLinPrep(PathData:= path , Velocity:= 3000, InvokeId:= 10);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+
+aTargetPos[1]				:= 700;
+aTargetPos[2]				:= 100;
+
+aTransitionParam[1]			:= 200; //blending distance on previous segment (InvokeId=10), defines when to leave line
+aTransitionParam[2]			:= 400; //blending distance on this segment, defines latest positionn to be back  on line of InovkeId=20 
+fbMoveLinPrep(PathData:= path , Velocity:= 3000, InvokeId:= 20); 
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+
+// Insert dwell time
+fbDwellTimePrep(PathData := path, DwellTime := T#1S, BufferMode := MC_BUFFER_MODE.mcBuffered, InvokeId := 30);
+bMovePrepError := bMovePrepError OR fbDwellTimePrep.Error;
+
+aTargetPos[1]				:= 750;
+aTargetPos[2]				:= 150;
+
+aTransitionParam[1]			:= 250; 
+aTransitionParam[2]			:= 250;
+fbMoveLinPrep(PathData:= path , Velocity:= 3000, InvokeId:= 40);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PreparePathPlace" Id="{807eb52d-d6c5-48fb-b361-4b935b271568}">
+      <Implementation>
+        <ST><![CDATA[path.ClearPath(); //Clear nodes that were in path
+
+fbMoveLinPrep.Position						:= ADR(aTargetPos); //pointer to position array
+fbMoveLinPrep.PositionCount 				:= cAxesCount; //number of axes in group
+fbMoveLinPrep.TransitionParameter			:= ADR (aTransitionParam); //pointer to transition parameter array
+fbMoveLinPrep.TransitionParameterCount		:= 2; //number of transition parameters, has to be set always 2
+fbMoveLinPrep.BufferMode					:= mcBlendingPrevious;
+fbMoveLinPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+fbMoveLinPrep.Acceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Deceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Jerk							:= MC_DEFAULT;
+
+aTargetPos[1]				:= 700;
+aTargetPos[2]				:= 100;
+				
+aTransitionParam[1]			:= 0; //blending distance on previous segment, no influence here
+aTransitionParam[2]			:= 0; //blending distance on this segment, no influence here
+fbMoveLinPrep(PathData:= path , Velocity:= 3000, InvokeId:= 15);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error; 
+
+aTargetPos[1]				:= 0;
+aTargetPos[2]				:= 0;
+
+aTransitionParam[1]			:= 200; //blending distance on previous segment (InvokeId=10), defines when to leave line
+aTransitionParam[2]			:= 400; //blending distance on this segment, defines latest positionn to be back  on line of InovkeId=20
+fbMoveLinPrep(PathData:= path , Velocity:= 3000, InvokeId:= 25);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+
+// insert a blocking job
+fbBlockerPrep(PathData := path, BlockerId := 1, BufferMode := MC_BUFFER_MODE.mcBuffered, InvokeId := 35);
+bMovePrepError := bMovePrepError OR fbBlockerPrep.Error;
+
+aTargetPos[1]				:= 0;
+aTargetPos[2]				:= 0;
+
+aTransitionParam[1]			:= 200; 
+aTransitionParam[2]			:= 250;
+fbMoveLinPrep(PathData:= path , Velocity:= 3000, InvokeId:= 45);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+
+]]></ST>
+      </Implementation>
+    </Action>
     <LineIds Name="Main2">
-      <LineId Id="9" Count="4" />
-      <LineId Id="5" Count="0" />
+      <LineId Id="337" Count="27" />
+      <LineId Id="3" Count="7" />
+      <LineId Id="419" Count="1" />
+      <LineId Id="416" Count="0" />
+      <LineId Id="415" Count="0" />
+      <LineId Id="417" Count="0" />
+      <LineId Id="421" Count="0" />
+      <LineId Id="11" Count="16" />
+      <LineId Id="281" Count="0" />
+      <LineId Id="292" Count="4" />
+      <LineId Id="282" Count="8" />
+      <LineId Id="298" Count="3" />
+      <LineId Id="297" Count="0" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="34" Count="4" />
+      <LineId Id="474" Count="0" />
+      <LineId Id="461" Count="0" />
+      <LineId Id="475" Count="1" />
+      <LineId Id="480" Count="3" />
+      <LineId Id="473" Count="0" />
+      <LineId Id="39" Count="79" />
+      <LineId Id="402" Count="3" />
+      <LineId Id="407" Count="1" />
+      <LineId Id="411" Count="0" />
+      <LineId Id="413" Count="1" />
+      <LineId Id="412" Count="0" />
+      <LineId Id="409" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="121" Count="95" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="Main2.A_PreparePathPick">
+      <LineId Id="2" Count="15" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="20" Count="6" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="29" Count="3" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="33" Count="2" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="38" Count="3" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="Main2.A_PreparePathPlace">
+      <LineId Id="2" Count="13" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="18" Count="6" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="27" Count="2" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="31" Count="2" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="36" Count="2" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="1" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

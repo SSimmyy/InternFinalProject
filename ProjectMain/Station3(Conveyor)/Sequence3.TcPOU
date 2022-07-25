@@ -21,7 +21,12 @@ VAR_IN_OUT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[CASE nState OF
+      <ST><![CDATA[		fbHalt(
+			Axis:= GVL_Conveyer.ConveyerAxis, 
+			Execute:= bHaltExecute
+			);
+
+CASE nState OF
 	
 0:
 	IF NOT GVL_Conveyer.bSensor THEN
@@ -44,10 +49,6 @@ END_VAR
 	
 1:
 	IF NOT GVL_Conveyer.bConveyerReadyToMove THEN
-		fbHalt(
-			Axis:= GVL_Conveyer.ConveyerAxis, 
-			Execute:= bHaltExecute
-			);
 			bHaltExecute := TRUE;
 		IF fbHalt.Done THEN
 			GVL_Conveyer.bConveyerReadyToPick := TRUE;
@@ -70,6 +71,8 @@ END_VAR
 END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Sequence3">
+      <LineId Id="487" Count="2" />
+      <LineId Id="485" Count="1" />
       <LineId Id="37" Count="0" />
       <LineId Id="219" Count="0" />
       <LineId Id="225" Count="0" />
@@ -87,8 +90,6 @@ END_CASE]]></ST>
       <LineId Id="242" Count="0" />
       <LineId Id="224" Count="0" />
       <LineId Id="293" Count="0" />
-      <LineId Id="298" Count="2" />
-      <LineId Id="459" Count="0" />
       <LineId Id="462" Count="2" />
       <LineId Id="370" Count="0" />
       <LineId Id="367" Count="0" />

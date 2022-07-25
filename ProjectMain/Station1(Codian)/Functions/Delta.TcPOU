@@ -4,7 +4,7 @@
     <Declaration><![CDATA[FUNCTION_BLOCK Delta
 VAR_INPUT
 	MotionParameters	: DeltaMotionParameters_typ;			// Motion parameters used by internal motion function blocks	
-	myMCSOverride: LREAL := 100.0;
+	myMCSOverride: LREAL := 10.0;
 	xSetOverride: BOOL;
 	lrGrpOverride: MC_LREAL := 1.0;
 	fbMC_GroupSetOverride : MC_GroupSetOverride;		
@@ -21,7 +21,7 @@ VAR_OUTPUT
 		
 	internalKinChanNCtoPLC	AT %I* : NCTOPLC_NCICHANNEL_REF;
 	internalKinChanPLCtoNC	AT %Q* : PLCTONC_NCICHANNEL_REF;
-		
+		btest2: BOOL;	
 	InKinematicsGroup		: BOOL;	
 	InCoordinatedGroup		: BOOL;
 	
@@ -43,7 +43,7 @@ VAR
 	{attribute 'instance-path'}
 	{attribute 'no-init'}
 	InstancePath			: STRING;
-	
+	btest: BOOL;
 	AirVariable				AT %Q* : BOOL;
 	
 	internalEnable			: BOOL;
@@ -99,7 +99,6 @@ VAR
 	fbMoveLinearPrep		: MC_MoveLinearAbsolutePreparation;
 	fbMovePath				: MC_MovePath;
 	fbMovePathExt			: MC_MovePath;
-	
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -114,10 +113,7 @@ VAR_IN_OUT
 END_VAR
 VAR
 	i: USINT;
-	
 
-
-	
 END_VAR]]></Declaration>
       <Implementation>
         <ST><![CDATA[CASE internalState OF
@@ -182,55 +178,56 @@ END_VAR]]></Declaration>
 		Busy		:= TRUE;
 		Error		:= FALSE;
 		ErrorID		:= 0;
-		
-		fbPower_MCS_X.Enable	:= TRUE;
-		fbPower_MCS_Y.Enable	:= TRUE;
-		fbPower_MCS_Z.Enable	:= TRUE;
-		
-		fbPower_MCS_X.Enable_Positive	:= TRUE;
-		fbPower_MCS_Y.Enable_Positive	:= TRUE;
-		fbPower_MCS_Z.Enable_Positive	:= TRUE;
-		
-		fbPower_MCS_X.Enable_Negative	:= TRUE;
-		fbPower_MCS_Y.Enable_Negative	:= TRUE;
-		fbPower_MCS_Z.Enable_Negative	:= TRUE;
-		
-		fbPower_ACS_A.Enable	:= TRUE;
-		fbPower_ACS_B.Enable	:= TRUE;
-		fbPower_ACS_C.Enable	:= TRUE;
-		
-		fbPower_ACS_A.Enable_Positive	:= TRUE;
-		fbPower_ACS_B.Enable_Positive	:= TRUE;
-		fbPower_ACS_C.Enable_Positive	:= TRUE;
-		
-		fbPower_ACS_A.Enable_Negative	:= TRUE;
-		fbPower_ACS_B.Enable_Negative	:= TRUE;
-		fbPower_ACS_C.Enable_Negative	:= TRUE;
-		
-		fbPower_MCS_X.Override		:= myMCSOverride;
-		fbPower_MCS_Y.Override		:= myMCSOverride;
-		fbPower_MCS_Z.Override		:= myMCSOverride;
-		
-		IF fbPower_MCS_X.Status AND
-			fbPower_MCS_Y.Status AND
-			fbPower_MCS_Z.Status AND
-			fbPower_ACS_A.Status AND
-			fbPower_ACS_B.Status AND
-			fbPower_ACS_C.Status THEN
+
+			fbPower_MCS_X.Enable	:= TRUE;
+			fbPower_MCS_Y.Enable	:= TRUE;
+			fbPower_MCS_Z.Enable	:= TRUE;
 			
-			internalState	:= DL_SET_IK;
+			fbPower_MCS_X.Enable_Positive	:= TRUE;
+			fbPower_MCS_Y.Enable_Positive	:= TRUE;
+			fbPower_MCS_Z.Enable_Positive	:= TRUE;
 			
-		ELSIF fbPower_MCS_X.Error OR
-			fbPower_MCS_Y.Error OR
-			fbPower_MCS_Z.Error OR
-			fbPower_ACS_A.Error OR
-			fbPower_ACS_B.Error OR
-			fbPower_ACS_C.Error THEN
+			fbPower_MCS_X.Enable_Negative	:= TRUE;
+			fbPower_MCS_Y.Enable_Negative	:= TRUE;
+			fbPower_MCS_Z.Enable_Negative	:= TRUE;
 			
-			ErrorID;	// TODO add whatever the error was that block
-			ErrorOrigin		:= CONCAT( InstancePath, '.fbPower');
-			internalState	:= DL_ERROR;
-		END_IF
+			fbPower_ACS_A.Enable	:= TRUE;
+			fbPower_ACS_B.Enable	:= TRUE;
+			fbPower_ACS_C.Enable	:= TRUE;
+			
+			fbPower_ACS_A.Enable_Positive	:= TRUE;
+			fbPower_ACS_B.Enable_Positive	:= TRUE;
+			fbPower_ACS_C.Enable_Positive	:= TRUE;
+			
+			fbPower_ACS_A.Enable_Negative	:= TRUE;
+			fbPower_ACS_B.Enable_Negative	:= TRUE;
+			fbPower_ACS_C.Enable_Negative	:= TRUE;
+			
+			fbPower_MCS_X.Override		:= myMCSOverride;
+			fbPower_MCS_Y.Override		:= myMCSOverride;
+			fbPower_MCS_Z.Override		:= myMCSOverride;
+			
+			IF fbPower_MCS_X.Status AND
+				fbPower_MCS_Y.Status AND
+				fbPower_MCS_Z.Status AND
+				fbPower_ACS_A.Status AND
+				fbPower_ACS_B.Status AND
+				fbPower_ACS_C.Status THEN
+				
+				internalState	:= DL_SET_IK;
+				
+			ELSIF fbPower_MCS_X.Error OR
+				fbPower_MCS_Y.Error OR
+				fbPower_MCS_Z.Error OR
+				fbPower_ACS_A.Error OR
+				fbPower_ACS_B.Error OR
+				fbPower_ACS_C.Error THEN
+				
+				ErrorID;	// TODO add whatever the error was that block
+				ErrorOrigin		:= CONCAT( InstancePath, '.fbPower');
+				internalState	:= DL_ERROR;
+			END_IF
+
 	
 	DL_SET_IK:	// ------------------------------------------------------- enables the inverse kinematics transformation
 	
@@ -238,7 +235,7 @@ END_VAR]]></Declaration>
 		Busy		:= TRUE;
 		Error		:= FALSE;
 		ErrorID		:= 0;
-		
+
 		internalAxesList.nAxisIdsAcs[1]		:= ACS_A_REF.NcToPlc.AxisId;
 		internalAxesList.nAxisIdsAcs[2]		:= ACS_B_REF.NcToPlc.AxisId;
 		internalAxesList.nAxisIdsAcs[3]		:= ACS_C_REF.NcToPlc.AxisId;
@@ -253,12 +250,13 @@ END_VAR]]></Declaration>
 	
 		IF fbKinConfigGroup.bDone THEN
 		//	fbKinConfigGroup.bExecute		:= FALSE;
-			internalState					:= DL_ADD_AXES_TO_CM; // DL_DEBUG
+			internalState					:= DL_DEBUG; //DL_ADD_AXES_TO_CM; // 
 		ELSIF fbKinConfigGroup.bError THEN
 			ErrorID			:= fbKinConfigGroup.nErrorId;
 			ErrorOrigin		:= CONCAT(InstancePath,'.fbKinConfigGroup');
 			internalState	:= DL_ERROR;
 		END_IF;
+
 		
 	DL_ADD_AXES_TO_CM:	// ----------------------------------------------- adds MCS axes to CM Group
 	
@@ -266,43 +264,43 @@ END_VAR]]></Declaration>
 		Busy		:= TRUE;
 		Error		:= FALSE;
 		ErrorID		:= 0;
-		
-		fbAddAxisToGrp[0].IdentInGroup	:= MCS_X;
-		// fbAddAxisToGrp[0].Axis			:= MCS_X_REF;
-		
-		fbAddAxisToGrp[1].IdentInGroup	:= MCS_Y;
-		// fbAddAxisToGrp[1].Axis			:= MCS_Y_REF;	
-		
-		fbAddAxisToGrp[2].IdentInGroup	:= MCS_Z;
-		// fbAddAxisToGrp[2].Axis			:= MCS_Z_REF;
-		
-		FOR i := 0 TO 2 DO
-			fbAddAxisToGrp[i].Execute		:= TRUE;
-		END_FOR
-		
-		IF fbAddAxisToGrp[0].Done AND
-			fbAddAxisToGrp[1].Done AND
-			fbAddAxisToGrp[2].Done THEN
+
+			fbAddAxisToGrp[0].IdentInGroup	:= MCS_X;
+			// fbAddAxisToGrp[0].Axis			:= MCS_X_REF;
 			
-			fbAddAxisToGrp[0].Execute	:= FALSE;
-			fbAddAxisToGrp[1].Execute	:= FALSE;
-			fbAddAxisToGrp[2].Execute	:= FALSE;
+			fbAddAxisToGrp[1].IdentInGroup	:= MCS_Y;
+			// fbAddAxisToGrp[1].Axis			:= MCS_Y_REF;	
 			
-			internalState	:= DL_ENABLE_CM;
+			fbAddAxisToGrp[2].IdentInGroup	:= MCS_Z;
+			// fbAddAxisToGrp[2].Axis			:= MCS_Z_REF;
 			
-		ELSIF fbAddAxisToGrp[0].Error OR
-			fbAddAxisToGrp[1].Error OR
-			fbAddAxisToGrp[2].Error THEN
+			FOR i := 0 TO 2 DO
+				fbAddAxisToGrp[i].Execute		:= TRUE;
+			END_FOR
 			
-			fbAddAxisToGrp[0].Execute	:= FALSE;
-			fbAddAxisToGrp[1].Execute	:= FALSE;
-			fbAddAxisToGrp[2].Execute	:= FALSE;
-			
-			ErrorID;		// todo : add whichever block errored
-			ErrorOrigin		:= CONCAT(InstancePath,'.fbAddAxisToGrp');
-			internalState	:= DL_ERROR;
-		END_IF
-		
+			IF fbAddAxisToGrp[0].Done AND
+				fbAddAxisToGrp[1].Done AND
+				fbAddAxisToGrp[2].Done THEN
+				
+				fbAddAxisToGrp[0].Execute	:= FALSE;
+				fbAddAxisToGrp[1].Execute	:= FALSE;
+				fbAddAxisToGrp[2].Execute	:= FALSE;
+				
+				internalState	:= DL_ENABLE_CM;
+				
+			ELSIF fbAddAxisToGrp[0].Error OR
+				fbAddAxisToGrp[1].Error OR
+				fbAddAxisToGrp[2].Error THEN
+				
+				fbAddAxisToGrp[0].Execute	:= FALSE;
+				fbAddAxisToGrp[1].Execute	:= FALSE;
+				fbAddAxisToGrp[2].Execute	:= FALSE;
+				
+				ErrorID;		// todo : add whichever block errored
+				ErrorOrigin		:= CONCAT(InstancePath,'.fbAddAxisToGrp');
+				internalState	:= DL_ERROR;
+			END_IF
+
 	DL_ENABLE_CM:	// ------------------------------------------------------- enables the coordinated motion group
 	
 		Ready		:= FALSE;
@@ -310,15 +308,15 @@ END_VAR]]></Declaration>
 		Error		:= FALSE;
 		ErrorID		:= 0;
 		
-		fbGroupEnable.Execute		:= TRUE;
-		
-		IF fbGroupEnable.Done THEN
-			internalState	:= DL_RUN;
-		ELSIF fbGroupEnable.Error THEN
-			ErrorID			:= fbGroupEnable.ErrorId;
-			ErrorOrigin		:= CONCAT(InstancePath,'.fbGroupEnable');
-			internalState	:= DL_ERROR;
-		END_IF
+			fbGroupEnable.Execute		:= TRUE;
+			
+			IF fbGroupEnable.Done THEN
+				internalState	:= DL_RUN;
+			ELSIF fbGroupEnable.Error THEN
+				ErrorID			:= fbGroupEnable.ErrorId;
+				ErrorOrigin		:= CONCAT(InstancePath,'.fbGroupEnable');
+				internalState	:= DL_ERROR;
+			END_IF
 		
 	DL_RUN:	// --------------------------------------------------------------- Delta running, ready for commands
 	
@@ -372,8 +370,6 @@ fbReset_MCS_X( Axis := MCS_X_REF );
 fbReset_MCS_Y( Axis := MCS_Y_REF );
 fbReset_MCS_Z( Axis := MCS_Z_REF );
 
-
-
 fbPower_ACS_A( Axis := ACS_A_REF );
 fbPower_ACS_B( Axis := ACS_B_REF );
 fbPower_ACS_C( Axis := ACS_C_REF );
@@ -395,10 +391,6 @@ fbSetCoordTrafo( AxesGroup := internalCMGroup );
 fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
 fbMovePathEXT( AxesGroup := internalCMGroup, PathData := externalRoute.PathData );
 
-fbTrackBelt( AxesGroup := internalCMGroup, ConveyorBelt := internalTrackAxis );
-
-
-
 fbMC_GroupSetOverride(
 	AxesGroup:= internalCMGroup, 
 	Enable:= xSetOverride, 
@@ -407,19 +399,7 @@ fbMC_GroupSetOverride(
 	Busy=> , 
 	Error=> , 
 	ErrorId=> , 
-	ActualVelFactor=> );
-
-
-
-
-
-
-
-
-
-
-
-]]></ST>
+	ActualVelFactor=> );]]></ST>
       </Implementation>
     </Method>
     <Method Name="Disable" Id="{f8852278-a902-41fb-8b1a-a53ea61cbd64}" FolderPath="Methods\">
@@ -531,6 +511,17 @@ END_VAR
         </Implementation>
       </Get>
     </Property>
+    <Method Name="Reset" Id="{53b97b6c-d929-489a-b91b-ad9f50847a2c}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[internalState := DL_IDLE;
+
+]]></ST>
+      </Implementation>
+    </Method>
     <Method Name="ReturnHome" Id="{4a762706-93bb-4e83-8b35-d2c1fae7dbb3}" FolderPath="Methods\">
       <Declaration><![CDATA[METHOD ReturnHome : BOOL
 VAR_INPUT
@@ -761,6 +752,7 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="168" Count="1" />
       <LineId Id="167" Count="0" />
       <LineId Id="154" Count="0" />
+      <LineId Id="496" Count="0" />
       <LineId Id="67" Count="1" />
       <LineId Id="129" Count="0" />
       <LineId Id="70" Count="3" />
@@ -770,6 +762,7 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="445" Count="0" />
       <LineId Id="172" Count="6" />
       <LineId Id="368" Count="0" />
+      <LineId Id="500" Count="0" />
       <LineId Id="198" Count="2" />
       <LineId Id="204" Count="4" />
       <LineId Id="220" Count="0" />
@@ -799,7 +792,8 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="244" Count="1" />
       <LineId Id="243" Count="0" />
       <LineId Id="234" Count="0" />
-      <LineId Id="188" Count="5" />
+      <LineId Id="494" Count="0" />
+      <LineId Id="189" Count="4" />
       <LineId Id="117" Count="0" />
       <LineId Id="247" Count="0" />
       <LineId Id="249" Count="3" />
@@ -831,7 +825,6 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="307" Count="0" />
       <LineId Id="82" Count="0" />
       <LineId Id="308" Count="4" />
-      <LineId Id="455" Count="1" />
       <LineId Id="316" Count="5" />
       <LineId Id="313" Count="0" />
       <LineId Id="277" Count="0" />
@@ -847,12 +840,8 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="399" Count="0" />
       <LineId Id="97" Count="0" />
       <LineId Id="400" Count="0" />
-      <LineId Id="398" Count="0" />
-      <LineId Id="98" Count="2" />
       <LineId Id="105" Count="0" />
-      <LineId Id="469" Count="9" />
-      <LineId Id="106" Count="9" />
-      <LineId Id="81" Count="0" />
+      <LineId Id="469" Count="8" />
     </LineIds>
     <LineIds Name="Delta.Disable">
       <LineId Id="5" Count="0" />
@@ -906,6 +895,10 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="7" Count="0" />
       <LineId Id="10" Count="0" />
       <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.Reset">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
     </LineIds>
     <LineIds Name="Delta.ReturnHome">
       <LineId Id="10" Count="0" />

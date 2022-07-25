@@ -77,6 +77,10 @@
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
+    <Compile Include="GVLs\GVL_XY.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
     <Compile Include="ITFs\iDelta.TcIO">
       <SubType>Code</SubType>
     </Compile>
@@ -135,6 +139,15 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station2%28XYmover%29\Sequence2.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_AddAllAxes.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_Home_Sequence.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_PowerAll.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station3%28Conveyor%29\Faults3.TcPOU">
@@ -197,9 +210,6 @@
     <Compile Include="Station6%28Vision%29\Sequence6.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="VisionTask.TcTTO">
-      <SubType>Code</SubType>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DUTs" />
@@ -208,6 +218,7 @@
     <Folder Include="Station1%28Codian%29" />
     <Folder Include="Station1%28Codian%29\Functions" />
     <Folder Include="Station2%28XYmover%29" />
+    <Folder Include="Station2%28XYmover%29\XY_FBs" />
     <Folder Include="Station3%28Conveyor%29" />
     <Folder Include="Station4%28xts1%29" />
     <Folder Include="Station5%28xts2%29" />

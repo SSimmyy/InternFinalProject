@@ -5181,24 +5181,25 @@ and will return to Group State Standby when the situation permits.
 	</ImageDatas>
 	<Project ProjectGUID="{19D4A0EA-8EE9-48AD-A413-E2CCCF89DD5C}" TargetNetId="169.254.124.141.1.1" Target64Bit="true" ShowHideConfigurations="#x6">
 		<System>
+			<Settings MaxCpus="2">
+				<Cpu BaseTime="5000"/>
+				<Cpu CpuId="1" RtLimit="90"/>
+			</Settings>
 			<Tasks>
 				<Task Id="5" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
 					<Name>PlcTask</Name>
 				</Task>
-				<Task Id="8" Priority="1" CycleTime="10000" AmsPort="352" Affinity="#x00000008" DisableFpExceptions="true" WatchdogStackCapacity="10" AdtTasks="true">
-					<Name>VisionTask</Name>
-				</Task>
-				<Task Id="10" Priority="16" CycleTime="100000" AmsPort="354" Affinity="#x00000008" AdtTasks="true">
+				<Task Id="10" Disabled="true" Priority="16" CycleTime="100000" AmsPort="354" AdtTasks="true">
 					<Name>VnTask ADS (Camera1)</Name>
 				</Task>
-				<Task Id="9" Priority="10" CycleTime="10000" AmsPort="353" Affinity="#x00000008" AdtTasks="true">
+				<Task Id="9" Disabled="true" Priority="10" CycleTime="10000" AmsPort="353" AdtTasks="true">
 					<Name>VnTask ImgAcq (Camera1)</Name>
 				</Task>
 				<Task Id="6" Priority="32" AdtTasks="true" JobTask="true">
 					<Name>Job Task</Name>
 					<ImageId>327</ImageId>
 				</Task>
-				<Task Id="7" Priority="2" CycleTime="100000" AmsPort="351" AdtTasks="true">
+				<Task Id="7" Priority="2" CycleTime="10000" AmsPort="351" AdtTasks="true">
 					<Name>Main1</Name>
 				</Task>
 				<Task Id="11" Priority="3" CycleTime="100000" AmsPort="355" AdtTasks="true">
@@ -5217,7 +5218,7 @@ and will return to Group State Standby when the situation permits.
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="20000" AmsPort="501" IoAtBegin="true" SafTaskInfo="256">
+				<SafTask Priority="4" CycleTime="5000" AmsPort="501" Affinity="#x00000001" IoAtBegin="true" SafTaskInfo="256">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -5229,7 +5230,7 @@ and will return to Group State Standby when the situation permits.
 						<Name>Image</Name>
 					</Image>
 				</SafTask>
-				<SvbTask Priority="8" CycleTime="100000" AmsPort="511">
+				<SvbTask Priority="8" CycleTime="100000" AmsPort="511" Affinity="#x00000001">
 					<Name>NC-Task 1 SVB</Name>
 				</SvbTask>
 				<AxisFolder Name="Delta"/>
@@ -5239,12 +5240,12 @@ and will return to Group State Standby when the situation permits.
 					<Name>Delta ACS A</Name>
 					<AxisPara>
 						<General UnitName="°"/>
-						<Dynamic Acceleration="1076.79" Deceleration="1076.79" Jerk="3230.37"/>
-						<Velo RefSearch="7.17861" RefSync="7.17861" SlowManual="35.89305" FastManual="215.3583" Fast="717.861" Maximum="717.861"/>
+						<Dynamic Acceleration="2367.9" Deceleration="2367.9" Jerk="7103.71"/>
+						<Velo RefSearch="15.78603" RefSync="15.78603" SlowManual="78.93015" FastManual="473.5809" Fast="1578.603" Maximum="1578.6"/>
 						<OtherSettings AllowMotionCmdToSlave="true"/>
 					</AxisPara>
 					<Encoder Name="Enc" EncType="19">
-						<EncPara ScaleFactorNumerator="360" ScaleFactorDenominator="23068672" Inverse="true" MaxCount="#xffffffff"/>
+						<EncPara ScaleFactorNumerator="360" ScaleFactorDenominator="23068672" Offset="-24.7313" Inverse="true" MaxCount="#xffffffff"/>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
 							<Var>
@@ -5303,7 +5304,7 @@ and will return to Group State Standby when the situation permits.
 					</Encoder>
 					<Drive Name="Drive" DrvType="16">
 						<DrvPara Inverse="true" MaxCount="#xffffffff" DriveControlDWord="#x00020100">
-							<Analog VeloReferenz="789.6471" VeloScale="71.5255737304688" TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<Analog VeloReferenz="1736.4633" VeloScale="71.5255737304688" TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
 							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
@@ -5381,12 +5382,12 @@ and will return to Group State Standby when the situation permits.
 					<Name>Delta ACS B</Name>
 					<AxisPara>
 						<General UnitName="°"/>
-						<Dynamic Acceleration="1076.79" Deceleration="1076.79" Jerk="3230.37"/>
-						<Velo RefSearch="7.17861" RefSync="7.17861" SlowManual="35.89305" FastManual="215.3583" Fast="717.861" Maximum="717.861"/>
+						<Dynamic Acceleration="2367.9" Deceleration="2367.9" Jerk="7103.71"/>
+						<Velo RefSearch="15.78603" RefSync="15.78603" SlowManual="78.93015" FastManual="473.5809" Fast="1578.603" Maximum="1578.6"/>
 						<OtherSettings AllowMotionCmdToSlave="true"/>
 					</AxisPara>
 					<Encoder Name="Enc" EncType="19">
-						<EncPara ScaleFactorNumerator="360" ScaleFactorDenominator="23068672" Inverse="true" MaxCount="#xffffffff"/>
+						<EncPara ScaleFactorNumerator="360" ScaleFactorDenominator="23068672" Offset="1838.2737" Inverse="true" MaxCount="#xffffffff"/>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
 							<Var>
@@ -5445,7 +5446,7 @@ and will return to Group State Standby when the situation permits.
 					</Encoder>
 					<Drive Name="Drive" DrvType="16">
 						<DrvPara Inverse="true" MaxCount="#xffffffff" DriveControlDWord="#x00020100">
-							<Analog VeloReferenz="789.6471" VeloScale="71.5255737304688" TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<Analog VeloReferenz="1736.4633" VeloScale="71.5255737304688" TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
 							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
@@ -5523,12 +5524,12 @@ and will return to Group State Standby when the situation permits.
 					<Name>Delta ACS C</Name>
 					<AxisPara>
 						<General UnitName="°"/>
-						<Dynamic Acceleration="1076.79" Deceleration="1076.79" Jerk="3230.37"/>
-						<Velo RefSearch="7.17861" RefSync="7.17861" SlowManual="35.89305" FastManual="215.3583" Fast="717.861" Maximum="717.861"/>
+						<Dynamic Acceleration="2367.9045" Deceleration="2367.9045" Jerk="7103.7135"/>
+						<Velo RefSearch="15.78603" RefSync="15.78603" SlowManual="78.93015" FastManual="473.5809" Fast="1578.603" Maximum="1578.603"/>
 						<OtherSettings AllowMotionCmdToSlave="true"/>
 					</AxisPara>
 					<Encoder Name="Enc" EncType="19">
-						<EncPara ScaleFactorNumerator="360" ScaleFactorDenominator="23068672" Inverse="true" MaxCount="#xffffffff"/>
+						<EncPara ScaleFactorNumerator="360" ScaleFactorDenominator="23068672" Offset="9.7019" Inverse="true" MaxCount="#xffffffff"/>
 						<Vars VarGrpType="1">
 							<Name>Inputs</Name>
 							<Var>
@@ -5587,7 +5588,7 @@ and will return to Group State Standby when the situation permits.
 					</Encoder>
 					<Drive Name="Drive" DrvType="16">
 						<DrvPara Inverse="true" MaxCount="#xffffffff" DriveControlDWord="#x00020100">
-							<Analog VeloReferenz="789.6471" VeloScale="71.5255737304688" TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
+							<Analog VeloReferenz="1736.4633" VeloScale="71.5255737304688" TorqueSetpointScale="10" ScaleFactorActTorque="0.1"/>
 							<TimeComp TaskDelayCycles="1"/>
 						</DrvPara>
 						<Vars VarGrpType="1">
@@ -5986,7 +5987,7 @@ and will return to Group State Standby when the situation permits.
 						<OtherSettings AllowMotionCmdToSlave="true"/>
 					</AxisPara>
 					<Encoder Name="Enc" EncType="1">
-						<EncPara>
+						<EncPara Offset="-250">
 							<SoftEndMinControl Enable="true" Range="-10"/>
 							<SoftEndMaxControl Enable="true" Range="100"/>
 						</EncPara>
@@ -6964,7 +6965,7 @@ and will return to Group State Standby when the situation permits.
 									</Value>
 									<Value>
 										<Name>Spatial reference definition.Translation Z</Name>
-										<Value>-470</Value>
+										<Value>-250</Value>
 									</Value>
 									<Value>
 										<Name>Spatial reference definition.Rotation 1</Name>
@@ -7074,7 +7075,7 @@ and will return to Group State Standby when the situation permits.
 										<OTCID>#x05000010</OTCID>
 									</ManualConfig>
 									<Priority>4</Priority>
-									<CycleTime>2000000</CycleTime>
+									<CycleTime>500000</CycleTime>
 									<DependOn>ParentObject</DependOn>
 								</Context>
 								<Context>
@@ -7261,7 +7262,7 @@ and will return to Group State Standby when the situation permits.
 				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="ProjectMain\ProjectMain.tmc">
 					<Name>ProjectMain Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
-					<Vars VarGrpType="1" ContextId="1" AreaNo="16">
+					<Vars VarGrpType="1">
 						<Name>Main1_1 Inputs</Name>
 						<Var>
 							<Name>Main1.Sequence.Delta.internalKinChanNCtoPLC</Name>
@@ -7300,7 +7301,7 @@ and will return to Group State Standby when the situation permits.
 							<Type GUID="{467F4325-10DF-4BC1-88DD-E8240EB4F8E3}" Namespace="MC">CDT_MCTOPLC_GROUP</Type>
 						</Var>
 					</Vars>
-					<Vars VarGrpType="2" ContextId="1" AreaNo="17">
+					<Vars VarGrpType="2" AreaNo="1">
 						<Name>Main1_1 Outputs</Name>
 						<Var>
 							<Name>Main1.Sequence.Delta.internalKinChanPLCtoNC</Name>
@@ -7343,28 +7344,32 @@ and will return to Group State Standby when the situation permits.
 							<Type GUID="{0E2E3852-A98C-4AF3-81E2-209EE128940C}" Namespace="MC">CDT_PLCTOMC_GROUP</Type>
 						</Var>
 					</Vars>
-					<Vars VarGrpType="1" ContextId="3" AreaNo="48">
+					<Vars VarGrpType="1" ContextId="2" AreaNo="32">
 						<Name>Main3_1 Inputs</Name>
 						<Var>
 							<Name>GVL_Conveyer.ConveyerAxis.NcToPlc</Name>
 							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
+						<Var>
+							<Name>GVL_Conveyer.bSensor</Name>
+							<Type>BOOL</Type>
+						</Var>
 					</Vars>
-					<Vars VarGrpType="2" ContextId="3" AreaNo="49">
+					<Vars VarGrpType="2" ContextId="2" AreaNo="33">
 						<Name>Main3_1 Outputs</Name>
 						<Var>
 							<Name>GVL_Conveyer.ConveyerAxis.PlcToNc</Name>
 							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
 					</Vars>
-					<Vars VarGrpType="1" ContextId="6" AreaNo="96">
+					<Vars VarGrpType="1" ContextId="5" AreaNo="80">
 						<Name>PlcTask Inputs</Name>
 						<Var>
 							<Name>GVL.I_bTest</Name>
 							<Type>BOOL</Type>
 						</Var>
 					</Vars>
-					<Vars VarGrpType="2" ContextId="6" AreaNo="97">
+					<Vars VarGrpType="2" ContextId="5" AreaNo="81">
 						<Name>PlcTask Outputs</Name>
 						<Var>
 							<Name>GVL.bGantryVac</Name>
@@ -7394,24 +7399,15 @@ and will return to Group State Standby when the situation permits.
 					<Contexts>
 						<Context>
 							<Id NeedCalleeCall="true">0</Id>
-							<Name>VisionTask</Name>
-							<ManualConfig>
-								<OTCID>#x02010080</OTCID>
-							</ManualConfig>
-							<Priority>1</Priority>
-							<CycleTime>1000000</CycleTime>
-						</Context>
-						<Context>
-							<Id NeedCalleeCall="true">1</Id>
 							<Name>Main1_1</Name>
 							<ManualConfig>
 								<OTCID>#x02010070</OTCID>
 							</ManualConfig>
 							<Priority>2</Priority>
-							<CycleTime>10000000</CycleTime>
+							<CycleTime>1000000</CycleTime>
 						</Context>
 						<Context>
-							<Id NeedCalleeCall="true">2</Id>
+							<Id NeedCalleeCall="true">1</Id>
 							<Name>Main2_1</Name>
 							<ManualConfig>
 								<OTCID>#x020100b0</OTCID>
@@ -7420,7 +7416,7 @@ and will return to Group State Standby when the situation permits.
 							<CycleTime>10000000</CycleTime>
 						</Context>
 						<Context>
-							<Id NeedCalleeCall="true">3</Id>
+							<Id NeedCalleeCall="true">2</Id>
 							<Name>Main3_1</Name>
 							<ManualConfig>
 								<OTCID>#x020100c0</OTCID>
@@ -7429,7 +7425,7 @@ and will return to Group State Standby when the situation permits.
 							<CycleTime>10000000</CycleTime>
 						</Context>
 						<Context>
-							<Id NeedCalleeCall="true">4</Id>
+							<Id NeedCalleeCall="true">3</Id>
 							<Name>Main4_1</Name>
 							<ManualConfig>
 								<OTCID>#x020100d0</OTCID>
@@ -7438,7 +7434,7 @@ and will return to Group State Standby when the situation permits.
 							<CycleTime>10000000</CycleTime>
 						</Context>
 						<Context>
-							<Id NeedCalleeCall="true">5</Id>
+							<Id NeedCalleeCall="true">4</Id>
 							<Name>Main5_1</Name>
 							<ManualConfig>
 								<OTCID>#x020100e0</OTCID>
@@ -7447,7 +7443,7 @@ and will return to Group State Standby when the situation permits.
 							<CycleTime>10000000</CycleTime>
 						</Context>
 						<Context>
-							<Id NeedCalleeCall="true">6</Id>
+							<Id NeedCalleeCall="true">5</Id>
 							<Name>PlcTask</Name>
 							<ManualConfig>
 								<OTCID>#x02010050</OTCID>
@@ -7458,34 +7454,20 @@ and will return to Group State Standby when the situation permits.
 					</Contexts>
 					<InitSymbols>
 						<InitSymbol>
-							<Name>Main6.Sequence.fb_Camera.oidITcVnImageProvider</Name>
-							<Type GUID="{18071995-0000-0000-0000-00000000000F}">OTCID</Type>
-							<Comment><![CDATA[ Internal reference to the corresponding TcVnImageProvider TcCOM module ID, which needs to be set via TC init symbol. ]]></Comment>
-							<AreaNo>#x00000003</AreaNo>
-							<Data>00000000</Data>
-							<Properties>
-								<Property>
-									<Name>TcCategoryOID</Name>
-									<Value>TcVnImageProvider</Value>
-								</Property>
-							</Properties>
-						</InitSymbol>
-						<InitSymbol>
 							<Name>Main1.Sequence.TRACK_FRAME</Name>
 							<Type GUID="{F5E80BDD-917E-CAF6-EEC1-F73E474170AA}" Namespace="Tc3_McCoordinatedMotion">MC_COORD_REF</Type>
 							<Comment><![CDATA[ ========== Conveyor Tracking Objects ==========]]></Comment>
-							<AreaNo>#x00000013</AreaNo>
+							<AreaNo>#x00000003</AreaNo>
 							<Data>00000000</Data>
 						</InitSymbol>
 						<InitSymbol>
 							<Name>Main1.Sequence.WORLD_FRAME</Name>
 							<Type GUID="{F5E80BDD-917E-CAF6-EEC1-F73E474170AA}" Namespace="Tc3_McCoordinatedMotion">MC_COORD_REF</Type>
-							<AreaNo>#x00000013</AreaNo>
+							<AreaNo>#x00000003</AreaNo>
 							<Data>00000000</Data>
 						</InitSymbol>
 					</InitSymbols>
 					<TaskPouOids>
-						<TaskPouOid Prio="1" OTCID="#x08502002"/>
 						<TaskPouOid Prio="2" OTCID="#x08502003"/>
 						<TaskPouOid Prio="3" OTCID="#x08502004"/>
 						<TaskPouOid Prio="5" OTCID="#x08502005"/>
@@ -7496,23 +7478,6 @@ and will return to Group State Standby when the situation permits.
 				</Instance>
 			</Project>
 		</Plc>
-		<Safety>
-			<Project Disabled="true" GUID="{15ACF2D9-D812-4754-B088-790F42D87922}" Name="Untitled1" PrjFilePath="Untitled1\Untitled1.splcProj" TmcFilePath="Untitled1\Untitled1.tmc" GeneralArchiveSettings="#x000f" TargetArchiveSettings="#x0007" FileArchiveSettings="#x000e">
-				<Instance Id="#x01010040" KeepUnrestoredLinks="2">
-					<Name>Untitled1 Instance</Name>
-					<TmcDesc GUID="{72A6D5B8-E98C-4604-8B90-09D1F8AB38A9}">
-						<Name>Safety</Name>
-						<InitSequence>PO</InitSequence>
-						<Contexts>
-							<Context>
-								<Id>1</Id>
-								<Name>Default</Name>
-							</Context>
-						</Contexts>
-					</TmcDesc>
-				</Instance>
-			</Project>
-		</Safety>
 		<Vision>
 			<JobPool Id="#x01010010" KeepUnrestoredLinks="2">
 				<Name>Vision Job Pool</Name>
@@ -32365,7 +32330,7 @@ Note: The maximum number of triggers within a burst sequence is limited. If the 
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 8" Index="#x1a07" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6070" Sub="#x01">
+								<Entry Name="GVL_Conveyer.bSensor" Index="#x6070" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
 							</Pdo>
@@ -36299,6 +36264,10 @@ Bit 8 - 15 : reserved]]></Comment>
 							</TcLink>
 							<OrderCode>AX8620-0000-0000</OrderCode>
 							<Name>Term 10 (AX8620-0000-0103)</Name>
+							<FirmwareVersion>01.03 b0008</FirmwareVersion>
+							<CatalogNo>AX8620-0000-0000</CatalogNo>
+							<HardwareVersion>08</HardwareVersion>
+							<SerialNr>220 744</SerialNr>
 							<ProductRevision>AX8620-0000-0103</ProductRevision>
 							<WatchLog UpdateIntervalInMs="500">
 								<WatchLogItem>
@@ -36331,11 +36300,11 @@ Bit 8 - 15 : reserved]]></Comment>
 									<Name>InfeedTypePowerSupplyMains</Name>
 									<Parameter>
 										<PropertyName>PowerSupplyType</PropertyName>
-										<Value>2</Value>
+										<Value>4</Value>
 									</Parameter>
 									<Parameter>
 										<PropertyName>MainVoltage</PropertyName>
-										<Value>100</Value>
+										<Value>200</Value>
 									</Parameter>
 									<Parameter>
 										<PropertyName>UTolerancePositive</PropertyName>
@@ -36347,7 +36316,7 @@ Bit 8 - 15 : reserved]]></Comment>
 									</Parameter>
 									<Parameter>
 										<PropertyName>MinDcLinkVoltage</PropertyName>
-										<Value>85.7321409974113</Value>
+										<Value>177.58800635178</Value>
 									</Parameter>
 									<Parameter>
 										<PropertyName>MaxDcLinkVoltage</PropertyName>
@@ -36355,7 +36324,7 @@ Bit 8 - 15 : reserved]]></Comment>
 									</Parameter>
 									<Parameter>
 										<PropertyName>UmainsPhaseErrDetection</PropertyName>
-										<Value>0</Value>
+										<Value>1</Value>
 									</Parameter>
 									<Parameter>
 										<PropertyName>LongFilterForUmainsPhaseErrDetection</PropertyName>
@@ -36379,9 +36348,9 @@ Bit 8 - 15 : reserved]]></Comment>
 						<DcMode>4443000000000000000000000000000044432d53796e6368726f6e000000000000000000000000000000000000000000000000000000000000000000000000030100000000000000000000000000000000000000000000000000000000000000</DcMode>
 						<DcMode>4443494e00000000000000000000000044432d53796e6368726f6e2028696e7075742062617365642900000000000000000000007cfcffff00000000000000030100000000000000000001000000000000000000000000000000000000000000</DcMode>
 						<MBoxUserCmdData>004003000a00000000000000000000000000000000000000000000000000000020f3100502000000010000</MBoxUserCmdData>
-						<MBoxUserCmdData>02000300090000001b000000000000000000000000000000000000000000000020008004010000000150534d20506172616d6574657273202f204d61696e73207479706500</MBoxUserCmdData>
-						<MBoxUserCmdData>020003000a0000001d00000000000000000000000000000000000000000000002000801102000000040050534d20506172616d6574657273202f20436f6e74726f6c20776f726400</MBoxUserCmdData>
-						<MBoxUserCmdData>020003000a0000001e00000000000000000000000000000000000000000000002000800602000000e80350534d20506172616d6574657273202f204d61696e7320766f6c7461676500</MBoxUserCmdData>
+						<MBoxUserCmdData>02000300090000001b000000000000000000000000000000000000000000000020008004010000000050534d20506172616d6574657273202f204d61696e73207479706500</MBoxUserCmdData>
+						<MBoxUserCmdData>020003000a0000001d00000000000000000000000000000000000000000000002000801102000000000050534d20506172616d6574657273202f20436f6e74726f6c20776f726400</MBoxUserCmdData>
+						<MBoxUserCmdData>020003000a0000001e00000000000000000000000000000000000000000000002000800602000000d00750534d20506172616d6574657273202f204d61696e7320766f6c7461676500</MBoxUserCmdData>
 						<MBoxUserCmdData>020003000a00000024000000000000000000000000000000000000000000000020008001020000002e2250534d20506172616d6574657273202f204443206c696e6b206d617820766f6c7461676500</MBoxUserCmdData>
 						<Pdo Name="PSM Controlword for axis" Index="#x1a00" Flags="#x0010" SyncMan="3">
 							<Entry Name="Controlword for axis__Non-generative brake order_n" Index="#x6000" Sub="#x01">
@@ -36583,11 +36552,11 @@ Bit 8 - 15 : reserved]]></Comment>
 										<Name>DMInverterTypeDevice</Name>
 										<Parameter>
 											<PropertyName>MaxAllowedMainVoltage</PropertyName>
-											<Value>110</Value>
+											<Value>220</Value>
 										</Parameter>
 										<Parameter>
 											<PropertyName>MinDcLinkVoltage</PropertyName>
-											<Value>85.7321409974113</Value>
+											<Value>177.58800635178</Value>
 										</Parameter>
 										<Parameter>
 											<PropertyName>MaxDcLinkVoltage</PropertyName>
@@ -37158,20 +37127,20 @@ Bit 8 - 15 : reserved]]></Comment>
 													</CoE>
 												</Calc>
 											</Feedback>
-											<Load MoveStyle="Linear">
+											<Load MoveStyle="Rotary">
 												<IsMotorRotary>true</IsMotorRotary>
 												<Name>InverterChannelTypeBlockLoad</Name>
 												<Parameter>
 													<PropertyName>FeedConstantUnit</PropertyName>
-													<Value>mm</Value>
+													<Value>°</Value>
 												</Parameter>
 												<Parameter>
 													<PropertyName>FeedConstant</PropertyName>
-													<Value>60</Value>
+													<Value>360</Value>
 												</Parameter>
 												<Parameter>
 													<PropertyName>GearRatioMotorSide</PropertyName>
-													<Value>1</Value>
+													<Value>22</Value>
 												</Parameter>
 												<Parameter>
 													<PropertyName>GearRatioLoadSide</PropertyName>
@@ -37260,8 +37229,8 @@ Bit 8 - 15 : reserved]]></Comment>
 							<DcData>0007000024f4000000000000000000000000ffff000000000000000000000000</DcData>
 							<DcMode>446353796e633632353030000000000053796e63206379636c652074696d652036322e3530300000000000000000000024f400000000000000000000ffff00070000000000000000000000000000000000000000000000000000000000000000</DcMode>
 							<MBoxUserCmdData>004003000a00000000000000000000000000000000000000000000000000000020f3100502000000010000</MBoxUserCmdData>
-							<MBoxUserCmdData>020003000a00000029000000000000000000000000000000000000000000000020022c05020000004c044465766963654d61696e20506172616d6574657273202f204d61696e73206d617820766f6c7461676500</MBoxUserCmdData>
-							<MBoxUserCmdData>020003000a0000002b000000000000000000000000000000000000000000000020022c010200000056004465766963654d61696e20506172616d6574657273202f204d696e204443206c696e6b20766f6c7461676500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000029000000000000000000000000000000000000000000000020022c050200000098084465766963654d61696e20506172616d6574657273202f204d61696e73206d617820766f6c7461676500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a0000002b000000000000000000000000000000000000000000000020022c0102000000b2004465766963654d61696e20506172616d6574657273202f204d696e204443206c696e6b20766f6c7461676500</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000a00000042000000000000000000000000000000000000000000000020032c0102000000f2034465766963654d61696e20506f77657220737570706c7920436f6e6e656374696f6e202f20506f77657220737570706c79204574686572434154204164647265737300</MBoxUserCmdData>
 							<MBoxUserCmdData>02000300100000004c0000000000000000000000000000000000000000000000200d300508000000000010000000000043682041204175746f74756e696e6720636f6d6d616e6420706172616d6574657273202f205065726d69737369626c65206d6f76656d656e7420706f73697469766520646972656374696f6e00</MBoxUserCmdData>
 							<MBoxUserCmdData>02000300100000004c0000000000000000000000000000000000000000000000200d300608000000000010000000000043682041204175746f74756e696e6720636f6d6d616e6420706172616d6574657273202f205065726d69737369626c65206d6f76656d656e74206e6567617469766520646972656374696f6e00</MBoxUserCmdData>
@@ -37355,6 +37324,8 @@ Bit 8 - 15 : reserved]]></Comment>
 							<MBoxUserCmdData>020003000c00000020000000000000000000000000000000000000000000000020966001040000009f240000436820412056656c6f6369747920666163746f72202f204e756d657261746f7200</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c0000001e0000000000000000000000000000000000000000000000209660020400000000400000436820412056656c6f6369747920666163746f72202f2044697669736f7200</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c00000045000000000000000000000000000000000000000000000020c03001040000000000c8414368204120506f734374726c20706172616d6574657273206d61707061626c65202f20506f736974696f6e20636f6e74726f6c2070726f706f7274696f6e616c206761696e00</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a0000004e0000000000000000000000000000000000000000000000200730020200000001004368204120417869734d61696e20706172616d657465727320706f736974696f6e206f6666736574202f204f666673657420706f736974696f6e2061637475616c2076616c756520736f7572636500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a000000590000000000000000000000000000000000000000000000200730040200000001004368204120417869734d61696e20706172616d657465727320706f736974696f6e206f6666736574202f204f6666736574206164646974696f6e616c20706f736974696f6e2061637475616c2076616c756520736f7572636500</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c0000000b0000000000000000000000000000000000000000000000201d2c02040000007dcb6a9553746172747570206b657900</MBoxUserCmdData>
 							<Pdo Name="DeviceMain Inputs" Index="#x1a00" Flags="#x0280"/>
 							<Pdo Name="DeviceMain Dynamic Inputs" Index="#x1ae0" Flags="#x0280" SyncUnit="1"/>
@@ -38404,11 +38375,11 @@ Bit 8 - 15 : reserved]]></Comment>
 										<Name>DMInverterTypeDevice</Name>
 										<Parameter>
 											<PropertyName>MaxAllowedMainVoltage</PropertyName>
-											<Value>110</Value>
+											<Value>220</Value>
 										</Parameter>
 										<Parameter>
 											<PropertyName>MinDcLinkVoltage</PropertyName>
-											<Value>85.7321409974113</Value>
+											<Value>177.58800635178</Value>
 										</Parameter>
 										<Parameter>
 											<PropertyName>MaxDcLinkVoltage</PropertyName>
@@ -39714,10 +39685,10 @@ Bit 8 - 15 : reserved]]></Comment>
 							<DcData>0007000024f4000000000000000000000000ffff000000000000000000000000</DcData>
 							<DcMode>446353796e633632353030000000000053796e63206379636c652074696d652036322e3530300000000000000000000024f400000000000000000000ffff00070000000000000000000000000000000000000000000000000000000000000000</DcMode>
 							<MBoxUserCmdData>004003000a00000000000000000000000000000000000000000000000000000020f3100502000000010000</MBoxUserCmdData>
-							<MBoxUserCmdData>020003000a00000029000000000000000000000000000000000000000000000020022c05020000004c044465766963654d61696e20506172616d6574657273202f204d61696e73206d617820766f6c7461676500</MBoxUserCmdData>
-							<MBoxUserCmdData>020003000a0000002b000000000000000000000000000000000000000000000020022c010200000056004465766963654d61696e20506172616d6574657273202f204d696e204443206c696e6b20766f6c7461676500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a00000029000000000000000000000000000000000000000000000020022c050200000098084465766963654d61696e20506172616d6574657273202f204d61696e73206d617820766f6c7461676500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a0000002b000000000000000000000000000000000000000000000020022c0102000000b2004465766963654d61696e20506172616d6574657273202f204d696e204443206c696e6b20766f6c7461676500</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000a00000042000000000000000000000000000000000000000000000020032c0102000000f2034465766963654d61696e20506f77657220737570706c7920436f6e6e656374696f6e202f20506f77657220737570706c79204574686572434154204164647265737300</MBoxUserCmdData>
-							<MBoxUserCmdData>020003000c0000003d00000000000000000000000000000000000000000000002043320104000000cdcc4c404368204120546f727175654374726c20706172616d6574657273202f20436f6e66696775726564206368616e6e656c2072617465642063757272656e7400</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c0000002000000000000000000000000000000000000000000000002043320104000000cdcc4c40436f6e66696775726564206368616e6e656c2072617465642063757272656e7400</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c0000003d00000000000000000000000000000000000000000000002043360104000000cdcc4c404368204220546f727175654374726c20706172616d6574657273202f20436f6e66696775726564206368616e6e656c2072617465642063757272656e7400</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c0000003c000000000000000000000000000000000000000000000020433202040000009a9919414368204120546f727175654374726c20706172616d6574657273202f20436f6e66696775726564206368616e6e656c207065616b2063757272656e7400</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c0000003c000000000000000000000000000000000000000000000020433602040000009a9919414368204220546f727175654374726c20706172616d6574657273202f20436f6e66696775726564206368616e6e656c207065616b2063757272656e7400</MBoxUserCmdData>
@@ -39898,8 +39869,13 @@ Bit 8 - 15 : reserved]]></Comment>
 							<MBoxUserCmdData>02000300090000004900000000000000000000000000000000000000000000002008340201000000004368204220417869734d61696e20706172616d657465727320656e636f64657220706f6c6172697479202f205072696d61727920656e636f6465722061637475616c2076616c75657300</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c00000020000000000000000000000000000000000000000000000020966801040000009f240000436820422056656c6f6369747920666163746f72202f204e756d657261746f7200</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c0000001e0000000000000000000000000000000000000000000000209668020400000000400000436820422056656c6f6369747920666163746f72202f2044697669736f7200</MBoxUserCmdData>
-							<MBoxUserCmdData>020003000c00000045000000000000000000000000000000000000000000000020c03401040000000000c8414368204220506f734374726c20706172616d6574657273206d61707061626c65202f20506f736974696f6e20636f6e74726f6c2070726f706f7274696f6e616c206761696e00</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c00000045000000000000000000000000000000000000000000000020c03401040000000000803f4368204220506f734374726c20706172616d6574657273206d61707061626c65202f20506f736974696f6e20636f6e74726f6c2070726f706f7274696f6e616c206761696e00</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c00000045000000000000000000000000000000000000000000000020c03001040000000000c8414368204120506f734374726c20706172616d6574657273206d61707061626c65202f20506f736974696f6e20636f6e74726f6c2070726f706f7274696f6e616c206761696e00</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000c0000001b00000000000000000000000000000000000000000000002065600004000000000010004368204120466f6c6c6f77696e67206572726f722077696e646f7700</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a0000004e0000000000000000000000000000000000000000000000200730020200000001004368204120417869734d61696e20706172616d657465727320706f736974696f6e206f6666736574202f204f666673657420706f736974696f6e2061637475616c2076616c756520736f7572636500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a000000590000000000000000000000000000000000000000000000200730040200000001004368204120417869734d61696e20706172616d657465727320706f736974696f6e206f6666736574202f204f6666736574206164646974696f6e616c20706f736974696f6e2061637475616c2076616c756520736f7572636500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a0000004e0000000000000000000000000000000000000000000000200734020200000001004368204220417869734d61696e20706172616d657465727320706f736974696f6e206f6666736574202f204f666673657420706f736974696f6e2061637475616c2076616c756520736f7572636500</MBoxUserCmdData>
+							<MBoxUserCmdData>020003000a000000590000000000000000000000000000000000000000000000200734040200000001004368204220417869734d61696e20706172616d657465727320706f736974696f6e206f6666736574202f204f6666736574206164646974696f6e616c20706f736974696f6e2061637475616c2076616c756520736f7572636500</MBoxUserCmdData>
 							<MBoxUserCmdData>020003000c0000000b0000000000000000000000000000000000000000000000201d2c02040000007adffc7c53746172747570206b657900</MBoxUserCmdData>
 							<Pdo Name="DeviceMain Inputs" Index="#x1a00" Flags="#x0280"/>
 							<Pdo Name="DeviceMain Dynamic Inputs" Index="#x1ae0" Flags="#x0280" SyncUnit="1"/>
@@ -41310,12 +41286,13 @@ Bit 8 - 15 : reserved]]></Comment>
 		</Io>
 	</Project>
 	<Mappings>
-		<MappingInfo Identifier="{00000000-2001-0850-0620-500821000403}" Id="#x02030020"/>
+		<MappingInfo Identifier="{00000000-2005-0850-0220-500821000403}" Id="#x02030020"/>
 		<MappingInfo Identifier="{00000000-0030-0304-1000-040330000403}" Id="#x02030010"/>
 		<MappingInfo Identifier="{00000000-0040-0304-1000-040342000403}" Id="#x02030030"/>
-		<MappingInfo Identifier="{08502003-0010-0500-0120-500810000403}" Id="#x02030040" Watchdog="04000000140000000400000004000000"/>
-		<MappingInfo Identifier="{08502003-0010-0500-0120-500810001205}" Id="#x02030080" Watchdog="04000000140000000400000004000000"/>
-		<MappingInfo Identifier="{05000010-2005-0850-1000-040303205008}" Id="#x02030070" Watchdog="14000000040000000400000004000000"/>
+		<MappingInfo Identifier="{08502001-0020-0304-0020-500820000403}" Id="#x02030090" Watchdog="04000000040000000400000004000000"/>
+		<MappingInfo Identifier="{08502003-0010-0500-0020-500810000403}" Id="#x02030040" Watchdog="04000000080000000400000004000000"/>
+		<MappingInfo Identifier="{08502003-0010-0500-0020-500810001205}" Id="#x02030070" Watchdog="04000000080000000400000004000000"/>
+		<MappingInfo Identifier="{05000010-2005-0850-1000-040302205008}" Id="#x02030080" Watchdog="50000000040000000400000004000000"/>
 		<MappingInfo Identifier="{03040020-0020-0304-2000-040320000403}" Id="#x02030050" Watchdog="04000000040000000400000004000000"/>
 		<MappingInfo Identifier="{03040030-0030-0304-3000-040330000403}" Id="#x02030060" Watchdog="04000000040000000400000004000000"/>
 		<OwnerA Name="TIID^Device 3 (EtherCAT)">
@@ -41459,6 +41436,7 @@ Bit 8 - 15 : reserved]]></Comment>
 		</OwnerA>
 		<OwnerA Name="TIPC^ProjectMain^ProjectMain Instance">
 			<OwnerB Name="TIID^Device 3 (EtherCAT)^Term 1 (EK1100)^Term 3 (EL1008)">
+				<Link VarA="Main3_1 Inputs^GVL_Conveyer.bSensor" VarB="Channel 8^GVL_Conveyer.bSensor"/>
 				<Link VarA="PlcTask Inputs^GVL.I_bTest" VarB="Channel 1^GVL.I_bTest"/>
 			</OwnerB>
 			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^ConveyorAxis">

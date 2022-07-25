@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Refactors>
+  <Renames>
+    <RenamedType>
+      <Type guid="cef6c1f9-2a01-4b71-81db-f7ed4deb6965">MAIN</Type>
+      <From>MAIN</From>
+      <To>Main2</To>
+    </RenamedType>
+  </Renames>
+</Refactors>
