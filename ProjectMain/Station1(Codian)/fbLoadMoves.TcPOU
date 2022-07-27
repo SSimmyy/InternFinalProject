@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="fbLoadMoves" Id="{fdf544d3-cc44-4532-b0ef-2d4f8a6412bc}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK fbLoadMoves
+VAR_INPUT
+	DeltaCoords:Coords;
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <LineIds Name="fbLoadMoves">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

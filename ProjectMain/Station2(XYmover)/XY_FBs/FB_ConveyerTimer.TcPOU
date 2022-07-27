@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_ConveyerTimer" Id="{93d6b353-6e10-4ea1-b929-36aa8af36d9d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ConveyerTimer
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	bReadyToPlace : BOOL;
+END_VAR
+VAR
+	velocityTime	: TON;
+	bConveyerMovement: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[velocityTime(
+	IN := bConveyerMovement,
+	PT := T#1S
+	);
+
+IF GVL_Conveyer.ConveyerAxis.NcToPlc.SetVelo = 0 THEN
+		bConveyerMovement := FALSE;
+	ELSE
+		bConveyerMovement := TRUE;
+	END_IF
+
+IF velocityTime.Q THEN
+	bReadyToPlace := TRUE;
+ELSE
+	bReadyToPlace := FALSE;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="FB_ConveyerTimer">
+      <LineId Id="9" Count="0" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="26" Count="3" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="17" Count="1" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="19" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

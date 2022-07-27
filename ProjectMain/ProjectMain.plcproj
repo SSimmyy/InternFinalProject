@@ -102,10 +102,10 @@
     <Compile Include="Main5_1.TcTTO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PlcTask.TcTTO">
+    <Compile Include="Station1%28Codian%29\Faults1.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Station1%28Codian%29\Faults1.TcPOU">
+    <Compile Include="Station1%28Codian%29\fbLoadMoves.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station1%28Codian%29\Functions\Delta.TcPOU">
@@ -144,7 +144,7 @@
     <Compile Include="Station2%28XYmover%29\XY_FBs\FB_AddAllAxes.TcPOU">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_Home_Sequence.TcPOU">
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_ConveyerTimer.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station2%28XYmover%29\XY_FBs\FB_PowerAll.TcPOU">

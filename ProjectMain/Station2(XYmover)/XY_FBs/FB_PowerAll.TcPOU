@@ -10,7 +10,7 @@ VAR_OUTPUT
 	Error		: BOOL;
 END_VAR
 VAR
-	fbPower 	: ARRAY [1..cAxesCount] OF MC_Power;
+	fbPower 	: ARRAY [1..GVL_XY.cAxesCount] OF MC_Power;
 	i			: UINT;
 END_VAR
 ]]></Declaration>
@@ -18,8 +18,8 @@ END_VAR
       <ST><![CDATA[Status := TRUE;
 Error := FALSE;
 
-FOR i:=1 TO cAxesCount DO
-	fbPower[i](Axis:=stAxis[i],
+FOR i:=1 TO GVL_XY.cAxesCount DO
+	fbPower[i](Axis:=GVL_XY.stAxis[i],
 		Enable			:= Enable,
 		Enable_Positive	:= Enable,
 		Enable_Negative	:= Enable
@@ -28,10 +28,16 @@ FOR i:=1 TO cAxesCount DO
 	Status := Status AND fbPower[i].Status; 
 	Error := Error OR fbPower[i].Error;
 END_FOR
-]]></ST>
+
+
+
+	]]></ST>
     </Implementation>
     <LineIds Name="FB_PowerAll">
       <LineId Id="3" Count="12" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="31" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>
   </POU>

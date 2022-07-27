@@ -4,10 +4,10 @@
     <Declaration><![CDATA[FUNCTION_BLOCK Delta
 VAR_INPUT
 	MotionParameters	: DeltaMotionParameters_typ;			// Motion parameters used by internal motion function blocks	
-	myMCSOverride: LREAL := 10.0;
+	myMCSOverride: LREAL := 100.0;
 	xSetOverride: BOOL;
 	lrGrpOverride: MC_LREAL := 1.0;
-	fbMC_GroupSetOverride : MC_GroupSetOverride;		
+	fbMC_GroupSetOverride : MC_GroupSetOverride;	
 END_VAR
 
 VAR_OUTPUT
@@ -109,7 +109,6 @@ END_VAR
     <Method Name="Cyclic" Id="{08a56dcb-206a-41ec-ac0a-83b543ba62a8}" FolderPath="Methods\">
       <Declaration><![CDATA[METHOD Cyclic : BOOL
 VAR_IN_OUT
-	//	KinematicGroup		: NCTOPLC;
 END_VAR
 VAR
 	i: USINT;
@@ -250,7 +249,7 @@ END_VAR]]></Declaration>
 	
 		IF fbKinConfigGroup.bDone THEN
 		//	fbKinConfigGroup.bExecute		:= FALSE;
-			internalState					:= DL_DEBUG; //DL_ADD_AXES_TO_CM; // 
+			internalState					:= DL_ADD_AXES_TO_CM;//DL_ADD_AXES_TO_CM;//DL_DEBUG;//DL_ADD_AXES_TO_CM; /
 		ELSIF fbKinConfigGroup.bError THEN
 			ErrorID			:= fbKinConfigGroup.nErrorId;
 			ErrorOrigin		:= CONCAT(InstancePath,'.fbKinConfigGroup');
@@ -399,7 +398,9 @@ fbMC_GroupSetOverride(
 	Busy=> , 
 	Error=> , 
 	ErrorId=> , 
-	ActualVelFactor=> );]]></ST>
+	ActualVelFactor=> );
+	
+	]]></ST>
       </Implementation>
     </Method>
     <Method Name="Disable" Id="{f8852278-a902-41fb-8b1a-a53ea61cbd64}" FolderPath="Methods\">
@@ -842,6 +843,7 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="400" Count="0" />
       <LineId Id="105" Count="0" />
       <LineId Id="469" Count="8" />
+      <LineId Id="507" Count="1" />
     </LineIds>
     <LineIds Name="Delta.Disable">
       <LineId Id="5" Count="0" />

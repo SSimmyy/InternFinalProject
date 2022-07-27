@@ -16,53 +16,66 @@ VAR
 	bResetExecute: BOOL;
 	bPowerExecute: BOOL;
 	bVelocityExecute : BOOL;
+	MC_MoveAbsolute1: MC_MoveAbsolute;
+	MC_Stop1: MC_Stop;
 END_VAR
 VAR_IN_OUT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[		fbHalt(
+      <ST><![CDATA[		(*fbHalt(
 			Axis:= GVL_Conveyer.ConveyerAxis, 
 			Execute:= bHaltExecute
-			);
-
-CASE nState OF
-	
-0:
-	IF NOT GVL_Conveyer.bSensor THEN
+			);*)
+			
 		fbMoveVelocity(
 			Axis:= GVL_Conveyer.ConveyerAxis, 
 			Execute:= bVelocityExecute, 
 			Velocity:= 600, 
 			Direction := MC_Negative_Direction
 			);
-			IF NOT fbMoveVelocity.Busy THEN
-				bVelocityExecute := TRUE;
-			END_IF
-			IF bMoveError THEN
-				nState := 999;
-			END_IF
-		ELSE
-			bVelocityExecute := FALSE;
-			nState := 1;
+		
+		MC_Stop1(
+			Axis:= GVL_Conveyer.ConveyerAxis, 
+			Execute:= bHaltExecute);	
+			
+CASE nState OF
+	
+0: // Call velocity move
+	IF NOT GVL_Conveyer.bSensor THEN
+		bVelocityExecute := TRUE;
+		nState := 1;
 	END_IF
 	
-1:
-	IF NOT GVL_Conveyer.bConveyerReadyToMove THEN
-			bHaltExecute := TRUE;
-		IF fbHalt.Done THEN
-			GVL_Conveyer.bConveyerReadyToPick := TRUE;
-		END_IF
-			
-	ELSE
-		GVL_Conveyer.bConveyerReadyToMove := FALSE;
-		GVL_Conveyer.bConveyerReadyToPick := FALSE;
+1: // Set vel move low
+	IF (GVL_Conveyer.ConveyerAxis.NcToPlc.ActVelo > 1) OR (GVL_Conveyer.ConveyerAxis.NcToPlc.ActVelo < -1) THEN
+		bVelocityExecute := FALSE;
+		nState := 5;
+	END_IF
+	
+5: // Call stop movement when something is there
+	IF GVL_Conveyer.bSensor THEN
+		GVL_Conveyer.bConveyerReadyToPick := TRUE;
+		bHaltExecute := TRUE;
+		nState := 10;
+	END_IF
+	
+10: // Check if halt is complete
+	IF MC_Stop1.Done THEN
+		nState := 15;
 		bHaltExecute := FALSE;
+	END_IF
+	
+15: // If sensor low, then call ready to move high
+	IF NOT GVL_Conveyer.bSensor AND GVL_conveyer.bConveyerReadyToMove THEN
+		GVL_Conveyer.bConveyerReadyToPick := FALSE;
+		
 		nState := 0;
 	END_IF
 			
 999:
 	IF NOT fbMoveVelocity.Error AND NOT fbHalt.Error THEN
+		
 		nState := 0;
 		bSequenceError := FALSE;
 	ELSE
@@ -72,36 +85,43 @@ END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Sequence3">
       <LineId Id="487" Count="2" />
-      <LineId Id="485" Count="1" />
+      <LineId Id="485" Count="0" />
+      <LineId Id="514" Count="0" />
+      <LineId Id="509" Count="4" />
+      <LineId Id="486" Count="0" />
+      <LineId Id="565" Count="0" />
+      <LineId Id="588" Count="1" />
+      <LineId Id="585" Count="0" />
+      <LineId Id="515" Count="0" />
       <LineId Id="37" Count="0" />
       <LineId Id="219" Count="0" />
       <LineId Id="225" Count="0" />
       <LineId Id="262" Count="0" />
-      <LineId Id="265" Count="3" />
-      <LineId Id="365" Count="0" />
-      <LineId Id="460" Count="0" />
-      <LineId Id="427" Count="2" />
-      <LineId Id="330" Count="0" />
-      <LineId Id="332" Count="1" />
-      <LineId Id="276" Count="0" />
-      <LineId Id="376" Count="0" />
-      <LineId Id="277" Count="0" />
+      <LineId Id="428" Count="0" />
+      <LineId Id="527" Count="0" />
       <LineId Id="264" Count="0" />
-      <LineId Id="242" Count="0" />
-      <LineId Id="224" Count="0" />
-      <LineId Id="293" Count="0" />
-      <LineId Id="462" Count="2" />
-      <LineId Id="370" Count="0" />
-      <LineId Id="367" Count="0" />
-      <LineId Id="307" Count="0" />
-      <LineId Id="430" Count="0" />
-      <LineId Id="466" Count="0" />
-      <LineId Id="426" Count="0" />
-      <LineId Id="378" Count="0" />
-      <LineId Id="297" Count="0" />
+      <LineId Id="539" Count="3" />
+      <LineId Id="544" Count="0" />
+      <LineId Id="543" Count="0" />
+      <LineId Id="516" Count="1" />
+      <LineId Id="519" Count="0" />
+      <LineId Id="532" Count="0" />
+      <LineId Id="521" Count="0" />
+      <LineId Id="528" Count="0" />
+      <LineId Id="518" Count="0" />
+      <LineId Id="522" Count="2" />
+      <LineId Id="529" Count="0" />
+      <LineId Id="584" Count="0" />
+      <LineId Id="526" Count="0" />
+      <LineId Id="533" Count="3" />
+      <LineId Id="546" Count="0" />
+      <LineId Id="538" Count="0" />
+      <LineId Id="537" Count="0" />
       <LineId Id="380" Count="0" />
       <LineId Id="336" Count="0" />
-      <LineId Id="338" Count="1" />
+      <LineId Id="338" Count="0" />
+      <LineId Id="508" Count="0" />
+      <LineId Id="339" Count="0" />
       <LineId Id="344" Count="0" />
       <LineId Id="341" Count="1" />
       <LineId Id="340" Count="0" />

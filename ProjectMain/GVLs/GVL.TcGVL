@@ -3,12 +3,17 @@
   <GVL Name="GVL" Id="{c0b59f4c-f1a2-4141-a240-1ec2cdbcdbf6}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-	DeltaCoords : ARRAY[0..20] OF Coords;
-	XYCoords	: ARRAY[0..20] OF Coords;
+	
 	I_bTest	AT %I*:BOOL;
 	bGantryVac AT %Q*:BOOL;
 	bGantryDown AT %Q*:BOOL;
 	bGantryUp AT %Q*:BOOL;
+END_VAR
+
+VAR_GLOBAL PERSISTENT
+ 	DeltaCoords : ARRAY[0..20] OF Coords;
+	XYCoords	: ARRAY[0..20] OF Coords;
+	iMovementNumber:INT;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

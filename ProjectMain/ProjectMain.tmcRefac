@@ -2,9 +2,9 @@
 <Refactors>
   <Renames>
     <RenamedType>
-      <Type guid="cef6c1f9-2a01-4b71-81db-f7ed4deb6965">MAIN</Type>
-      <From>MAIN</From>
-      <To>Main2</To>
+      <Type guid="93d6b353-6e10-4ea1-b929-36aa8af36d9d">FB_CONVEYERREADYTOPLACE</Type>
+      <From>FB_ConveyerReadyToPlace</From>
+      <To>FB_ConveyerTimer</To>
     </RenamedType>
   </Renames>
 </Refactors>

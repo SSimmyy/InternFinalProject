@@ -11,7 +11,7 @@ VAR_OUTPUT
 	Error				: BOOL;
 END_VAR
 VAR
-	fbAddAxis			: ARRAY[1..cAxesCount] OF MC_AddAxisToGroup;
+	fbAddAxis			: ARRAY[1..GVL_XY.cAxesCount] OF MC_AddAxisToGroup;
 	i					: UINT;
 END_VAR
 ]]></Declaration>
@@ -21,13 +21,10 @@ Busy := FALSE;
 Error := FALSE;
 
 fbAddAxis[1].IdentInGroup := MCS_X; //X-Axis
-fbAddAxis[2].IdentInGroup := MCS_Y; //Y-Axis
-fbAddAxis[3].IdentInGroup := MCS_Z; //Z-Axis
-fbAddAxis[4].IdentInGroup := MCS_C1; //1st rotation is C-rotation (around Z-Axis)
-fbAddAxis[5].IdentInGroup := ADDAX1; //1st additional axis (no geometrical interpretation)
+fbAddAxis[2].IdentInGroup := MCS_Y; //Y-Axisn)
 
-FOR i:=1 TO cAxesCount DO
-	fbAddAxis[i](AxesGroup:=stGroupRef, Axis := stAxis[i], Execute := Execute);
+FOR i:=1 TO GVL_XY.cAxesCount DO
+	fbAddAxis[i](AxesGroup:=GVL_XY.stGroupRef, Axis := GVL_XY.stAxis[i], Execute := Execute);
 
 	IF (NOT fbAddAxis[i].Done) THEN
 		Done := FALSE;
@@ -41,8 +38,7 @@ FOR i:=1 TO cAxesCount DO
 END_FOR]]></ST>
     </Implementation>
     <LineIds Name="FB_AddAllAxes">
-      <LineId Id="3" Count="7" />
-      <LineId Id="37" Count="0" />
+      <LineId Id="3" Count="5" />
       <LineId Id="11" Count="12" />
       <LineId Id="2" Count="0" />
     </LineIds>

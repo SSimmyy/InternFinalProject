@@ -3,12 +3,16 @@
   <GVL Name="GVL_XY" Id="{0be7941a-fd05-46fd-ae47-8e8c1b8f750d}">
     <Declaration><![CDATA[{attribute 'qualified_only'}
 VAR_GLOBAL
-    stGroupRef            : AXES_GROUP_REF;
-    stAxis                : ARRAY[1..cAxesCount] OF AXIS_REF;
+    stGroupRef            	: AXES_GROUP_REF;
+    stAxis                	: ARRAY[1..cAxesCount] OF AXIS_REF;
+	stAxisXSlave			: AXIS_REF;
+	bAirEnable				AT %Q* : BOOL;
+	bPushDown				AT %Q* : BOOL;
+	bPullUp					AT %Q* : BOOL;
 END_VAR
 
 VAR_GLOBAL CONSTANT
-    cAxesCount            : UINT:=2;
+    cAxesCount            	: UINT:=2;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>
