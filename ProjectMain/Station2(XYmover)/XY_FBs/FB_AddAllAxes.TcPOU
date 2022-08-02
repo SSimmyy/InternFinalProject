@@ -10,7 +10,7 @@ VAR_OUTPUT
 	Busy				: BOOL;
 	Error				: BOOL;
 END_VAR
-VAR
+VAR;
 	fbAddAxis			: ARRAY[1..GVL_XY.cAxesCount] OF MC_AddAxisToGroup;
 	i					: UINT;
 END_VAR

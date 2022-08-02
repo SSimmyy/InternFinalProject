@@ -3,41 +3,37 @@
   <POU Name="Sequence3" Id="{e15a6fb5-808f-4738-8ea3-952c583c643e}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Sequence3
 VAR_INPUT
+	Execute : BOOL;
 END_VAR
 VAR_OUTPUT
-	bMoveError : BOOL;
-	bSequenceError : BOOL;
+	Error : BOOL;
 END_VAR
 VAR
 	nState : INT;
 	fbMoveVelocity: MC_MoveVelocity;
-	fbHalt: MC_Halt;
-	bHaltExecute: BOOL;
+	bStopExecute: BOOL;
 	bResetExecute: BOOL;
 	bPowerExecute: BOOL;
 	bVelocityExecute : BOOL;
 	MC_MoveAbsolute1: MC_MoveAbsolute;
-	MC_Stop1: MC_Stop;
+	fbStop: MC_Stop;
 END_VAR
 VAR_IN_OUT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[		(*fbHalt(
-			Axis:= GVL_Conveyer.ConveyerAxis, 
-			Execute:= bHaltExecute
-			);*)
+      <ST><![CDATA[IF Execute THEN
 			
 		fbMoveVelocity(
 			Axis:= GVL_Conveyer.ConveyerAxis, 
 			Execute:= bVelocityExecute, 
-			Velocity:= 600, 
+			Velocity:= 800, 
 			Direction := MC_Negative_Direction
 			);
 		
-		MC_Stop1(
+		fbStop(
 			Axis:= GVL_Conveyer.ConveyerAxis, 
-			Execute:= bHaltExecute);	
+			Execute:= bStopExecute);	
 			
 CASE nState OF
 	
@@ -56,14 +52,14 @@ CASE nState OF
 5: // Call stop movement when something is there
 	IF GVL_Conveyer.bSensor THEN
 		GVL_Conveyer.bConveyerReadyToPick := TRUE;
-		bHaltExecute := TRUE;
+		bStopExecute := TRUE;
 		nState := 10;
 	END_IF
 	
 10: // Check if halt is complete
-	IF MC_Stop1.Done THEN
+	IF fbStop.Done THEN
 		nState := 15;
-		bHaltExecute := FALSE;
+		bStopExecute := FALSE;
 	END_IF
 	
 15: // If sensor low, then call ready to move high
@@ -74,58 +70,19 @@ CASE nState OF
 	END_IF
 			
 999:
-	IF NOT fbMoveVelocity.Error AND NOT fbHalt.Error THEN
+	IF NOT fbMoveVelocity.Error AND NOT fbStop.Error THEN
 		
 		nState := 0;
-		bSequenceError := FALSE;
+		Error := FALSE;
 	ELSE
-		bSequenceError := TRUE;
+		Error := TRUE;
 	END_IF
-END_CASE]]></ST>
+END_CASE
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="Sequence3">
-      <LineId Id="487" Count="2" />
-      <LineId Id="485" Count="0" />
-      <LineId Id="514" Count="0" />
-      <LineId Id="509" Count="4" />
-      <LineId Id="486" Count="0" />
-      <LineId Id="565" Count="0" />
-      <LineId Id="588" Count="1" />
-      <LineId Id="585" Count="0" />
-      <LineId Id="515" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="219" Count="0" />
-      <LineId Id="225" Count="0" />
-      <LineId Id="262" Count="0" />
-      <LineId Id="428" Count="0" />
-      <LineId Id="527" Count="0" />
-      <LineId Id="264" Count="0" />
-      <LineId Id="539" Count="3" />
-      <LineId Id="544" Count="0" />
-      <LineId Id="543" Count="0" />
-      <LineId Id="516" Count="1" />
-      <LineId Id="519" Count="0" />
-      <LineId Id="532" Count="0" />
-      <LineId Id="521" Count="0" />
-      <LineId Id="528" Count="0" />
-      <LineId Id="518" Count="0" />
-      <LineId Id="522" Count="2" />
-      <LineId Id="529" Count="0" />
-      <LineId Id="584" Count="0" />
-      <LineId Id="526" Count="0" />
-      <LineId Id="533" Count="3" />
-      <LineId Id="546" Count="0" />
-      <LineId Id="538" Count="0" />
-      <LineId Id="537" Count="0" />
-      <LineId Id="380" Count="0" />
-      <LineId Id="336" Count="0" />
-      <LineId Id="338" Count="0" />
-      <LineId Id="508" Count="0" />
-      <LineId Id="339" Count="0" />
-      <LineId Id="344" Count="0" />
-      <LineId Id="341" Count="1" />
-      <LineId Id="340" Count="0" />
-      <LineId Id="220" Count="0" />
+      <LineId Id="823" Count="55" />
+      <LineId Id="611" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

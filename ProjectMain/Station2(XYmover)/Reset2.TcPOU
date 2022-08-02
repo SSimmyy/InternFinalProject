@@ -3,17 +3,37 @@
   <POU Name="Reset2" Id="{c18ff4d2-bf50-48ff-89d8-b8e3792d79c2}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Reset2
 VAR_INPUT
+	Execute : BOOL;
 END_VAR
 VAR_OUTPUT
+	Done : BOOL;
 END_VAR
 VAR
+	fbResetAll: FB_ResetAllAxis;
+	bResetExecute: BOOL := TRUE;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[IF Execute THEN
+	fbResetAll(
+		Execute := bResetExecute
+	);	
+	IF fbResetAll.Done THEN
+		bResetExecute := FALSE;
+		Done := TRUE;
+	END_IF
+	
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="Reset2">
       <LineId Id="9" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="41" Count="1" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="19" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

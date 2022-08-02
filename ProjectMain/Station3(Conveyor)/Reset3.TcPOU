@@ -6,7 +6,7 @@ VAR_INPUT
 		Execute : BOOL;
 END_VAR
 VAR_OUTPUT
-	bResetDone : BOOL;
+	Done : BOOL;
 	bResetError: BOOL;
 END_VAR
 VAR
@@ -24,7 +24,8 @@ VAR_IN_OUT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[fbReset(
+      <ST><![CDATA[IF Execute THEN
+fbReset(
 		Axis:= GVL_Conveyer.ConveyerAxis, 
 		Execute:= bResetExecute, 
 		Done=> ResetOut.Done, 
@@ -42,10 +43,12 @@ fbPower(
 			Active=> powerOutputs.Active, 
 			Error=> powerOutputs.Error, 
 			ErrorID=> powerOutputs.ErrorID);
+			
+			
 CASE nState OF
 	
 0:
-	bResetDone := FALSE;
+	Done := FALSE;
 	bResetExecute := TRUE;
 		IF NOT fbReset.Error THEN
 			IF fbReset.Done THEN
@@ -63,84 +66,37 @@ CASE nState OF
 		ELSIF fbPower.Error THEN
 			nState := 9999;
 		END_IF		
-
 2:
-	fbMoveRelative(
-		Axis:= GVL_Conveyer.ConveyerAxis, 
-		Execute:= TRUE, 
-		Distance:= 5000,
-		Velocity := 700,
-		Done=> RelativeOut.Done, 
-		Busy=> RelativeOut.Busy, 
-		Active=> RelativeOut.Active, 
-		CommandAborted=> RelativeOut.CommandAborted, 
-		Error=> RelativeOut.Error, 
-		ErrorID=> RelativeOut.ErrorID);
-		IF NOT fbMoveRelative.Error THEN
-			IF fbMoveRelative.Done THEN
-				nState := 3;
-			END_IF
-		ELSE
-			nState := 999;
-		END_IF
-3:
-	bResetDone := TRUE;
+	Done := TRUE;
+	nState := 3;
 	
-(*999:
-	IF NOT fbMoveRelative.Error AND NOT fbReset.Error THEN
+3: 
+	IF Execute THEN
+		nState := 0;
+	END_IF
+	
+999:
+	IF NOT fbReset.Error AND NOT fbPower.Error THEN
 		nState := 0;
 		bResetError := FALSE;
 	ELSE
 		bResetError := TRUE;
-	END_IF*)
+	END_IF
 END_CASE
+
+END_IF
 
 	
 ]]></ST>
     </Implementation>
     <LineIds Name="Reset3">
-      <LineId Id="196" Count="5" />
-      <LineId Id="194" Count="0" />
-      <LineId Id="231" Count="0" />
-      <LineId Id="222" Count="8" />
-      <LineId Id="195" Count="0" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="33" Count="0" />
-      <LineId Id="36" Count="0" />
-      <LineId Id="70" Count="0" />
-      <LineId Id="38" Count="0" />
-      <LineId Id="45" Count="0" />
-      <LineId Id="139" Count="2" />
-      <LineId Id="81" Count="1" />
-      <LineId Id="47" Count="0" />
-      <LineId Id="146" Count="1" />
-      <LineId Id="160" Count="0" />
-      <LineId Id="233" Count="0" />
-      <LineId Id="161" Count="0" />
-      <LineId Id="163" Count="0" />
-      <LineId Id="165" Count="1" />
-      <LineId Id="150" Count="0" />
-      <LineId Id="149" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="50" Count="3" />
-      <LineId Id="145" Count="0" />
-      <LineId Id="60" Count="4" />
-      <LineId Id="48" Count="0" />
-      <LineId Id="66" Count="0" />
-      <LineId Id="142" Count="2" />
-      <LineId Id="79" Count="1" />
-      <LineId Id="68" Count="0" />
-      <LineId Id="65" Count="0" />
-      <LineId Id="35" Count="0" />
-      <LineId Id="101" Count="1" />
-      <LineId Id="71" Count="0" />
-      <LineId Id="103" Count="0" />
-      <LineId Id="124" Count="0" />
-      <LineId Id="107" Count="1" />
-      <LineId Id="104" Count="0" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="29" Count="1" />
+      <LineId Id="301" Count="18" />
+      <LineId Id="376" Count="1" />
+      <LineId Id="320" Count="20" />
+      <LineId Id="361" Count="1" />
+      <LineId Id="399" Count="5" />
+      <LineId Id="363" Count="12" />
+      <LineId Id="30" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

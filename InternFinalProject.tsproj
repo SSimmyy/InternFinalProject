@@ -2405,6 +2405,15 @@ and will return to Group State Standby when the situation permits.
 			</SubItem>
 		</DataType>
 		<DataType>
+			<Name GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}" IecBaseType="true">ARRAY [1..3] OF BOOL</Name>
+			<BitSize>24</BitSize>
+			<BaseType GUID="{18071995-0000-0000-0000-000000000030}">BOOL</BaseType>
+			<ArrayInfo>
+				<LBound>1</LBound>
+				<Elements>3</Elements>
+			</ArrayInfo>
+		</DataType>
+		<DataType>
 			<Name GUID="{F5E80BDD-917E-CAF6-EEC1-F73E474170AA}" Namespace="Tc3_McCoordinatedMotion" AutoDeleteType="true">MC_COORD_REF</Name>
 			<BitSize>32</BitSize>
 			<BaseType GUID="{18071995-0000-0000-0000-00000000000F}">OTCID</BaseType>
@@ -5185,6 +5194,11 @@ and will return to Group State Standby when the situation permits.
 				<Cpu BaseTime="5000"/>
 				<Cpu CpuId="1" RtLimit="90"/>
 			</Settings>
+			<Licenses>
+				<Target>
+					<ManualSelect>{796D380F-D49E-4C0C-A05F-500052FAC883}</ManualSelect>
+				</Target>
+			</Licenses>
 			<Tasks>
 				<Task Id="5" Priority="20" CycleTime="100000" AmsPort="350" AdtTasks="true">
 					<Name>PlcTask</Name>
@@ -5218,7 +5232,7 @@ and will return to Group State Standby when the situation permits.
 		</System>
 		<Motion>
 			<NC>
-				<SafTask Priority="4" CycleTime="5000" AmsPort="501" Affinity="#x00000001" IoAtBegin="true" AmsNetId="10.12.160.67.1.1" SafTaskInfo="256">
+				<SafTask Priority="4" CycleTime="5000" AmsPort="501" Affinity="#x00000001" IoAtBegin="true" SafTaskInfo="256">
 					<Name>NC-Task 1 SAF</Name>
 					<Vars VarGrpType="1" InsertType="1">
 						<Name>Inputs</Name>
@@ -7462,7 +7476,7 @@ and will return to Group State Standby when the situation permits.
 		</Motion>
 		<Plc>
 			<Project GUID="{E15A974B-8582-482D-A514-2936AA96F1F2}" Name="ProjectMain" PrjFilePath="ProjectMain\ProjectMain.plcproj" TmcFilePath="ProjectMain\ProjectMain.tmc" ReloadTmc="true" AmsPort="851" FileArchiveSettings="#x000e" SymbolicMapping="true">
-				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="ProjectMain\ProjectMain.tmc" TmcHash="{B9D9F782-CCC9-98E4-D386-65F4D1665000}">
+				<Instance Id="#x08502000" TcSmClass="TComPlcObjDef" KeepUnrestoredLinks="2" TmcPath="ProjectMain\ProjectMain.tmc" TmcHash="{F22FE22E-9791-0188-2766-3CBEC35FC299}">
 					<Name>ProjectMain Instance</Name>
 					<CLSID ClassFactory="TcPlc30">{08500001-0000-0000-F000-000000000064}</CLSID>
 					<Vars VarGrpType="1">
@@ -7505,6 +7519,14 @@ and will return to Group State Standby when the situation permits.
 						</Var>
 						<Var>
 							<Name>GVL_Conveyer.bSensor</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL_XTS.bDeltaReleased</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL_XTS.mover0InPosition</Name>
 							<Type>BOOL</Type>
 						</Var>
 					</Vars>
@@ -7550,9 +7572,25 @@ and will return to Group State Standby when the situation permits.
 							<Name>Main1.Sequence.XTS_CA_GroupRef.PlcToNc</Name>
 							<Type GUID="{0E2E3852-A98C-4AF3-81E2-209EE128940C}" Namespace="MC">CDT_PLCTOMC_GROUP</Type>
 						</Var>
+						<Var>
+							<Name>GVL_XTS.bDeltaRelease</Name>
+							<Type>BOOL</Type>
+						</Var>
 					</Vars>
 					<Vars VarGrpType="1" ContextId="1" AreaNo="16">
 						<Name>Main2_1 Inputs</Name>
+						<Var>
+							<Name>GVL_Conveyer.ConveyerAxis.NcToPlc</Name>
+							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_XTS.moversInPosition</Name>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+						</Var>
+						<Var>
+							<Name>GVL_XY.stGroupRef.NcToPlc</Name>
+							<Type GUID="{467F4325-10DF-4BC1-88DD-E8240EB4F8E3}" Namespace="MC">CDT_MCTOPLC_GROUP</Type>
+						</Var>
 						<Var>
 							<Name>GVL_XY.stAxis[1].NcToPlc</Name>
 							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
@@ -7562,23 +7600,19 @@ and will return to Group State Standby when the situation permits.
 							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>GVL_XY.stAxisXSlave.NcToPlc</Name>
+							<Name>GVL_XY.stSlaveAxis[1].NcToPlc</Name>
 							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
 						</Var>
 					</Vars>
 					<Vars VarGrpType="2" ContextId="1" AreaNo="17">
 						<Name>Main2_1 Outputs</Name>
 						<Var>
-							<Name>GVL_XY.stAxis[1].PlcToNc</Name>
+							<Name>GVL_Conveyer.ConveyerAxis.PlcToNc</Name>
 							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
 						<Var>
-							<Name>GVL_XY.stAxis[2].PlcToNc</Name>
-							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
-						</Var>
-						<Var>
-							<Name>GVL_XY.stAxisXSlave.PlcToNc</Name>
-							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+							<Name>GVL_XTS.moversRelease</Name>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
 						</Var>
 						<Var>
 							<Name>GVL_XY.bAirEnable</Name>
@@ -7592,34 +7626,44 @@ and will return to Group State Standby when the situation permits.
 							<Name>GVL_XY.bPullUp</Name>
 							<Type>BOOL</Type>
 						</Var>
-					</Vars>
-					<Vars VarGrpType="1" ContextId="2" AreaNo="32">
-						<Name>Main3_1 Inputs</Name>
 						<Var>
-							<Name>GVL_Conveyer.ConveyerAxis.NcToPlc</Name>
-							<Type GUID="{10036166-C9D3-404B-BDD3-323034AAA7F4}" Namespace="MC">NCTOPLC_AXIS_REF</Type>
+							<Name>GVL_XY.stGroupRef.PlcToNc</Name>
+							<Type GUID="{0E2E3852-A98C-4AF3-81E2-209EE128940C}" Namespace="MC">CDT_PLCTOMC_GROUP</Type>
 						</Var>
-					</Vars>
-					<Vars VarGrpType="2" ContextId="2" AreaNo="33">
-						<Name>Main3_1 Outputs</Name>
 						<Var>
-							<Name>GVL_Conveyer.ConveyerAxis.PlcToNc</Name>
+							<Name>GVL_XY.stAxis[1].PlcToNc</Name>
+							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_XY.stAxis[2].PlcToNc</Name>
+							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
+						</Var>
+						<Var>
+							<Name>GVL_XY.stSlaveAxis[1].PlcToNc</Name>
 							<Type GUID="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" Namespace="MC">PLCTONC_AXIS_REF</Type>
 						</Var>
 					</Vars>
 					<Vars VarGrpType="1" ContextId="4" AreaNo="64">
 						<Name>Main5_1 Inputs</Name>
 						<Var>
-							<Name>GVL.I_bTest</Name>
-							<Type>BOOL</Type>
+							<Name>Main2.internalCMGroup.NcToPlc</Name>
+							<Type GUID="{467F4325-10DF-4BC1-88DD-E8240EB4F8E3}" Namespace="MC">CDT_MCTOPLC_GROUP</Type>
 						</Var>
 						<Var>
-							<Name>GVL_XY.stGroupRef.NcToPlc</Name>
-							<Type GUID="{467F4325-10DF-4BC1-88DD-E8240EB4F8E3}" Namespace="MC">CDT_MCTOPLC_GROUP</Type>
+							<Name>GVL_XTS.moversReleased</Name>
+							<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
 						</Var>
 					</Vars>
 					<Vars VarGrpType="2" ContextId="4" AreaNo="65">
 						<Name>Main5_1 Outputs</Name>
+						<Var>
+							<Name>Main2.AirVariable</Name>
+							<Type>BOOL</Type>
+						</Var>
+						<Var>
+							<Name>Main2.internalCMGroup.PlcToNc</Name>
+							<Type GUID="{0E2E3852-A98C-4AF3-81E2-209EE128940C}" Namespace="MC">CDT_PLCTOMC_GROUP</Type>
+						</Var>
 						<Var>
 							<Name>GVL.bGantryVac</Name>
 							<Type>BOOL</Type>
@@ -7632,10 +7676,6 @@ and will return to Group State Standby when the situation permits.
 							<Name>GVL.bGantryUp</Name>
 							<Type>BOOL</Type>
 						</Var>
-						<Var>
-							<Name>GVL_XY.stGroupRef.PlcToNc</Name>
-							<Type GUID="{0E2E3852-A98C-4AF3-81E2-209EE128940C}" Namespace="MC">CDT_PLCTOMC_GROUP</Type>
-						</Var>
 					</Vars>
 					<UnrestoredVarLinks ImportTime="2022-07-22T11:26:49">
 						<OwnerA Name="InputDst" Prefix="TIPC^ProjectMain^ProjectMain Instance" Type="1">
@@ -7646,6 +7686,13 @@ and will return to Group State Standby when the situation permits.
 						<OwnerA Name="OutputSrc" Prefix="TIPC^ProjectMain^ProjectMain Instance" Type="2">
 							<OwnerB Name="TINC^NC-Task 1 SAF^Axes^ConveyorAxis">
 								<Link VarA="GVL.ConveyerAxis.PlcToNc" TypeA="MC.PLCTONC_AXIS_REF" InOutA="1" GuidA="{63A84524-72E3-41C8-BEAB-4CCE44690A13}" VarB="Inputs^FromPlc" RestoreInfo="ANotFound"/>
+							</OwnerB>
+						</OwnerA>
+					</UnrestoredVarLinks>
+					<UnrestoredVarLinks ImportTime="2022-08-02T08:58:11">
+						<OwnerA Name="InputDst" Prefix="TIPC^ProjectMain^ProjectMain Instance" Type="1">
+							<OwnerB Name="TIID^Device 3 (EtherCAT)^Term 1 (EK1100)^Term 3 (EL1008)">
+								<Link VarA="GVL.I_bTest" TypeA="BOOL" InOutA="0" GuidA="{18071995-0000-0000-0000-000000000030}" VarB="Channel 1^GVL.I_bTest" Size="1" RestoreInfo="ANotFound"/>
 							</OwnerB>
 						</OwnerA>
 					</UnrestoredVarLinks>
@@ -32423,9 +32470,9 @@ Note: The maximum number of triggers within a burst sequence is limited. If the 
 				<Name>Device 3 (EtherCAT)</Name>
 				<AddressInfo>
 					<Pnp>
-						<DeviceDesc>Ethernet 3 (TwinCAT-Intel PCI Ethernet Adapter (Gig</DeviceDesc>
-						<DeviceName>\DEVICE\{309A2B61-A93C-4ADA-B536-BCF94524DD22}</DeviceName>
-						<DeviceData>000105555536</DeviceData>
+						<DeviceDesc>Ethernet 4 (TwinCAT-Intel PCI Ethernet Adapter (Gig</DeviceDesc>
+						<DeviceName>\DEVICE\{00B38135-C736-4ECE-8E20-106307569EEE}</DeviceName>
+						<DeviceData>000105555539</DeviceData>
 					</Pnp>
 				</AddressInfo>
 				<Image Id="3" AddrType="9" ImageType="3">
@@ -32568,12 +32615,12 @@ Note: The maximum number of triggers within a burst sequence is limited. If the 
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 7" Index="#x1a06" Flags="#x0011" SyncMan="0">
-								<Entry Name="Input" Index="#x6060" Sub="#x01">
+								<Entry Name="GVL_Conveyer.bSensor" Index="#x6060" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
 							</Pdo>
 							<Pdo Name="Channel 8" Index="#x1a07" Flags="#x0011" SyncMan="0">
-								<Entry Name="GVL_Conveyer.bSensor" Index="#x6070" Sub="#x01">
+								<Entry Name="Input" Index="#x6070" Sub="#x01">
 									<Type>BIT</Type>
 								</Entry>
 							</Pdo>
@@ -42728,19 +42775,268 @@ Bit 8 - 15 : reserved]]></Comment>
 				</Box>
 				<EtherCAT DcSyncMode="3"/>
 			</Device>
+			<Device Id="1" DevType="112" AmsPort="28673" AmsNetId="169.254.124.141.2.1" RemoteName="Device 1 (EtherCAT Automation Protocol)">
+				<Name>Device 1 (EtherCAT Automation Protocol)</Name>
+				<AddressInfo>
+					<Pnp>
+						<DeviceDesc>Ethernet 5 (TwinCAT-Intel PCI Ethernet Adapter (Gig</DeviceDesc>
+						<DeviceName>\DEVICE\{AB2F4DB2-78D6-4A42-9167-EF4F228F1F07}</DeviceName>
+						<DeviceData>000105555538</DeviceData>
+					</Pnp>
+				</AddressInfo>
+				<Image Id="5" AddrType="1" ImageType="3">
+					<Name>Image</Name>
+				</Image>
+				<Box Id="8" BoxType="9051">
+					<Name>Box 8 (Publisher)</Name>
+					<ImageId>99</ImageId>
+					<Vars VarGrpType="1">
+						<Name>Inputs</Name>
+						<Var BoxStateVariable="true">
+							<Name>FrameState</Name>
+							<Comment><![CDATA[0x0001 = Not sent (frame skipped)
+0x0002 = Error (frame oversized)
+0x0004 = Subscriber missing (Unicast only)
+]]></Comment>
+							<Type>UINT</Type>
+						</Var>
+					</Vars>
+					<Vars VarGrpType="2">
+						<Name>Outputs</Name>
+						<Var BoxStateVariable="true">
+							<Name>FrameCtrl</Name>
+							<Comment><![CDATA[0x0001 = Disable sending
+0x0002 = Remove destination MAC from ARP cache
+]]></Comment>
+							<Type>UINT</Type>
+						</Var>
+					</Vars>
+					<Eap InOut="1" Publisher="a9fe7c8d0202" ArpRetryInterval="1000">
+						<EapVar Id="1" VarInOut="1" NvId="1" NvLength="1">
+							<Name>bDeltaRelease</Name>
+							<ImageId>97</ImageId>
+							<Vars VarGrpType="1">
+								<Name>Inputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarState</Name>
+									<Comment><![CDATA[0x0001 = Not sent (variable skipped)
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>16</BitOffs>
+								</Var>
+							</Vars>
+							<Vars VarGrpType="2">
+								<Name>Outputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarCtrl</Name>
+									<Comment><![CDATA[0x0001 = Disable publishing
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>16</BitOffs>
+								</Var>
+								<Var>
+									<Name>VarData</Name>
+									<Type>BOOL</Type>
+									<BitOffs>32</BitOffs>
+								</Var>
+							</Vars>
+						</EapVar>
+						<EapVar Id="9" VarInOut="1" NvId="9" NvLength="3">
+							<Name>moversRelease</Name>
+							<ImageId>97</ImageId>
+							<Vars VarGrpType="1">
+								<Name>Inputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarState</Name>
+									<Comment><![CDATA[0x0001 = Not sent (variable skipped)
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>32</BitOffs>
+								</Var>
+							</Vars>
+							<Vars VarGrpType="2">
+								<Name>Outputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarCtrl</Name>
+									<Comment><![CDATA[0x0001 = Disable publishing
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>40</BitOffs>
+								</Var>
+								<Var>
+									<Name>VarData</Name>
+									<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+									<BitOffs>56</BitOffs>
+								</Var>
+							</Vars>
+						</EapVar>
+					</Eap>
+				</Box>
+				<Box Id="15" BoxType="9052">
+					<Name>Box 15 (Subscriber)</Name>
+					<ImageId>100</ImageId>
+					<Vars VarGrpType="1">
+						<Name>Inputs</Name>
+						<Var BoxStateVariable="true">
+							<Name>FrameState</Name>
+							<Type>UINT</Type>
+							<BitOffs>48</BitOffs>
+						</Var>
+					</Vars>
+					<Vars VarGrpType="2">
+						<Name>Outputs</Name>
+						<Var BoxStateVariable="true">
+							<Name>FrameCtrl</Name>
+							<Type>UINT</Type>
+							<BitOffs>80</BitOffs>
+						</Var>
+					</Vars>
+					<Eap GatewayIpAddr="-536870912">
+						<EapVar Id="3" NvId="3" NvLength="3">
+							<Name>moversReleased</Name>
+							<ImageId>98</ImageId>
+							<Vars VarGrpType="1">
+								<Name>Inputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarState</Name>
+									<Comment><![CDATA[0x0001 = Invalid hash value received
+0x0002 = Invalid variable length received
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>64</BitOffs>
+								</Var>
+								<Var>
+									<Name>Quality</Name>
+									<Comment><![CDATA[Duration the variable is not refreshed (in 100µs)]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>80</BitOffs>
+								</Var>
+								<Var>
+									<Name>CycleIndex</Name>
+									<Comment><![CDATA[Incremented each publisher cycle]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>96</BitOffs>
+								</Var>
+								<Var>
+									<Name>VarData</Name>
+									<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+									<BitOffs>112</BitOffs>
+								</Var>
+							</Vars>
+							<Vars VarGrpType="2">
+								<Name>Outputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarCtrl</Name>
+									<Comment><![CDATA[0x0001 = Ignore hash value
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>96</BitOffs>
+								</Var>
+							</Vars>
+						</EapVar>
+						<EapVar Id="5" NvId="5" NvLength="3">
+							<Name>moversInPosition</Name>
+							<ImageId>98</ImageId>
+							<Vars VarGrpType="1">
+								<Name>Inputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarState</Name>
+									<Comment><![CDATA[0x0001 = Invalid hash value received
+0x0002 = Invalid variable length received
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>136</BitOffs>
+								</Var>
+								<Var>
+									<Name>Quality</Name>
+									<Comment><![CDATA[Duration the variable is not refreshed (in 100µs)]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>152</BitOffs>
+								</Var>
+								<Var>
+									<Name>CycleIndex</Name>
+									<Comment><![CDATA[Incremented each publisher cycle]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>168</BitOffs>
+								</Var>
+								<Var>
+									<Name>VarData</Name>
+									<Type GUID="{FCC357D1-7124-E2AD-B3F6-8EAA3F7F80C9}">ARRAY [1..3] OF BOOL</Type>
+									<BitOffs>184</BitOffs>
+								</Var>
+							</Vars>
+							<Vars VarGrpType="2">
+								<Name>Outputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarCtrl</Name>
+									<Comment><![CDATA[0x0001 = Ignore hash value
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>112</BitOffs>
+								</Var>
+							</Vars>
+						</EapVar>
+						<EapVar Id="2" NvId="2" NvLength="1">
+							<Name>mover0InPosition</Name>
+							<ImageId>98</ImageId>
+							<Vars VarGrpType="1">
+								<Name>Inputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarState</Name>
+									<Comment><![CDATA[0x0001 = Invalid hash value received
+0x0002 = Invalid variable length received
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>208</BitOffs>
+								</Var>
+								<Var>
+									<Name>Quality</Name>
+									<Comment><![CDATA[Duration the variable is not refreshed (in 100µs)]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>224</BitOffs>
+								</Var>
+								<Var>
+									<Name>CycleIndex</Name>
+									<Comment><![CDATA[Incremented each publisher cycle]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>240</BitOffs>
+								</Var>
+								<Var>
+									<Name>VarData</Name>
+									<Type>BOOL</Type>
+									<BitOffs>256</BitOffs>
+								</Var>
+							</Vars>
+							<Vars VarGrpType="2">
+								<Name>Outputs</Name>
+								<Var BoxStateVariable="true">
+									<Name>VarCtrl</Name>
+									<Comment><![CDATA[0x0001 = Ignore hash value
+]]></Comment>
+									<Type>UINT</Type>
+									<BitOffs>128</BitOffs>
+								</Var>
+							</Vars>
+						</EapVar>
+					</Eap>
+				</Box>
+				<Ethernet DeviceDesc="Ethernet 5 (TwinCAT-Intel PCI Ethernet Adapter (Gigabit) #3)"/>
+				<Eap EapDeviceGuid="{17DE7315-03E4-417E-B137-29A3BAF28D92}"/>
+			</Device>
 		</Io>
 	</Project>
 	<Mappings>
 		<MappingInfo Identifier="{00000000-2003-0850-0020-500830000403}" Id="#x02030010"/>
+		<MappingInfo Identifier="{00000000-2003-0850-0020-500850000403}" Id="#x020300b0"/>
 		<MappingInfo Identifier="{00000000-0020-0304-1000-040321000403}" Id="#x02030060"/>
 		<MappingInfo Identifier="{00000000-0040-0304-1000-040342000403}" Id="#x02030030"/>
 		<MappingInfo Identifier="{08502003-0010-0500-0020-500810000403}" Id="#x02030040" Watchdog="04000000080000000400000004000000"/>
 		<MappingInfo Identifier="{08502003-0010-0500-0020-500810001205}" Id="#x02030070" Watchdog="04000000080000000400000004000000"/>
 		<MappingInfo Identifier="{08502004-0010-0500-0120-500810000403}" Id="#x02030080" Watchdog="04000000500000000400000004000000"/>
+		<MappingInfo Identifier="{08502004-0010-0500-0120-500820001205}" Id="#x02030090" Watchdog="04000000500000000400000004000000"/>
 		<MappingInfo Identifier="{08502004-0030-0304-0020-500830000403}" Id="#x020300a0" Watchdog="00000000000000000000000000000000"/>
-		<MappingInfo Identifier="{08502007-0030-0304-0020-500830000403}" Id="#x02030020" Watchdog="00000000000000000000000000000000"/>
-		<MappingInfo Identifier="{05000010-2005-0850-1000-040302205008}" Id="#x020300c0" Watchdog="50000000040000000400000004000000"/>
-		<MappingInfo Identifier="{05000010-2007-0850-2000-120504205008}" Id="#x02030090" Watchdog="50000000040000000400000004000000"/>
+		<MappingInfo Identifier="{08502004-0050-0304-0020-500850000403}" Id="#x020300c0" Watchdog="00000000000000000000000000000000"/>
+		<MappingInfo Identifier="{08502007-0050-0304-0020-500850000403}" Id="#x020300d0" Watchdog="00000000000000000000000000000000"/>
 		<MappingInfo Identifier="{03040020-0020-0304-2000-040320000403}" Id="#x02030050" Watchdog="04000000040000000400000004000000"/>
 		<OwnerA Name="TIID^Device 3 (EtherCAT)">
 			<OwnerB Name="TIID^Device 3 (EtherCAT)^Term 1 (EK1100)^Term 2 (EL1918)">
@@ -42887,9 +43183,23 @@ Bit 8 - 15 : reserved]]></Comment>
 			</OwnerB>
 		</OwnerA>
 		<OwnerA Name="TIPC^ProjectMain^ProjectMain Instance">
+			<OwnerB Name="TIID^Device 1 (EtherCAT Automation Protocol)^Box 15 (Subscriber)">
+				<Link VarA="Main1_1 Inputs^GVL_XTS.mover0InPosition" VarB="mover0InPosition^Inputs^VarData"/>
+				<Link VarA="Main2_1 Inputs^GVL_XTS.moversInPosition[1]" VarB="moversInPosition^Inputs^VarData[1]"/>
+				<Link VarA="Main2_1 Inputs^GVL_XTS.moversInPosition[2]" VarB="moversInPosition^Inputs^VarData[2]"/>
+				<Link VarA="Main2_1 Inputs^GVL_XTS.moversInPosition[3]" VarB="moversInPosition^Inputs^VarData[3]"/>
+				<Link VarA="Main5_1 Inputs^GVL_XTS.moversReleased[1]" VarB="moversReleased^Inputs^VarData[1]"/>
+				<Link VarA="Main5_1 Inputs^GVL_XTS.moversReleased[2]" VarB="moversReleased^Inputs^VarData[2]"/>
+				<Link VarA="Main5_1 Inputs^GVL_XTS.moversReleased[3]" VarB="moversReleased^Inputs^VarData[3]"/>
+			</OwnerB>
+			<OwnerB Name="TIID^Device 1 (EtherCAT Automation Protocol)^Box 8 (Publisher)">
+				<Link VarA="Main1_1 Outputs^GVL_XTS.bDeltaRelease" VarB="bDeltaRelease^Outputs^VarData"/>
+				<Link VarA="Main2_1 Outputs^GVL_XTS.moversRelease" VarB="moversRelease^Outputs^VarData[1]"/>
+				<Link VarA="Main2_1 Outputs^GVL_XTS.moversRelease" VarB="moversRelease^Outputs^VarData[2]" Size="8" OffsA="8"/>
+				<Link VarA="Main2_1 Outputs^GVL_XTS.moversRelease" VarB="moversRelease^Outputs^VarData[3]" Size="8" OffsA="16"/>
+			</OwnerB>
 			<OwnerB Name="TIID^Device 3 (EtherCAT)^Term 1 (EK1100)^Term 3 (EL1008)">
-				<Link VarA="Main1_1 Inputs^GVL_Conveyer.bSensor" VarB="Channel 8^GVL_Conveyer.bSensor"/>
-				<Link VarA="Main5_1 Inputs^GVL.I_bTest" VarB="Channel 1^GVL.I_bTest"/>
+				<Link VarA="Main1_1 Inputs^GVL_Conveyer.bSensor" VarB="Channel 7^GVL_Conveyer.bSensor"/>
 			</OwnerB>
 			<OwnerB Name="TIID^Device 3 (EtherCAT)^Term 1 (EK1100)^Term 5 (EL2008)">
 				<Link VarA="Main1_1 Outputs^Main1.Sequence.Delta.AirVariable" VarB="Channel 8^Main1.Sequence.Delta.AirVariable"/>
@@ -42898,8 +43208,8 @@ Bit 8 - 15 : reserved]]></Comment>
 				<Link VarA="Main2_1 Outputs^GVL_XY.bPushDown" VarB="Channel 6^GantryPushDown"/>
 			</OwnerB>
 			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^ConveyorAxis">
-				<Link VarA="Main3_1 Inputs^GVL_Conveyer.ConveyerAxis.NcToPlc" VarB="Outputs^ToPlc"/>
-				<Link VarA="Main3_1 Outputs^GVL_Conveyer.ConveyerAxis.PlcToNc" VarB="Inputs^FromPlc"/>
+				<Link VarA="Main2_1 Inputs^GVL_Conveyer.ConveyerAxis.NcToPlc" VarB="Outputs^ToPlc"/>
+				<Link VarA="Main2_1 Outputs^GVL_Conveyer.ConveyerAxis.PlcToNc" VarB="Inputs^FromPlc"/>
 			</OwnerB>
 			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^Delta ACS A">
 				<Link VarA="Main1_1 Inputs^Main1.Sequence.Delta.ACS_A_REF.NcToPlc" VarB="Outputs^ToPlc"/>
@@ -42930,8 +43240,8 @@ Bit 8 - 15 : reserved]]></Comment>
 				<Link VarA="Main2_1 Outputs^GVL_XY.stAxis[1].PlcToNc" VarB="Inputs^FromPlc"/>
 			</OwnerB>
 			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^X Slave">
-				<Link VarA="Main2_1 Inputs^GVL_XY.stAxisXSlave.NcToPlc" VarB="Outputs^ToPlc"/>
-				<Link VarA="Main2_1 Outputs^GVL_XY.stAxisXSlave.PlcToNc" VarB="Inputs^FromPlc"/>
+				<Link VarA="Main2_1 Inputs^GVL_XY.stSlaveAxis[1].NcToPlc" VarB="Outputs^ToPlc"/>
+				<Link VarA="Main2_1 Outputs^GVL_XY.stSlaveAxis[1].PlcToNc" VarB="Inputs^FromPlc"/>
 			</OwnerB>
 			<OwnerB Name="TINC^NC-Task 1 SAF^Axes^Y">
 				<Link VarA="Main2_1 Inputs^GVL_XY.stAxis[2].NcToPlc" VarB="Outputs^ToPlc"/>
@@ -42946,8 +43256,8 @@ Bit 8 - 15 : reserved]]></Comment>
 				<Link VarA="Main1_1 Outputs^Main1.Sequence.Delta.internalCMGroup.PlcToNc" VarB="Group Inputs^FromPLC"/>
 			</OwnerB>
 			<OwnerB Name="TINC^NC-Task 1 SAF^Objects^Gantry MC CM">
-				<Link VarA="Main5_1 Inputs^GVL_XY.stGroupRef.NcToPlc" VarB="Group Outputs^ToPLC"/>
-				<Link VarA="Main5_1 Outputs^GVL_XY.stGroupRef.PlcToNc" VarB="Group Inputs^FromPLC"/>
+				<Link VarA="Main2_1 Inputs^GVL_XY.stGroupRef.NcToPlc" VarB="Group Outputs^ToPLC"/>
+				<Link VarA="Main2_1 Outputs^GVL_XY.stGroupRef.PlcToNc" VarB="Group Inputs^FromPLC"/>
 			</OwnerB>
 		</OwnerA>
 	</Mappings>

@@ -5,7 +5,7 @@
 VAR_GLOBAL
     stGroupRef            	: AXES_GROUP_REF;
     stAxis                	: ARRAY[1..cAxesCount] OF AXIS_REF;
-	stAxisXSlave			: AXIS_REF;
+	stSlaveAxis				: ARRAY[1..cAxesSlaveCount] of AXIS_REF;
 	bAirEnable				AT %Q* : BOOL;
 	bPushDown				AT %Q* : BOOL;
 	bPullUp					AT %Q* : BOOL;
@@ -13,6 +13,7 @@ END_VAR
 
 VAR_GLOBAL CONSTANT
     cAxesCount            	: UINT:=2;
+	cAxesSlaveCount			: UINT:=1;
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

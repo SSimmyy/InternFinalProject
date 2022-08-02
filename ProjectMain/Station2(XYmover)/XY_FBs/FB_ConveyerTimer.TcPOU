@@ -15,7 +15,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[velocityTime(
 	IN := bConveyerMovement,
-	PT := T#1S
+	PT := T#0.2S
 	);
 
 IF GVL_Conveyer.ConveyerAxis.NcToPlc.SetVelo = 0 THEN

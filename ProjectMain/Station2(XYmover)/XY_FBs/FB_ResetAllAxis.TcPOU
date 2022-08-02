@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_ResetAllAxis" Id="{3eae9895-347e-4480-b102-f4528f887087}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ResetAllAxis
+VAR_INPUT
+	Execute 		: BOOL;
+END_VAR
+VAR_OUTPUT
+	Done			: BOOL;
+	Error			: BOOL;
+END_VAR
+VAR
+	fbReset 		: ARRAY [1..GVL_XY.cAxesCount] 		OF MC_Reset;
+	fbResetSlave 	: ARRAY [1..GVL_XY.cAxesSlaveCount] OF MC_Reset;
+	i				: UINT;
+	j				: UINT;
+	
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF Execute THEN
+	Done := FALSE;
+	Error := FALSE;
+	
+	FOR i:=1 TO GVL_XY.cAxesCount DO
+		fbReset[i](Axis:=GVL_XY.stAxis[i],
+			Execute			:= Execute,
+		);
+		Error := Error OR fbReset[i].Error;
+	END_FOR
+	IF NOT Error THEN
+		Done := TRUE;
+	END_IF
+END_IF
+		]]></ST>
+    </Implementation>
+    <LineIds Name="FB_ResetAllAxis">
+      <LineId Id="59" Count="0" />
+      <LineId Id="10" Count="5" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="21" Count="1" />
+      <LineId Id="65" Count="2" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

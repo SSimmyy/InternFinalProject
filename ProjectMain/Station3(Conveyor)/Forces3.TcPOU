@@ -10,17 +10,22 @@ VAR_OUTPUT
 	AxisReady		: BOOL;
 END_VAR
 VAR
-	PowerAxis1		: MC_Power;
-	PowerAxis1Out	: ST_McOutputs;
-	MoveRelative1 	: MC_MoveRelative;
+	fbPower				: MC_Power;
+	fbReset 			: MC_Reset;
+	PowerAxis1Out		: ST_McOutputs;
+	fbMoveVelocity		: MC_MoveVelocity;
 	bSensor : BOOL;
+	bVelocityExecute	: BOOL;
+	rVelocity			: LREAL := 600;
+	//userDirection		: MC_Negative_Direction;
+	bResetExecute: BOOL;
 END_VAR
 VAR_IN_OUT
 
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[PowerAxis1(
+      <ST><![CDATA[fbPower(
 	Axis:= GVL_Conveyer.ConveyerAxis, 
 	Enable:= bEnable, 
 	Enable_Positive:= bEnable, 
@@ -31,30 +36,30 @@ END_VAR
 	Error=> PowerAxis1Out.Error, 
 	ErrorID=> PowerAxis1Out.ErrorID);
 	
-MoveRelative1(
-	Axis:= GVL_Conveyer.ConveyerAxis, 
-	Execute:= bEnable, 
-	Distance:= MoveRelative1.Distance, 
-	Velocity:= MoveRelative1.Velocity, 
-	BufferMode:= MoveRelative1.BufferMode, 
-	Options:= );
-	
-IF PowerAxis1.Status THEN
-	AxisReady	:= TRUE;
-ELSE
-	AxisReady	:= FALSE;
-END_IF	]]></ST>
+fbMoveVelocity(
+			Axis:= GVL_Conveyer.ConveyerAxis, 
+			Execute:= bVelocityExecute,
+			Velocity:= rVelocity, 
+			Direction := MC_Negative_Direction
+			);
+fbReset(
+		Axis:= GVL_Conveyer.ConveyerAxis,
+		Execute := bResetExecute
+		);
+]]></ST>
     </Implementation>
     <LineIds Name="Forces3">
       <LineId Id="13" Count="5" />
       <LineId Id="22" Count="2" />
       <LineId Id="9" Count="0" />
       <LineId Id="39" Count="0" />
-      <LineId Id="57" Count="4" />
-      <LineId Id="65" Count="1" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="29" Count="3" />
-      <LineId Id="28" Count="0" />
+      <LineId Id="84" Count="4" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="92" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

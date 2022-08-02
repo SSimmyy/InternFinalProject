@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_ConveyerStop" Id="{04a982e8-5fd2-40b7-9871-383eed3b678c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ConveyerStop
+VAR_INPUT
+	Execute : BOOL;
+END_VAR
+VAR_OUTPUT
+	Done : BOOL;
+END_VAR
+VAR
+	fbStop : MC_Stop;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF Execute THEN
+Done := TRUE;	
+	fbStop(
+		Axis := GVL_Conveyer.ConveyerAxis,
+		Execute := Execute
+		);
+
+Done := fbStop.Done;
+
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="FB_ConveyerStop">
+      <LineId Id="9" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="15" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="26" Count="1" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

@@ -89,10 +89,15 @@ VAR
 	bWrite4Complete: BOOL := FALSE;
 	bTeach:BOOL;
 	sNewName:STRING;
+	bAirRelease: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
       <ST><![CDATA[//Teaching of points
+ReleaseTimer(
+				IN := bAirRelease,
+				PT:= T#0.2S);
+				
 IF bTeach THEN
 	GVL.DeltaCoords[GVL.iMovementNumber].x := Delta.MCS_X_REF.NcToPlc.ActPos;
 	GVL.DeltaCoords[GVL.iMovementNumber].y := Delta.MCS_Y_REF.NcToPlc.ActPos;
@@ -197,12 +202,37 @@ CASE gState OF
 	END_IF
 
 100: // Move to Pick Position over Conveyer
-		IF GVL_Conveyer.bSensor THEN
+		IF GVL_Conveyer.bSensor AND NOT GVL.bLoadNewPuck THEN
 			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-			gState := 105;
+			gState := 106;
+		ELSIF GVL.bLoadNewPuck THEN
+			GVL.bLoadNewPuck := FALSE;
+			GVL.iMovementNumber := 7;
+			gState := 101;
 		END_IF
 
-105: //WAit for move to xy to complete then move to Z pick
+101: // Call Movement
+	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+	gState := 102;
+
+102: // Wait for movement to be done
+	IF Delta.MovePathDone THEN
+			Delta.EnableAir();
+			GVL.iMovementNumber := 7;
+			gState := 103;
+	END_IF		
+	
+103: // Move up Z
+	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z + 40);	
+	gState := 104;
+	
+104: // Wait for movement to be done and move to state 130
+	IF Delta.MovePathDone THEN	
+		GVL.iMovementNumber := 4;	
+		gState := 130;
+	END_IF;
+		
+106: //WAit for move to xy to complete then move to Z pick
 		IF Delta.MovePathDone THEN
 			GVL.iMovementNumber := 2;
 			Delta.EnableAir();		
@@ -210,8 +240,10 @@ CASE gState OF
 		END_IF
 		
 110: // Move to Z pick
+	IF GVL_XTS.mover0InPosition THEN
 	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
 	gState := 115;
+	END_IF
 	
 115: //Wait for move to complete and load traverse pos
 		IF Delta.MovePathDone THEN
@@ -241,8 +273,10 @@ CASE gState OF
 		END_IF
 		
 140: //Place Z
+		IF GVL_XTS.mover0InPosition THEN
 			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
 			gState := 145;
+		END_IF
 
 145: // Wait for move to compelte
 		IF Delta.MovePathDone THEN
@@ -252,16 +286,23 @@ CASE gState OF
 		END_IF
 		
 150: //Traverse Z
-		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-		gState := 155;
+			bAirRelease := TRUE;
+			IF ReleaseTimer.Q THEN
+				bAirRelease := FALSE;
+				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+				gState := 155;
+			END_IF
+			
 		
 155: // Wait for move to complete
 	IF Delta.MovePathDone THEN
+		GVL_XTS.bDeltaRelease := TRUE;
 		GVL.iMovementNumber := 0;
 		gState := 160;
 	END_IF
 	
 160: // Call move home
+	GVL_XTS.bDeltaRelease := FALSE;
 	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
 	gState := 165;
 		
@@ -295,6 +336,9 @@ END_CASE
     </Implementation>
     <LineIds Name="Sequence1">
       <LineId Id="957" Count="0" />
+      <LineId Id="1231" Count="1" />
+      <LineId Id="1229" Count="0" />
+      <LineId Id="1233" Count="0" />
       <LineId Id="959" Count="1" />
       <LineId Id="963" Count="1" />
       <LineId Id="962" Count="0" />
@@ -341,14 +385,38 @@ END_CASE
       <LineId Id="485" Count="2" />
       <LineId Id="498" Count="0" />
       <LineId Id="496" Count="1" />
+      <LineId Id="1324" Count="1" />
+      <LineId Id="1330" Count="0" />
+      <LineId Id="1326" Count="0" />
       <LineId Id="499" Count="0" />
-      <LineId Id="88" Count="1" />
+      <LineId Id="1329" Count="0" />
+      <LineId Id="1327" Count="0" />
+      <LineId Id="1338" Count="1" />
+      <LineId Id="1332" Count="0" />
+      <LineId Id="1331" Count="0" />
+      <LineId Id="1334" Count="0" />
+      <LineId Id="1336" Count="0" />
+      <LineId Id="1346" Count="0" />
+      <LineId Id="1337" Count="0" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="1342" Count="0" />
+      <LineId Id="1344" Count="1" />
+      <LineId Id="1347" Count="2" />
+      <LineId Id="1351" Count="0" />
+      <LineId Id="1355" Count="0" />
+      <LineId Id="1354" Count="0" />
+      <LineId Id="1350" Count="0" />
+      <LineId Id="1328" Count="0" />
+      <LineId Id="89" Count="0" />
       <LineId Id="484" Count="0" />
       <LineId Id="975" Count="0" />
       <LineId Id="92" Count="1" />
       <LineId Id="483" Count="0" />
-      <LineId Id="972" Count="2" />
+      <LineId Id="972" Count="1" />
+      <LineId Id="1123" Count="0" />
+      <LineId Id="974" Count="0" />
       <LineId Id="976" Count="0" />
+      <LineId Id="1124" Count="0" />
       <LineId Id="978" Count="0" />
       <LineId Id="980" Count="2" />
       <LineId Id="984" Count="0" />
@@ -364,18 +432,30 @@ END_CASE
       <LineId Id="997" Count="0" />
       <LineId Id="967" Count="0" />
       <LineId Id="111" Count="0" />
-      <LineId Id="113" Count="3" />
+      <LineId Id="1452" Count="0" />
+      <LineId Id="113" Count="1" />
+      <LineId Id="1453" Count="0" />
+      <LineId Id="115" Count="1" />
       <LineId Id="1001" Count="0" />
       <LineId Id="1004" Count="0" />
       <LineId Id="1002" Count="1" />
       <LineId Id="119" Count="0" />
       <LineId Id="968" Count="0" />
       <LineId Id="120" Count="0" />
-      <LineId Id="1005" Count="3" />
+      <LineId Id="1223" Count="1" />
+      <LineId Id="1228" Count="0" />
+      <LineId Id="1225" Count="0" />
+      <LineId Id="1227" Count="0" />
+      <LineId Id="1226" Count="0" />
+      <LineId Id="1005" Count="0" />
+      <LineId Id="1007" Count="1" />
       <LineId Id="1010" Count="0" />
+      <LineId Id="1215" Count="0" />
       <LineId Id="1012" Count="1" />
       <LineId Id="1009" Count="0" />
-      <LineId Id="1018" Count="3" />
+      <LineId Id="1018" Count="1" />
+      <LineId Id="1216" Count="0" />
+      <LineId Id="1020" Count="1" />
       <LineId Id="138" Count="1" />
       <LineId Id="1014" Count="0" />
       <LineId Id="1017" Count="0" />
