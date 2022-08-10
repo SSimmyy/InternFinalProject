@@ -7,12 +7,41 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
+	DeltaState 				: UINT;
+	SystemCommands			: SystemCommands_typ;
+	VisuPars				: Visu_typ;
+	PickParams: PickPars_typ;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[(*CASE DeltaState OF
+	0:	// ---------------------------------------------------- Manual Mode
+	
+		// Accept manual command to move-to a location
+		IF SystemCommands.Delta.MoveDirectTo THEN
+			SystemCommands.Delta.MoveDirectTo		:= FALSE;
+				Delta.MoveDirectTo( VisuPars.MoveDirect_X, VisuPars.MoveDirect_Y, VisuPars.MoveDirect_Z );			
+		END_IF
+		
+		// Go-home command
+		IF SystemCommands.Delta.ReturnHome THEN
+			SystemCommands.Delta.ReturnHome		:= FALSE;
+			Delta.ReturnHome();
+		END_IF
+
+		IF SystemCommands.Delta.PlaceOnXTS THEN
+			SystemCommands.Delta.PlaceOnXTS := FALSE;
+			Delta.TraverseAtHeightTo(PickParams.PlaceXTS.X, PickParams.Elevator.Y, PickParams.PlaceXTS.Z, PickParams.PlaceXTS.Z +15);		
+		END_IF
+
+		IF SystemCommands.Delta.PlaceOnXTS THEN
+			SystemCommands.Delta.PlaceOnXTS := FALSE;
+			Delta.TraverseAtHeightTo(PickParams.Conveyer.X, PickParams.Conveyer.Y, PickParams.Conveyer.Z, PickParams.Conveyer.Z +15);		
+		END_IF	
+END_CASE*)]]></ST>
     </Implementation>
     <LineIds Name="Forces1">
+      <LineId Id="17" Count="23" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>

@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_StopAll" Id="{b4f1f4ee-90a7-44a9-809d-8765a9d4a10a}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_StopAll
+VAR_INPUT
+	Execute			: BOOL;
+END_VAR
+VAR_OUTPUT
+	Done			: BOOL;
+END_VAR
+VAR
+	
+	fbStop			: ARRAY[1..GVL_XY.cAxesCount] OF MC_Stop;
+	fbStopSlave		: ARRAY[1..GVL_XY.cAxesSlaveCount] OF MC_Stop;
+	i: UINT;
+	bExecuteStop: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF Execute THEN
+	Done := TRUE;
+	bExecuteStop := TRUE;
+	(*fbStopSlave[1](
+				Axis:= GVL_XY.stSlaveAxis[1],
+				Execute:= TRUE );
+	
+		Done := fbStopSlave[1].Done; *)
+		
+	fbStop[1](
+			Axis:= GVL_XY.stAxis[1], 
+			Execute:= bExecuteStop );
+	Done := fbStop[1].Done;
+	
+	fbStop[2](
+			Axis:= GVL_XY.stAxis[2], 
+			Execute:= bExecuteStop );
+	Done := fbStop[2].Done;
+	
+			
+ELSE
+	i := 1;
+	bExecuteStop := FALSE;
+	Done := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_StopAll">
+      <LineId Id="9" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="76" Count="3" />
+      <LineId Id="59" Count="0" />
+      <LineId Id="81" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="87" Count="2" />
+      <LineId Id="86" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="61" Count="0" />
+      <LineId Id="14" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="82" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

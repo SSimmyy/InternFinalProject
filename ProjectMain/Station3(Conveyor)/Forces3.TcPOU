@@ -4,73 +4,50 @@
     <Declaration><![CDATA[FUNCTION_BLOCK Forces3
 VAR_INPUT
 	fOvr			: LREAL;
-	bEnable 		: BOOL;
+	Execute 		: BOOL;
 END_VAR
 VAR_OUTPUT
 	AxisReady		: BOOL;
 END_VAR
 VAR
-	PowerAxis1		: MC_Power;
-	PowerAxis1Out	: ST_McOutputs;
-	MoveRelative1 	: MC_MoveRelative;
+	fbPower				: MC_Power;
+	fbReset 			: MC_Reset;
+	PowerAxis1Out		: ST_McOutputs;
+	fbMoveVelocity		: MC_MoveVelocity;
 	bSensor : BOOL;
+	bVelocityExecute	: BOOL;
+	rVelocity			: LREAL := 600;
+	//userDirection		: MC_Negative_Direction;
+	bResetExecute: BOOL;
 END_VAR
 VAR_IN_OUT
 
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[PowerAxis1(
-	Axis:= GVL.ConveyerAxis, 
-	Enable:= bEnable, 
-	Enable_Positive:= bEnable, 
-	Enable_Negative:= bEnable, 
-	Override:= fOvr, 
-	BufferMode:= , 
-	Options:= , 
-	Status=> , 
-	Busy=> PowerAxis1Out.Busy, 
-	Active=> PowerAxis1Out.Active, 
-	Error=> PowerAxis1Out.Error, 
-	ErrorID=> PowerAxis1Out.ErrorID);
+      <ST><![CDATA[fbPower(
+	Axis:= GVL_Conveyer.ConveyerAxis, 
+	Enable:= Execute, 
+	Enable_Positive:= Execute, 
+	Enable_Negative:= Execute, 
+	Override:= fOvr, );
 	
-	
-MoveRelative1(
-	Axis:= GVL.ConveyerAxis, 
-	Execute:= bEnable, 
-	Distance:= MoveRelative1.Distance, 
-	Velocity:= MoveRelative1.Velocity, 
-	Acceleration:= , 
-	Deceleration:= , 
-	Jerk:= , 
-	BufferMode:= MoveRelative1.BufferMode, 
-	Options:= , 
-	Done=> MoveRelative1.Done, 
-	Busy=> MoveRelative1.Busy, 
-	Active=> MoveRelative1.Active, 
-	CommandAborted=> MoveRelative1.CommandAborted, 
-	Error=> MoveRelative1.Error, 
-	ErrorID=> MoveRelative1.ErrorID);
-	
-
-	
-IF PowerAxis1.Status THEN
-	AxisReady	:= TRUE;
-ELSE
-	AxisReady	:= FALSE;
-END_IF	]]></ST>
+fbMoveVelocity(
+			Axis:= GVL_Conveyer.ConveyerAxis, 
+			Execute:= bVelocityExecute,
+			Velocity:= rVelocity, 
+			Direction := MC_Negative_Direction
+			);
+fbReset(
+		Axis:= GVL_Conveyer.ConveyerAxis,
+		Execute := bResetExecute
+		);
+]]></ST>
     </Implementation>
     <LineIds Name="Forces3">
-      <LineId Id="13" Count="11" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="39" Count="0" />
-      <LineId Id="55" Count="0" />
-      <LineId Id="57" Count="14" />
-      <LineId Id="56" Count="0" />
-      <LineId Id="53" Count="1" />
-      <LineId Id="27" Count="0" />
-      <LineId Id="29" Count="3" />
-      <LineId Id="28" Count="0" />
+      <LineId Id="144" Count="5" />
+      <LineId Id="154" Count="10" />
+      <LineId Id="92" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

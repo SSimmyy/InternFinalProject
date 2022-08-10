@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <Itf Name="iRoute" Id="{9884498d-eafa-4aea-a005-79e84c07bf2a}">
+    <Declaration><![CDATA[INTERFACE iRoute
+]]></Declaration>
+    <Folder Name="Methods" Id="{e89cc8e8-75dc-43a2-a804-ebc4f5ffd082}" />
+    <Method Name="AddBlendedPoint" Id="{dc98b470-a032-4d3d-b3c7-789a802f3548}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD AddBlendedPoint : iRoute
+VAR_INPUT
+	X			: LREAL;
+	Y			: LREAL;
+	Z			: LREAL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="AddViaPoint" Id="{2b98bf02-0e8d-4158-9662-834a5eca1722}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD AddViaPoint : iRoute
+VAR_INPUT
+	X			: LREAL;
+	Y			: LREAL;
+	Z			: LREAL;
+END_VAR
+]]></Declaration>
+    </Method>
+    <Method Name="ClearRoute" Id="{65089239-37c1-48de-b537-66dc5b36715f}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD ClearRoute : iRoute
+VAR_INPUT
+END_VAR
+]]></Declaration>
+    </Method>
+  </Itf>
+</TcPlcObject>

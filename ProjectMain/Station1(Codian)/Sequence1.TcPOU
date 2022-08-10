@@ -3,16 +3,384 @@
   <POU Name="Sequence1" Id="{e6254890-a34f-4cc7-947f-9cf6cbf57e21}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Sequence1
 VAR_INPUT
+	
 END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
+	
+	Delta					: Delta;
+	myRoute					: Route;	// test Route;
+	fbPuckPicked			: FB_PuckPicked;
+	
+	// ========= Example Application Variables =========
+	
+	nextStation				: USINT := 4;
+	
+	lowVelocity				: LREAL := 200; 	// mm/s
+	mediumVelocity			: LREAL := 800;		// mm/s
+	highVelocity			: LREAL := 2000; 	// mm/s
+
+	
+	// ========= Helper, State, & Index Variables =========
+	
+	i						: UINT;					// index variable; gets reused in various FOR loops
+	n						: UINT;					// secondary index variable, for enabling movers	
+	MainState				: MainState_enum;		// enumeration for the Main state machine
+	MainCommands			: MainCommands_typ;		// command struct for cycling thru the state machine
+	
+	SystemCommands			: SystemCommands_typ;	// command struct for system-wide XTS & Delta commands
+	
+	ReleaseTimer: TON;
+	
+	bStartDelta : BOOL;
+	
+	gState: INT;
+	bTest: BOOL;
+	bEnableDelta: BOOL;
+	bResetDelta: BOOL;
+	FB_CoEWrite1: FB_CoEWrite;
+	FB_CoEWrite2: FB_CoEWrite;
+	FB_CoEWrite3: FB_CoEWrite;
+	FB_CoEWrite4: FB_CoEWrite;
+	bWritesComplete: BOOL := FALSE;
+	rValue1:REAL := 3.2;
+	rValue2:REAL := 9.6;
+	F_Trig1:F_TRIG;
+	F_Trig2:F_TRIG;
+	F_Trig3:F_TRIG;
+	F_Trig4:F_TRIG;
+	bWrite1Complete: BOOL := FALSE;
+	bWrite2Complete: BOOL := FALSE;
+	bWrite3Complete: BOOL := FALSE;
+	bWrite4Complete: BOOL := FALSE;
+	bTeach:BOOL;
+	sNewName:STRING;
+	bAirRelease: BOOL;
+	bPuckPicked: BOOL;
+	bLockDelta: BOOL;
+	bEnable: BOOL;
+	bStopDelta: BOOL;
+	bDisableDelta: BOOL;
+	WriteSymbols: BOOL;
+	caseStop: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[//Teaching of points
+ReleaseTimer(
+				IN := bAirRelease,
+				PT:= T#0.2S);
+				
+fbPuckPicked(
+		Execute := bPuckPicked,
+	);
+	
+	IF bPuckPicked THEN
+		bPuckPicked := FALSE;
+	END_IF
+				
+IF bTeach THEN
+	GVL.DeltaCoords[GVL.iMovementNumber].x := Delta.MCS_X_REF.NcToPlc.ActPos;
+	GVL.DeltaCoords[GVL.iMovementNumber].y := Delta.MCS_Y_REF.NcToPlc.ActPos;
+	GVL.DeltaCoords[GVL.iMovementNumber].z := Delta.MCS_Z_REF.NcToPlc.ActPos;
+	GVL.DeltaCoords[GVL.iMovementNumber].sName := sNewName;
+	bTeach:=FALSE;
+END_IF
+
+FB_CoEWrite1(
+	Axis:= Delta.ACS_B_REF, 
+	NetId:= '', 
+	Index:= 16#3243, 
+	SubIndex:= 1, 
+	pSrcBuf:= ADR(rValue1), 
+	BufLen:= SIZEOF(rValue1), 
+	Execute:= WriteSymbols);
+
+FB_CoEWrite2(
+	Axis:= Delta.ACS_B_REF, 
+	NetId:= '', 
+	Index:= 16#3243, 
+	SubIndex:= 2, 
+	pSrcBuf:= ADR(rValue2), 
+	BufLen:= SIZEOF(rValue2), 
+	Execute:= WriteSymbols);
+
+FB_CoEWrite3(
+	Axis:= Delta.ACS_C_REF, 
+	NetId:= '', 
+	Index:= 16#3643, 
+	SubIndex:= 1, 
+	pSrcBuf:= ADR(rValue1), 
+	BufLen:= SIZEOF(rValue1), 
+	Execute:= WriteSymbols);
+
+FB_CoEWrite4(
+	Axis:= Delta.ACS_C_REF, 
+	NetId:= '', 
+	Index:= 16#3643, 
+	SubIndex:= 2, 
+	pSrcBuf:= ADR(rValue2), 
+	BufLen:= SIZEOF(rValue2), 
+	Execute:= bEnable);
+
+F_Trig1(CLK:= FB_CoEWrite1.Busy);
+F_Trig2(CLK:= FB_CoEWrite2.Busy);
+F_Trig3(CLK:= FB_CoEWrite3.Busy);
+F_Trig4(CLK:= FB_CoEWrite4.Busy);
+
+IF F_Trig1.Q THEN
+	bWrite1Complete := TRUE;
+END_IF
+
+IF F_Trig2.Q THEN
+	bWrite2Complete := TRUE;
+END_IF
+
+IF F_Trig3.Q THEN
+	bWrite3Complete := TRUE;
+END_IF
+
+IF F_Trig4.Q THEN
+	bWrite4Complete := TRUE;
+END_IF
+
+Delta.MotionParameters.Velocity			:= 1500;
+		Delta.MotionParameters.Acceleration		:= 11000;
+		Delta.MotionParameters.Deceleration		:= 11000;
+		Delta.MotionParameters.Jerk				:= 50000;
+		Delta.MotionParameters.BlendingRadius	:= 5;
+
+//On init, call execute to write, then reset
+IF bEnable THEN
+	WriteSymbols := TRUE;
+END_IF
+
+IF bWrite1Complete AND bWrite2Complete AND bWrite3Complete AND bWrite4Complete THEN
+	bWritesComplete := TRUE;
+	WriteSymbols := FALSE;
+END_IF	
+
+Delta.Cyclic();
+
+
+IF bEnable AND bWritesComplete THEN
+		bResetDelta := FALSE;
+		Delta.Enable();
+		bEnable := FALSE;
+	END_IF
+
+
+IF bResetDelta THEN
+	bResetDelta := FALSE;
+	Delta.Reset();
+END_IF
+
+IF bTest THEN
+	bTest := FALSE;
+	Delta.MoveDirectTo(GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+END_IF
+
+//This is where you would call the Delta logic and interact with the XTS
+
+IF bDisableDelta THEN
+	bResetDelta := TRUE;
+	gState := 0;
+ELSE
+	bResetDelta := FALSE;
+END_IF
+
+IF Delta.MovePathDone THEN
+	IF bStopDelta THEN
+		caseStop := TRUE;
+	END_IF
+ELSIF (NOT Delta.MovePathDone) AND (NOT bStopDelta) THEN
+	caseStop := FALSE;
+	bStartDelta := TRUE;
+END_IF
+
+
+IF NOT caseStop THEN
+
+	CASE gState OF
+	
+	0: IF bStartDelta THEN
+			gState := 100;
+			bStartDelta := FALSE;
+			GVL.iMovementNumber := 1; // Load pick xy pos
+		END_IF
+	
+	100: // Move to Pick Position over Conveyer
+			IF GVL_Conveyer.bSensor AND NOT GVL.bLoadNewPuck THEN
+				GVL.iMovementNumber := 2;
+				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.Pucks[0].y, GVL.DeltaCoords[GVL.iMovementNumber].z +20);	
+				gState := 106;
+			ELSIF GVL.bLoadNewPuck THEN
+				GVL.bLoadNewPuck := FALSE;
+				GVL.iMovementNumber := 7;
+				gState := 101;
+			END_IF
+	
+	101: // Call Movement Above Load Station
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z + 30);	
+		gState := 102;
+	
+	102: // Call Movement
+		IF Delta.MovePathDone THEN
+			Delta.EnableAir();
+			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+			gState := 103;	
+		END_IF
+		
+	103: // Wait for movement to be done
+		IF Delta.MovePathDone THEN
+				
+				GVL.iMovementNumber := 7;
+				gState := 104;
+		END_IF	
+	
+		
+	104:// Move up Z
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z + 40);	
+			gState := 105;
+		
+	105: // Wait for movement to be done and move to state 130
+		IF Delta.MovePathDone THEN	
+			GVL.iMovementNumber := 4;	
+			gState := 130;
+		END_IF;
+		
+			
+	106: //WAit for move to xy to complete then move to Z pick
+			IF Delta.MovePathDone THEN
+				GVL.iMovementNumber := 2;
+				Delta.EnableAir();		
+				gState := 110;
+			END_IF
+			
+	110: // Move to Z pick
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x - GVL.Pucks[0].xOffset, GVL.Pucks[0].y, (GVL.DeltaCoords[GVL.iMovementNumber].z - GVL.Pucks[0].zOffset) );	
+		gState := 115;
+		
+	115: //Wait for move to complete and load traverse pos
+			IF Delta.MovePathDone THEN
+					GVL.iMovementNumber := 3;	
+					gState := 120;
+				END_IF
+				
+	120: //Call traverse Move
+				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+				gState := 125;
+	
+	125: // Wait for move to complete
+			IF Delta.MovePathDone THEN
+				IF GVL_Conveyer.bSensor THEN
+					GVL.bPuckMissed := TRUE;
+						bLockDelta := TRUE;
+				END_IF
+					
+				IF NOT bLockDelta AND NOT GVL_Conveyer.bSensor THEN
+					bPuckPicked := TRUE;
+					GVL_Conveyer.bConveyerReadyToMove := TRUE;
+					GVL.iPucksPicked := GVL.iPucksPicked + 1;
+					GVL.iMovementNumber := 4;	
+						gState := 130;
+				END_IF
+			END_IF
+			
+				IF bLockDelta THEN
+					IF NOT GVL.bPuckMissed THEN
+						bPuckPicked := TRUE;
+						bLockDelta := FALSE;
+						GVL.bPuckMissed := FALSE;
+						GVL.iMissedPucks := GVL.iMissedPucks + 1;
+						gState := 100;
+					END_IF
+				END_IF
+				
+			
+	130: // Call move to place xy
+			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+			gState := 135;
+			
+	135: // Wait for move to complete
+			IF Delta.MovePathDone THEN
+				GVL.iMovementNumber := 5;	
+				gState := 140;
+			END_IF
+			
+	140: //Place Z
+			IF GVL_XTS.mover0InPosition THEN
+				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+				gState := 145;
+			END_IF
+	
+	145: // Wait for move to compelte
+			IF Delta.MovePathDone THEN
+				Delta.DisableAir();
+				GVL.iMovementNumber := 6;	
+				gState := 150;
+			END_IF
+			
+	150: //Traverse Z
+				bAirRelease := TRUE;
+				IF ReleaseTimer.Q THEN
+					bAirRelease := FALSE;
+					Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+					gState := 155;
+				END_IF
+				
+			
+	155: // Wait for move to complete
+		IF Delta.MovePathDone THEN
+			GVL_XTS.bDeltaRelease := TRUE;
+			GVL.iMovementNumber := 0;
+			gState := 160;
+		END_IF
+		
+	160: // Call move home
+		GVL_XTS.bDeltaRelease := FALSE;
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+		gState := 165;
+			
+	165: //Send release signal to XTS
+			IF Delta.MovePathDone THEN
+				gState := 170;
+			END_IF
+			
+	170: // Release Mover
+		gState := 100; // Change this to go to 175
+		GVL.iMovementNumber := 1;// Remove this when you call it to go to 175
+		//Add code here to communicate to the xts to tell it to release
+			
+	175: //Confirm mover was released
+			IF GVL_XTS.bDeltaReleased THEN	
+				GVL_XTS.bDeltaReleased := FALSE;		
+				gState := 100;
+				GVL.iMovementNumber := 1;
+			END_IF
+	END_CASE
+END_IF
+
+
+
+
+
+]]></ST>
     </Implementation>
     <LineIds Name="Sequence1">
+      <LineId Id="2302" Count="84" />
+      <LineId Id="2595" Count="2" />
+      <LineId Id="2593" Count="0" />
+      <LineId Id="2387" Count="1" />
+      <LineId Id="2599" Count="0" />
+      <LineId Id="2389" Count="24" />
+      <LineId Id="2738" Count="0" />
+      <LineId Id="2415" Count="8" />
+      <LineId Id="2671" Count="0" />
+      <LineId Id="2667" Count="0" />
+      <LineId Id="2673" Count="0" />
+      <LineId Id="2424" Count="168" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>

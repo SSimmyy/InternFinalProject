@@ -3,77 +3,219 @@
   <POU Name="Main3" Id="{48f3aa79-5c81-4de9-a7df-ef8cb0b063c9}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main3
 VAR
-	Sequence3 		: Sequence3;
-	Reset3 			: Reset3;
-	Faults3			: Faults3;
-	nState 			: INT;
-	fbPower			: MC_Power;
-	powerOutputs 	: ST_McOutputs;
-	reset3Done		: BOOL;
+	Sequence3 				: Sequence3;
+	Reset3					: Reset3;
+	fbStopConveyer			: FB_ConveyerStop;
+	fbPowerConveyer			: FB_PowerConveyer;
+	fbClearConveyer			: FB_ClearConveyer;
+	bSequenceExecute		: BOOL;
+	bUserIncrementStep		: BOOL;
+	bUserInfiniteMovement	: BOOL;
+	bResetExecute			: BOOL;
+	MainState 				: MainStateAxis_enum;
+	OperationMode			: MachineOperationMode;
+	mainCommands			: MainCommands_typ;
+	Forces3					: Forces3;
 	
+	bStopConveyer: BOOL;
+	bPowerEnable: BOOL;
+	nResetState: INT;
+	nSequenceState: INT;
+	bForcesExecute: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[CASE nState OF
-	0:
-		fbPower(
-			Axis:= GVL.ConveyerAxis, 
-			Enable:= TRUE, 
-			Enable_Positive:= TRUE, 
-			Enable_Negative:= TRUE,  
-			Status=> , 
-			Busy=> powerOutputs.Busy, 
-			Active=> powerOutputs.Active, 
-			Error=> powerOutputs.Error, 
-			ErrorID=> powerOutputs.ErrorID);
-		IF NOT powerOutputs.Error THEN
-			nState := 1;
-		ELSE
-			nState := 9999;
-		END_IF
+      <ST><![CDATA[(*Forces3(
+	Execute := bForcesExecute,
+	);
+*)
 	
-	1:
-		Reset3(
-			bResetDone => reset3Done);
-		IF reset3Done THEN
-			nState := 2;
-		END_IF
-		IF Reset3.bResetError THEN
-			nState := 9999;
-		END_IF
+Reset3(
+			Execute := bResetExecute,
+			//nState := nResetState
+		);		
+Sequence3(
+			Execute := bSequenceExecute,
+			//nState := nSequenceState
+		);
+	
+fbStopConveyer (
+		Execute := bStopConveyer,
+		);
 		
-	2:
-		Sequence3(
-			bReadyToMove := GVL.bConveyerReadyToMove,
-			bReadyToPick => GVL.bConveyerReadyToPick);
-		IF Sequence3.bSequenceError THEN
-			nState := 9999;
+fbPowerConveyer (
+		Enable := bPowerEnable,
+		);
+		
+fbClearConveyer(
+		Execute := GVL.bClearPuck,
+	);
+		
+	CASE MainState OF
+		
+		MSA_DISABLED:
+			mainCommands.Start := FALSE;
+			mainCommands.Stop := FALSE;
+			
+		IF mainCommands.Enable THEN
+			mainCommands.Disable := FALSE;
+			mainState := MSA_INITIALIZING;
 		END_IF
+			
+		MSA_INITIALIZING:		
+			nResetState 	:= 0;
+			nSequenceState 	:= 0;
+		
+			IF MainCommands.Disable THEN
+				MainCommands.Enable		:=FALSE;
+				MainState:= MS_DISABLED;
+			ELSIF MainCommands.Stop THEN
+				MainCommands.Stop		:=FALSE;
+				MainCommands.Disable	:=TRUE;
+				MainCommands.Start		:=FALSE;
+				MainState	:= MS_DISABLED;
+			ELSIF MainCommands.Enable THEN
+				MainState 	:= MSA_ENABLING;
+			END_IF
+			
+		MSA_ENABLING:
+			bResetExecute := TRUE;
+				IF MainCommands.Disable THEN
+					MainCommands.Enable		:=FALSE;
+					MainState	:= MSA_DISABLED;
+				ELSIF MainCommands.Stop	 THEN
+					MainCommands.Start		:=FALSE;
+					MainState	:= MSA_STOPPING;
+				ELSIF MainCommands.Enable THEN
+					IF Reset3.Done THEN
+						bResetExecute := FALSE;
+						bPowerEnable := TRUE;
+						IF fbPowerConveyer.Done THEN
+							MainState 	:= MSA_ENABLED;
+						END_IF	
+					END_IF	
+				END_IF
 	
-	9999:
-		Faults3();
-END_CASE]]></ST>
+		MSA_ENABLED:
+			
+			MainCommands.Stop := FALSE;
+			
+			IF MainCommands.Start THEN
+				MainState := MSA_RUN;
+			ELSIF MainCommands.Disable THEN
+				MainCommands.Enable := FALSE;
+				MainState           := MSA_STOPPING;
+			END_IF
+				
+		MSA_RUN:
+			IF GVL_Conveyer.ConveyerAxis.NcToPlc.ErrorCode = 0 THEN
+				IF NOT GVL.bClearPuck THEN
+					bSequenceExecute := TRUE;
+				ELSE
+					bSequenceExecute := FALSE;
+				END_IF
+				
+				IF Sequence3.Error THEN
+					MainState := MSA_STOPPING;
+				END_IF
+				
+				IF MainCommands.Stop THEN
+					MainCommands.Start := FALSE;
+					bSequenceExecute := FALSE;
+					MainState          := MSA_STOPPING;
+				ELSIF MainCommands.Disable THEN
+					MainCommands.Enable := FALSE;
+					bSequenceExecute := FALSE;
+					MainState           := MSA_STOPPING;
+				END_IF
+			
+			ELSE
+				bSequenceExecute := FALSE;
+				MainCommands.Enable := FALSE;
+				MainCommands.Disable := TRUE;
+				MainCommands.Enable := FALSE;
+				MainState := MSA_DISABLED;
+			END_IF
+		
+			
+			
+		MSA_STOPPING:		
+			bStopConveyer := TRUE;
+			MainCommands.Start:=FALSE;
+			
+			IF fbStopConveyer.Done THEN
+				bStopConveyer := FALSE;
+				MainState := MSA_STOPPED;
+			END_IF
+			
+		MSA_STOPPED:
+			IF MainCommands.Disable THEN
+				MainState           := MSA_DISABLING;
+			ELSIF MainCommands.Start THEN
+				MainCommands.Stop := FALSE;
+				MainState         := MSA_ENABLING;
+			END_IF
+			
+		MSA_DISABLING:
+			bPowerEnable := FALSE;
+			bSequenceExecute := FALSE;
+			bStopConveyer := TRUE;
+				
+			IF fbStopConveyer.Done THEN
+				bStopConveyer := FALSE;
+				MainState := MSA_DISABLED;
+			END_IF
+			
+	END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Main3">
-      <LineId Id="5" Count="0" />
-      <LineId Id="11" Count="0" />
-      <LineId Id="16" Count="4" />
-      <LineId Id="24" Count="3" />
-      <LineId Id="13" Count="0" />
-      <LineId Id="29" Count="1" />
-      <LineId Id="32" Count="1" />
-      <LineId Id="31" Count="0" />
-      <LineId Id="34" Count="0" />
-      <LineId Id="59" Count="0" />
-      <LineId Id="62" Count="1" />
-      <LineId Id="66" Count="2" />
-      <LineId Id="71" Count="2" />
-      <LineId Id="69" Count="0" />
-      <LineId Id="37" Count="0" />
-      <LineId Id="50" Count="1" />
-      <LineId Id="53" Count="0" />
-      <LineId Id="55" Count="2" />
-      <LineId Id="74" Count="2" />
+      <LineId Id="651" Count="0" />
+      <LineId Id="654" Count="0" />
+      <LineId Id="653" Count="0" />
+      <LineId Id="662" Count="0" />
+      <LineId Id="652" Count="0" />
+      <LineId Id="352" Count="1" />
+      <LineId Id="531" Count="0" />
+      <LineId Id="354" Count="0" />
+      <LineId Id="356" Count="1" />
+      <LineId Id="534" Count="0" />
+      <LineId Id="358" Count="0" />
+      <LineId Id="488" Count="4" />
+      <LineId Id="494" Count="0" />
+      <LineId Id="497" Count="0" />
+      <LineId Id="496" Count="0" />
+      <LineId Id="546" Count="1" />
+      <LineId Id="551" Count="0" />
+      <LineId Id="550" Count="0" />
+      <LineId Id="642" Count="0" />
+      <LineId Id="382" Count="11" />
+      <LineId Id="536" Count="0" />
+      <LineId Id="538" Count="0" />
+      <LineId Id="537" Count="0" />
+      <LineId Id="398" Count="21" />
+      <LineId Id="514" Count="0" />
+      <LineId Id="420" Count="1" />
+      <LineId Id="423" Count="16" />
+      <LineId Id="641" Count="0" />
+      <LineId Id="572" Count="0" />
+      <LineId Id="591" Count="16" />
+      <LineId Id="634" Count="2" />
+      <LineId Id="660" Count="0" />
+      <LineId Id="638" Count="2" />
+      <LineId Id="637" Count="0" />
+      <LineId Id="564" Count="0" />
+      <LineId Id="561" Count="0" />
+      <LineId Id="452" Count="2" />
+      <LineId Id="459" Count="0" />
+      <LineId Id="686" Count="0" />
+      <LineId Id="460" Count="1" />
+      <LineId Id="558" Count="0" />
+      <LineId Id="462" Count="4" />
+      <LineId Id="469" Count="1" />
+      <LineId Id="687" Count="0" />
+      <LineId Id="472" Count="4" />
+      <LineId Id="479" Count="0" />
+      <LineId Id="481" Count="6" />
       <LineId Id="12" Count="0" />
     </LineIds>
   </POU>

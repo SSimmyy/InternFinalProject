@@ -3,17 +3,76 @@
   <POU Name="Reset1" Id="{2268c0fe-288a-4490-aa7d-0ba072bf20b2}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Reset1
 VAR_INPUT
+	Execute : BOOL;
 END_VAR
 VAR_OUTPUT
+	Done : BOOL;
 END_VAR
 VAR
+	PickParams: PickPars_typ;
+	gState: INT;
+	iMovementNumber: INT;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[Done := FALSE;
+(*
+IF Execute THEN
+	CASE gState OF
+	300: // Dump Puck
+			iMovementNumber := 8;
+			Delta.MoveDirectTo( GVL.DeltaCoords[iMovementNumber].x, GVL.DeltaCoords[iMovementNumber].y, GVL.DeltaCoords[iMovementNumber].z);		
+			gState := 330;
+			iMovementNumber := 9;
+		
+	330:
+			IF Delta.MovePathDone THEN
+			Delta.MoveDirectTo( GVL.DeltaCoords[iMovementNumber].x, GVL.DeltaCoords[iMovementNumber].y, GVL.DeltaCoords[iMovementNumber].z);			
+				gState := 332;	
+			END_IF
+	332:
+	
+			IF Delta.MovePathDone THEN
+				Delta.DisableAir();
+				gState := 335;
+			END_IF
+			
+	335:
+			Delta.MoveDirectTo( GVL.DeltaCoords[iMovementNumber].x, GVL.DeltaCoords[iMovementNumber].y, GVL.DeltaCoords[iMovementNumber].z + 25);			
+			gState := 340;
+	340:
+			IF Delta.MovePathDone THEN
+			//	SystemCommands.MoverRelease := TRUE;
+				Done := TRUE;		
+			END_IF	
+	END_CASE
+ELSE
+	gState := 300;
+	Done := FALSE;
+END_IF	*)]]></ST>
     </Implementation>
     <LineIds Name="Reset1">
-      <LineId Id="9" Count="0" />
+      <LineId Id="258" Count="0" />
+      <LineId Id="260" Count="0" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="151" Count="3" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="157" Count="2" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="161" Count="2" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="255" Count="0" />
+      <LineId Id="167" Count="2" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="171" Count="3" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="176" Count="0" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="263" Count="2" />
+      <LineId Id="261" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

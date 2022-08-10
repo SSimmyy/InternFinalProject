@@ -3,6 +3,7 @@
   <POU Name="Faults3" Id="{da3620e9-a87e-482d-bcc6-d5ae8b33990f}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Faults3
 VAR_INPUT
+	Execute : BOOL;
 END_VAR
 VAR_OUTPUT
 END_VAR
@@ -10,10 +11,13 @@ VAR
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[IF Execute THEN
+	Execute := FALSE;
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="Faults3">
       <LineId Id="10" Count="0" />
+      <LineId Id="19" Count="1" />
     </LineIds>
   </POU>
 </TcPlcObject>

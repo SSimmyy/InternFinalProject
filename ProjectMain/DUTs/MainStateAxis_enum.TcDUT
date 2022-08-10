@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="MainStateAxis_enum" Id="{0c3fd464-2693-4047-96d2-569d96452127}">
+    <Declaration><![CDATA[{attribute 'strict'}
+TYPE MainStateAxis_enum :
+(
+	MSA_DISABLED					:= 0,
+	MSA_INITIALIZING				:= 10,
+	MSA_ENABLING					:= 20,
+	MSA_INITIALIZING_OBJECTIVES		:= 30,
+	MSA_ENABLED						:= 40,
+	MSA_RUN							:= 50,
+	MSA_STOPPING					:= 60,
+	MSA_STOPPED						:= 70,
+	MSA_DISABLING					:= 80,
+	MSA_ERROR						:= 90,
+	MSA_DEBUG						:= 1000
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

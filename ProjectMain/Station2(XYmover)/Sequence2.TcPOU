@@ -3,17 +3,611 @@
   <POU Name="Sequence2" Id="{0291e4fa-66ca-46da-b49b-c47f77c0d442}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Sequence2
 VAR_INPUT
+	Execute: BOOL;
+	bUserIncrementStep		: BOOL; 		// user can go to next step
+	bUserInfiniteMovement 	: BOOL :=FALSE; // user can decide if only one movement is executed or infinite movement.
+	fVelFactor				: LREAL := 1.0;
+	
 END_VAR
 VAR_OUTPUT
+	Error					: BOOL;
+	Done					: BOOL;
 END_VAR
 VAR
+	nState					: INT := -4;
+	nNextState				: INT;
+	buffer					: ARRAY[1..4096] OF BYTE;
+	path					: MC_PATH_DATA_REF(ADR(buffer), SIZEOF(buffer));
+	placePos				: LREAL;
+	
+	aTargetPos				: ARRAY[1..GVL_XY.cAxesCount] OF MC_LREAL;
+	aTransitionParam		: ARRAY[1..2] OF MC_LREAL;
+	
+	//fbPower					: FB_PowerAll;
+	fbAddAllAxes			: FB_AddAllAxes;
+	fbGroupEnable			: MC_GroupEnable;
+	fbMoveLinPrep			: MC_MoveLinearAbsolutePreparation;
+	fbMovePath				: MC_MovePath;
+	fbStop					: MC_GroupStop;
+	fbUngroupAxes			: MC_UngroupAllAxes;
+	fbGroupReset			: MC_GroupReset;
+	fbGroupReadStatus		: MC_GroupReadStatus;
+	fbGroupSetOvr			: MC_GroupSetOverride;
+	
+	fbBlockerPrep			: MC_BlockerPreparation;
+	fbBlockerRelease		: MC_ReleaseBlocker;
+	fbBlockerReadStatus		: MC_GroupReadBlockerStatus;
+	fbDwellTimePrep			: MC_DwellTimePreparation;
+	
+	fbConveyerTimer			: FB_ConveyerTimer;
+	
+	bMovePrepError			: BOOL;
+	bPickCycle				: BOOL := TRUE;
+	bExecutePath			: BOOL := TRUE;
+	
+	bUserStop				: BOOL; // user triggered stop
+	bUserForceUngroup		: BOOL; // user triggered ungroup axes
+	bUserForceReset			: BOOL; // user triggered reset
+	bUserReleaseBlocker		: BOOL; // user release the blocker
+	fbGearIn: ARRAY[1..GVL_XY.cAxesSlaveCount] OF MC_GearIn;
+	groupErrorID: UDINT;
+	bsetOvrID: UDINT;
+	fbPowerSlave: MC_Power;
+	groupEnableErrorID: UDINT;
+	iPickStation: INT := 1;
+	airTimer				: TON;
+	random		: drand;
+
+	
+	bUserInput: BOOL;
+	bPathPrepared: BOOL;
+	
+	i: UINT;
+	bTest: BOOL;
+	bGroupNotReady: BOOL;
+	bGroupStandby: BOOL;
+	bValid: BOOL;
+	bGroupReset: BOOL;
 END_VAR
-]]></Declaration>
+VAR_IN_OUT
+END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[	fbGroupReset(
+			AxesGroup:= GVL_XY.stGroupRef , 
+			Execute:= bGroupReset, 
+			Done=> , 
+			Busy=> , 
+			Error=> , 
+			ErrorId=> );
+
+	fbConveyerTimer();		
+	
+IF Execute THEN
+	
+	
+	airTimer(
+			IN := bUserInput,
+			PT := T#0.2S );
+	
+	fbGroupReadStatus(
+		AxesGroup:= GVL_XY.stGroupRef , 
+		Enable:= TRUE , 
+		Valid=> bValid, 
+		Busy=> , 
+		GroupMoving=> , 
+		GroupHoming=> , 
+		GroupErrorStop=> , 
+		GroupNotReady=> bGroupNotReady, 
+		GroupStandby=> bGroupStandby, 
+		GroupStopping=> , 
+		GroupDisabled=> , 
+		Error=> , 
+		ErrorId=> groupErrorID);
+		
+	IF fbGroupReadStatus.Error THEN
+		nState := 9998;
+	ELSIF NOT fbGroupReadStatus.Valid THEN
+		nState := 9999;	
+	END_IF
+	
+	fbGroupSetOvr(
+		AxesGroup:= GVL_XY.stGroupRef, 
+		Enable:= TRUE, 
+		VelFactor:= fVelFactor , 
+		Enabled=> , 
+		Busy=> , 
+		Error=> , 
+		ErrorId=> bsetOvrID, 
+		ActualVelFactor=> );
+	
+	IF fbGroupSetOvr.Error THEN
+		nState := 9996;
+	END_IF
+	
+	CASE nState OF
+	
+	-4:	
+		Done := FALSE;
+		IF bUserIncrementStep OR bUserInfiniteMovement THEN
+			nNextState := nState +1; 
+			nState := 101;
+			fbAddAllAxes(Execute:= FALSE);
+			fbGroupEnable(AxesGroup:=GVL_XY.stGroupRef , Execute:=FALSE);
+			fbMovePath(AxesGroup:=GVL_XY.stGroupRef ,PathData:=path ,Execute:= FALSE);
+			bMovePrepError := FALSE;
+		END_IF
+		
+	-3:
+		//Add all axes to group
+		fbAddAllAxes(Execute:= TRUE);
+		
+		IF fbAddAllAxes.Done THEN
+			IF bUserIncrementStep OR bUserInfiniteMovement THEN
+				fbAddAllAxes(Execute:= FALSE);
+				nNextState := nState +1;
+				nState := 101;
+			END_IF
+		ELSIF fbAddAllAxes.Error THEN
+			nState := nState +1000;
+		END_IF
+		
+	-2:
+		//Enable Group
+		fbGroupEnable(AxesGroup:=GVL_XY.stGroupRef , Execute:=TRUE);
+		
+		IF fbGroupEnable.Done THEN
+			IF bUserIncrementStep OR bUserInfiniteMovement THEN
+				fbGroupEnable(AxesGroup:=GVL_XY.stGroupRef , Execute:=FALSE);
+				nNextState := nState +1;
+				nState := 101;
+			END_IF
+		ELSIF fbGroupEnable.Error THEN
+			groupEnableErrorID := fbGroupEnable.ErrorId;
+			nState := nState +1000;
+		END_IF 
+		
+	-1:
+		FOR i:= 1 TO GVL_XY.cAxesSlaveCount DO
+			fbGearIn[i](
+					Master:= GVL_XY.stAxis[i], 
+					Slave:= GVL_XY.stSlaveAxis[i], 
+					Execute:= TRUE , 
+					RatioNumerator:= 1, 
+					RatioDenominator:=1 
+					);
+		END_FOR	
+		
+		IF fbGearIn[1].InGear THEN
+			IF bUserIncrementStep OR bUserInfiniteMovement THEN
+				iPickStation := 1;
+				bPathPrepared := FALSE;
+				nNextState := nState +1;
+				nState := 101;
+			END_IF
+		ELSIF fbGearIn[1].Error THEN
+			nState := nState +1000;
+		END_IF
+	
+	0:
+		//Fill path table and start execution with fbMovePath
+		IF bUserIncrementStep OR bUserInfiniteMovement THEN
+			IF bPickCycle THEN
+				IF iPickStation = 1 AND GVL_XTS.moversInPosition[1] THEN
+					iPickStation := 2;
+					//Prepare table (MC_MoveLinearAbsolutePreparation)
+					A_PreparePathPick_1();
+					IF NOT bMovePrepError THEN
+						bPathPrepared := TRUE;
+					END_IF
+					
+					
+				ELSIF iPickStation = 2 AND GVL_XTS.moversInPosition[2] THEN
+					iPickStation := 3;
+					//Prepare table (MC_MoveLinearAbsolutePreparation)
+					A_PreparePathPick_2();
+					IF NOT bMovePrepError THEN
+						bPathPrepared := TRUE;
+					END_IF
+					
+				ELSIF iPickStation = 3 AND GVL_XTS.moversInPosition[3] THEN
+					iPickStation := 1;
+					//Prepare table (MC_MoveLinearAbsolutePreparation)
+					
+					A_PreparePathPick_3();
+					IF NOT bMovePrepError THEN
+						bPathPrepared := TRUE;
+					END_IF
+				END_IF
+			ELSE
+					
+				//Prepare table (MC_MoveLinearAbsolutePreparation)		
+				IF GVL_XTS.moversRelease[1] OR GVL_XTS.moversRelease[2] OR GVL_XTS.moversRelease[3] THEN
+					random.Seed := 1;
+					random();
+					placePos := (random.Num * 70);
+					GVL.Pucks[GVL.puckIncrement].y := (-((placePos / 70) * 55) - 10);
+					
+					GVL.Pucks[GVL.puckIncrement].zOffset := ((random.Num) * 10);
+					GVL.Pucks[GVL.puckIncrement].xOffset := (random.Num * 10);
+
+					A_PreparePathPlace();
+					
+					IF NOT bMovePrepError THEN
+						bPathPrepared := TRUE;
+					END_IF
+				END_IF
+
+				GVL_XTS.moversRelease[1] := FALSE;
+				GVL_XTS.moversRelease[2] := FALSE;
+				GVL_XTS.moversRelease[3] := FALSE;
+			END_IF
+	
+			bPickCycle := NOT bPickCycle;
+		
+			IF bMovePrepError THEN
+				nState := 10000;
+			 ELSIF bPathPrepared THEN
+				fbMovePath(AxesGroup:= GVL_XY.stGroupRef, PathData:= path, Execute:= FALSE);
+				IF bUserInfiniteMovement THEN
+					nState := nState +1;
+					bPathPrepared := FALSE;
+				ELSIF bUserIncrementStep THEN
+					nNextState := nState + 1;
+					nState := 101;
+				END_IF				
+			END_IF	
+		END_IF
+	1:
+		//Execute prepared movement
+		fbMovePath(
+			AxesGroup:= GVL_XY.stGroupRef , 
+			PathData:= path , 
+			Execute:= bExecutePath
+		);
+	
+		IF fbMovePath.Done THEN
+			IF bUserIncrementStep THEN
+				nNextState := 50;
+				nState := 101;
+				fbMovePath(AxesGroup:= GVL_XY.stGroupRef, PathData:= path, Execute:= FALSE);
+			ELSIF bUserInfiniteMovement THEN
+				nState := nState + 1;
+				fbMovePath(AxesGroup:= GVL_XY.stGroupRef, PathData:= path, Execute:= FALSE);
+			END_IF
+		ELSIF fbMovePath.Error THEN
+			nState := nState + 1000;	
+		END_IF
+		
+	2:
+		
+		IF NOT bPickCycle THEN
+			bUserInput := TRUE;
+			GVL_XY.bPullUp := FALSE;
+			GVL_XY.bPushDown := TRUE;
+			GVL_XY.bAirEnable := TRUE;
+			IF airTimer.Q THEN
+				bUserInput := FALSE;
+				nState := nState + 1;
+			END_IF
+			
+		ELSIF fbConveyerTimer.bReadyToPlace AND NOT GVL.bClearPuck THEN
+			GVL_XY.bAirEnable := FALSE;
+			IF GVL.puckIncrement < 50 THEN
+				GVL.puckIncrement := GVL.puckIncrement + 1;
+			ELSE
+				GVL.puckIncrement := 0;
+			END_IF
+			nState := 0;
+		END_IF
+		
+	3:
+		bUserInput := TRUE;
+		GVL_XY.bPushDown := FALSE;
+		GVL_XY.bPullUp := TRUE;
+		IF airTimer.Q THEN
+			
+			IF iPickStation = 1 THEN
+				GVL_XTS.moversRelease[3] := TRUE;
+			ELSIF iPickStation = 2 THEN
+				GVL_XTS.moversRelease[1] := TRUE;
+			ELSIF iPickStation = 3 THEN
+				GVL_XTS.moversRelease[2] := TRUE;
+			END_IF
+		
+			bUserInput := FALSE;
+			nState := 0;
+		END_IF
+		
+	20:
+		fbStop(AxesGroup:=GVL_XY.stGroupRef, Execute:= FALSE);
+		fbStop(AxesGroup:=GVL_XY.stGroupRef, Execute:= TRUE, Jerk:= MC_IGNORE);
+		nState := nState + 1;
+	21:
+		fbStop(AxesGroup:=GVL_XY.stGroupRef,Execute:= TRUE);
+		IF fbStop.Done THEN
+			IF bUserIncrementStep THEN
+				fbStop(AxesGroup:=GVL_XY.stGroupRef, Execute:= FALSE);
+				nNextState := 0;
+				nState := 101;
+			END_IF 		
+		ELSIF fbStop.Error THEN
+			nState := nState +1000;
+		END_IF
+	50:
+		//Disable group and remove all axes 
+		fbUngroupAxes(AxesGroup:= GVL_XY.stGroupRef, Execute:= FALSE);
+		//Check that axes are not moving else we will get a position jump
+		IF fbGroupReadStatus.GroupStandby OR fbGroupReadStatus.GroupErrorStop OR fbGroupReadStatus.GroupNotReady THEN
+			fbUngroupAxes(AxesGroup:= GVL_XY.stGroupRef, Execute:= TRUE);
+			nState := nState + 1;
+		END_IF	
+	51:
+		fbUngroupAxes(
+			AxesGroup:= GVL_XY.stGroupRef , 
+			Execute:= TRUE, 
+			Done=> , 
+			Busy=> , 
+			Error=> , 
+			ErrorId=> );
+		
+		IF fbUngroupAxes.Done THEN
+			Done := TRUE;
+			IF bUserIncrementStep THEN
+				nNextState := -4;
+				nState := 101;
+			END_IF
+		ELSIF fbUngroupAxes.Error THEN
+			nState := nState +1000;
+		END_IF
+	80:
+		bGroupReset := FALSE;
+		nState := nState +5;
+		
+	85:	
+	
+	bGroupReset := TRUE;
+		
+		IF fbGroupReset.Done THEN
+			IF bUserIncrementStep THEN
+				IF fbGroupReadStatus.GroupDisabled THEN
+					nNextState := -4;
+				ELSE
+					nNextState := 0;
+				END_IF
+				nState := 101;
+			END_IF				
+		END_IF	
+	101:
+		IF (bUserIncrementStep) OR bUserInfiniteMovement THEN				
+			nState := nNextState;
+			bUserIncrementStep := FALSE;
+		END_IF
+	1000..9999:
+		
+		IF NOT fbGroupReadStatus.Error AND NOT fbGroupSetOvr.Error AND NOT fbGroupEnable.Error AND NOT fbAddAllAxes.Error AND NOT fbGearIn[1].Error THEN
+			Error := FALSE;
+		ELSE
+			Error := TRUE;
+		END_IF
+	
+		;//Error				
+	END_CASE
+	
+	IF bUserStop THEN
+		nState := 20;
+		bUserStop := FALSE;
+	END_IF
+	IF bUserForceUngroup THEN
+		nState := 50;
+		bUserForceUngroup := FALSE;
+	END_IF
+	IF bUserForceReset THEN
+		nState := 80;
+		bUserForceReset := FALSE;
+	END_IF
+
+ELSE
+	nState := -4; 
+END_IF]]></ST>
     </Implementation>
+    <Action Name="A_PreparePathPick_1" Id="{dcb08973-a115-429b-89e2-ef77d8cbb861}">
+      <Implementation>
+        <ST><![CDATA[path.ClearPath();  //Clear nodes that were in path
+
+fbMoveLinPrep.Position						:= ADR(aTargetPos); //pointer to position array
+fbMoveLinPrep.PositionCount 				:= GVL_XY.cAxesCount; //number of axes in group
+fbMoveLinPrep.TransitionParameter			:= ADR (aTransitionParam); //pointer to transition parameter array
+fbMoveLinPrep.TransitionParameterCount		:= 2; //number of transition parameters, has to be set always 2
+fbMoveLinPrep.BufferMode					:= mcBlendingPrevious;
+fbMoveLinPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+//Set dynamics to default values of the axes
+fbMoveLinPrep.Acceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Deceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Jerk							:= MC_DEFAULT;
+
+//1st node
+aTargetPos[1]				:= 4;
+aTargetPos[2]				:= 93;
+
+aTransitionParam[1]			:= 0; //blending distance on previous segment, no influence here
+aTransitionParam[2]			:= 0; //blending distance on this segment, no influence here
+fbMoveLinPrep(PathData:= path , Velocity:= 9000, InvokeId:= 10);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PreparePathPick_2" Id="{94184c41-b842-4066-830a-83c0336a87f7}">
+      <Implementation>
+        <ST><![CDATA[path.ClearPath();  //Clear nodes that were in path
+
+fbMoveLinPrep.Position						:= ADR(aTargetPos); //pointer to position array
+fbMoveLinPrep.PositionCount 				:= GVL_XY.cAxesCount; //number of axes in group
+fbMoveLinPrep.TransitionParameter			:= ADR (aTransitionParam); //pointer to transition parameter array
+fbMoveLinPrep.TransitionParameterCount		:= 2; //number of transition parameters, has to be set always 2
+fbMoveLinPrep.BufferMode					:= mcBlendingPrevious;
+fbMoveLinPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+//Set dynamics to default values of the axes
+fbMoveLinPrep.Acceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Deceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Jerk							:= MC_DEFAULT;
+
+//1st node
+aTargetPos[1]				:= 107;
+aTargetPos[2]				:= 93;
+
+aTransitionParam[1]			:= 0; //blending distance on previous segment (InvokeId=10), defines when to leave line
+aTransitionParam[2]			:= 0; //blending distance on this segment, defines latest positionn to be back  on line of InovkeId=20 
+fbMoveLinPrep(PathData:= path , Velocity:= 9000, InvokeId:= 20); 
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PreparePathPick_3" Id="{cf55799c-df25-474f-a8a4-b05de27edb4a}">
+      <Implementation>
+        <ST><![CDATA[path.ClearPath();  //Clear nodes that were in path
+
+fbMoveLinPrep.Position						:= ADR(aTargetPos); //pointer to position array
+fbMoveLinPrep.PositionCount 				:= GVL_XY.cAxesCount; //number of axes in group
+fbMoveLinPrep.TransitionParameter			:= ADR (aTransitionParam); //pointer to transition parameter array
+fbMoveLinPrep.TransitionParameterCount		:= 2; //number of transition parameters, has to be set always 2
+fbMoveLinPrep.BufferMode					:= mcBlendingPrevious;
+fbMoveLinPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+//Set dynamics to default values of the axes
+fbMoveLinPrep.Acceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Deceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Jerk							:= MC_DEFAULT;
+
+
+aTargetPos[1]				:= 190;
+aTargetPos[2]				:= 93;
+
+aTransitionParam[1]			:= 0; 
+aTransitionParam[2]			:= 0;
+fbMoveLinPrep(PathData:= path , Velocity:= 9000, InvokeId:= 40);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error;
+]]></ST>
+      </Implementation>
+    </Action>
+    <Action Name="A_PreparePathPlace" Id="{807eb52d-d6c5-48fb-b361-4b935b271568}">
+      <Implementation>
+        <ST><![CDATA[path.ClearPath(); //Clear nodes that were in path
+
+fbMoveLinPrep.Position						:= ADR(aTargetPos); //pointer to position array
+fbMoveLinPrep.PositionCount 				:= GVL_XY.cAxesCount; //number of axes in group
+fbMoveLinPrep.TransitionParameter			:= ADR (aTransitionParam); //pointer to transition parameter array
+fbMoveLinPrep.TransitionParameterCount		:= 2; //number of transition parameters, has to be set always 2
+fbMoveLinPrep.BufferMode					:= mcBlendingPrevious;
+fbMoveLinPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+fbMoveLinPrep.Acceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Deceleration					:= MC_DEFAULT;
+fbMoveLinPrep.Jerk							:= MC_DEFAULT;
+
+aTargetPos[1]				:= 150;
+aTargetPos[2]				:= 300 + placePos;
+				
+aTransitionParam[1]			:= 0; //blending distance on previous segment, no influence here
+aTransitionParam[2]			:= 0; //blending distance on this segment, no influence here
+fbMoveLinPrep(PathData:= path , Velocity:= 9000, InvokeId:= 15);
+bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error; ]]></ST>
+      </Implementation>
+    </Action>
     <LineIds Name="Sequence2">
+      <LineId Id="513" Count="5" />
+      <LineId Id="511" Count="0" />
+      <LineId Id="593" Count="0" />
+      <LineId Id="512" Count="0" />
+      <LineId Id="594" Count="0" />
+      <LineId Id="385" Count="0" />
+      <LineId Id="66" Count="39" />
+      <LineId Id="114" Count="1" />
+      <LineId Id="127" Count="1" />
+      <LineId Id="413" Count="0" />
+      <LineId Id="129" Count="23" />
+      <LineId Id="496" Count="11" />
+      <LineId Id="493" Count="0" />
+      <LineId Id="166" Count="1" />
+      <LineId Id="400" Count="0" />
+      <LineId Id="404" Count="5" />
+      <LineId Id="401" Count="1" />
+      <LineId Id="185" Count="2" />
+      <LineId Id="393" Count="0" />
+      <LineId Id="419" Count="0" />
+      <LineId Id="188" Count="10" />
+      <LineId Id="202" Count="3" />
+      <LineId Id="484" Count="2" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="418" Count="0" />
+      <LineId Id="208" Count="3" />
+      <LineId Id="487" Count="1" />
+      <LineId Id="212" Count="4" />
+      <LineId Id="620" Count="0" />
+      <LineId Id="217" Count="0" />
+      <LineId Id="489" Count="1" />
+      <LineId Id="218" Count="2" />
+      <LineId Id="522" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="627" Count="0" />
+      <LineId Id="632" Count="0" />
+      <LineId Id="634" Count="0" />
+      <LineId Id="636" Count="0" />
+      <LineId Id="628" Count="0" />
+      <LineId Id="643" Count="1" />
+      <LineId Id="787" Count="0" />
+      <LineId Id="631" Count="0" />
+      <LineId Id="630" Count="0" />
+      <LineId Id="639" Count="0" />
+      <LineId Id="641" Count="1" />
+      <LineId Id="640" Count="0" />
+      <LineId Id="629" Count="0" />
+      <LineId Id="626" Count="0" />
+      <LineId Id="624" Count="1" />
+      <LineId Id="623" Count="0" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="414" Count="0" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="415" Count="0" />
+      <LineId Id="227" Count="47" />
+      <LineId Id="598" Count="3" />
+      <LineId Id="597" Count="0" />
+      <LineId Id="275" Count="53" />
+      <LineId Id="411" Count="0" />
+      <LineId Id="329" Count="8" />
+      <LineId Id="339" Count="0" />
+      <LineId Id="520" Count="0" />
+      <LineId Id="340" Count="0" />
+      <LineId Id="521" Count="0" />
+      <LineId Id="347" Count="20" />
+      <LineId Id="398" Count="1" />
+      <LineId Id="368" Count="16" />
+      <LineId Id="716" Count="0" />
+      <LineId Id="715" Count="0" />
+      <LineId Id="717" Count="0" />
       <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="Sequence2.A_PreparePathPick_1">
+      <LineId Id="2" Count="15" />
+      <LineId Id="45" Count="0" />
+      <LineId Id="20" Count="3" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="Sequence2.A_PreparePathPick_2">
+      <LineId Id="2" Count="13" />
+      <LineId Id="49" Count="5" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="Sequence2.A_PreparePathPick_3">
+      <LineId Id="2" Count="12" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="55" Count="5" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="1" Count="0" />
+    </LineIds>
+    <LineIds Name="Sequence2.A_PreparePathPlace">
+      <LineId Id="2" Count="13" />
+      <LineId Id="50" Count="4" />
     </LineIds>
   </POU>
 </TcPlcObject>

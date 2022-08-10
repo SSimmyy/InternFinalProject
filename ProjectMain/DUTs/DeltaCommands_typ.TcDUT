@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="DeltaCommands_typ" Id="{5160d787-8697-4efe-8a46-5d844a8f525a}">
+    <Declaration><![CDATA[TYPE DeltaCommands_typ :
+STRUCT
+	
+	ReturnHome			: BOOL;		// sends the delta to 0,0,0;
+	PickFromElevator	: BOOL;		// Traverse to elevator, pick
+	PlaceOnXTS			: BOOL;
+	PickFromXTS			: BOOL;
+	PlaceOnDump			: BOOL;
+	EnableAutomatic		: BOOL;		// Starts the automatic process
+	DisableAutomatic	: BOOL;		// Stops the automatic process
+	
+	TrackOnce			: BOOL;		// Track the next mover to pass the trigger then go home
+	TrackContinuous		: BOOL;
+	
+	MoveDirectTo		: BOOL;		// 
+
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

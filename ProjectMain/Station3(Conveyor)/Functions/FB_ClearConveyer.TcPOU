@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_ClearConveyer" Id="{161a3070-fb25-49b3-89f5-5450182cb1ff}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ClearConveyer
+VAR_INPUT
+	Execute : BOOL;
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	
+
+	stopTimer				: TON;	
+	fbStop					: MC_Stop;
+	bVelocityExecute		: BOOL;
+	conveyerVelocity		: LREAL := 800;
+	nState					: INT := -2;
+	Done					: BOOL;
+	bStopExecute			: BOOL;
+	bTimerStart				: BOOL;
+	fbMoveVelocity			: MC_MoveVelocity;
+	direction				: TC2_MC2.MC_Direction;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbMoveVelocity(
+	Axis:= GVL_Conveyer.ConveyerAxis, 
+	Execute:= bVelocityExecute, 
+	Velocity:= conveyerVelocity, 
+	Direction := direction
+	 );
+
+stopTimer(
+	IN := bTimerStart,
+	PT := T#1S
+	);
+
+fbStop(
+	Axis:= GVL_Conveyer.ConveyerAxis, 
+	Execute:= bStopExecute,
+	);
+		
+bVelocityExecute := FALSE;
+bStopExecute 	 := FALSE;
+
+
+IF Execute THEN
+	
+	CASE nState OF
+		
+		-2:
+			bStopExecute := TRUE;
+			nState := -1;
+			
+		-1:
+			IF fbStop.Done THEN
+				nState := 0;
+			END_IF
+		
+
+		0:
+			direction := MC_Negative_Direction;
+			bVelocityExecute := TRUE;
+			nState := 1;
+			
+		1:
+			bTimerStart := TRUE;
+			IF stopTimer.Q THEN
+				bTimerStart := FALSE;
+				bStopExecute := TRUE;
+				nState := 2;
+			END_IF
+		2:
+			IF fbStop.Done THEN
+				bVelocityExecute := TRUE;
+				direction := MC_Positive_Direction;
+				nState := 3;
+			END_IF
+			
+			
+			
+		3:
+			bTimerStart := TRUE;
+			IF stopTimer.Q THEN
+				bTimerStart := FALSE;
+				nState := 4;
+			END_IF
+		
+		4:
+			GVL.bPuckMissed := FALSE;
+			GVL.bClearPuck := FALSE;
+			Done := TRUE;
+	
+	
+	END_CASE
+
+ELSE
+	Done := FALSE;
+	nState := -2;
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="FB_ClearConveyer">
+      <LineId Id="202" Count="3" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="206" Count="0" />
+      <LineId Id="219" Count="2" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="161" Count="3" />
+      <LineId Id="175" Count="0" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="158" Count="0" />
+      <LineId Id="185" Count="0" />
+      <LineId Id="157" Count="0" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="176" Count="8" />
+      <LineId Id="100" Count="0" />
+      <LineId Id="126" Count="0" />
+      <LineId Id="125" Count="0" />
+      <LineId Id="239" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="140" Count="0" />
+      <LineId Id="107" Count="0" />
+      <LineId Id="109" Count="0" />
+      <LineId Id="152" Count="0" />
+      <LineId Id="135" Count="1" />
+      <LineId Id="226" Count="0" />
+      <LineId Id="137" Count="0" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="118" Count="0" />
+      <LineId Id="131" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="240" Count="0" />
+      <LineId Id="227" Count="1" />
+      <LineId Id="148" Count="0" />
+      <LineId Id="119" Count="0" />
+      <LineId Id="142" Count="1" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="145" Count="2" />
+      <LineId Id="144" Count="0" />
+      <LineId Id="127" Count="1" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="129" Count="1" />
+      <LineId Id="102" Count="1" />
+      <LineId Id="101" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="115" Count="0" />
+      <LineId Id="95" Count="0" />
+      <LineId Id="12" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

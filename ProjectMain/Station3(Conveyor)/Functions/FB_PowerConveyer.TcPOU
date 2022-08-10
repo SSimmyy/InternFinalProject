@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_PowerConveyer" Id="{6c662a5d-d672-4b4d-99fd-36c3d8f8bd1f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PowerConveyer
+VAR_INPUT
+	Enable 		: BOOL;
+END_VAR
+VAR_OUTPUT
+	Status		: BOOL;
+	Error		: BOOL;
+	Done		: BOOL;
+END_VAR
+VAR
+	fbPower		: MC_Power;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF Enable THEN
+Done := FALSE;
+Status := TRUE;
+Error := FALSE;
+
+
+	fbPower(
+		Axis := GVL_Conveyer.ConveyerAxis,
+		Enable := Enable,
+		Enable_Positive := Enable,
+		Enable_Negative := Enable,
+		);
+Status := fbPower.Status;
+Error := fbPower.Error;	
+
+IF Status AND NOT Error THEN
+	Done := TRUE;
+END_IF
+
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="FB_PowerConveyer">
+      <LineId Id="9" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="42" Count="1" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="33" Count="2" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="38" Count="1" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="24" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

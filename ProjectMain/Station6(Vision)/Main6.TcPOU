@@ -3,13 +3,24 @@
   <POU Name="Main6" Id="{cf42c77a-3f4f-4d11-8e65-60309e7f1d7b}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main6
 VAR
+	Sequence:Sequence6;
+	Forces:Forces6;
+	Reset:Reset6;
+	Faults:Faults6;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[//Cyclic Call to the Station FBs 
+Sequence();
+Forces();
+Reset();
+Faults();
+]]></ST>
     </Implementation>
     <LineIds Name="Main6">
       <LineId Id="5" Count="0" />
+      <LineId Id="114" Count="3" />
+      <LineId Id="113" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

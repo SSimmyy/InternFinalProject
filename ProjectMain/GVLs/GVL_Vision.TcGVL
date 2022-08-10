@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <GVL Name="GVL_Vision" Id="{3b4f0f8f-b3da-465e-8fc4-d007aaab867f}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL
+
+	cmdTrigCamera	: BOOL;
+	outputValid		: BOOL;
+	noRead			: BOOL;
+	PuckValue		: INT;
+
+END_VAR]]></Declaration>
+  </GVL>
+</TcPlcObject>

@@ -17,17 +17,116 @@
     <LibraryReferences>{863f9ea1-d65a-418c-9e64-9112cabf3fa4}</LibraryReferences>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DUTs\DeltaCommands_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\DeltaMotionParameters_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\DeltaState_enum.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\ElevatorState_enum.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MachineOperationMode.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MainCommands_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MainStateAxis_enum.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MainState_enum.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MotionParameters_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MoverCommandType_enum.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\MoverState_enum.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\MoveState_t.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\PickPars_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Pucks.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\SystemCommands_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Vector3Position_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Visu_typ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\Coords.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\XYParams_typ.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="GVLs\GVL.TcGVL">
       <SubType>Code</SubType>
       <LinkAlways>true</LinkAlways>
     </Compile>
-    <Compile Include="PlcTask.TcTTO">
+    <Compile Include="GVLs\GVL_Conveyer.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_Vision.TcGVL">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="GVLs\GVL_XTS.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="GVLs\GVL_XY.TcGVL">
+      <SubType>Code</SubType>
+      <LinkAlways>true</LinkAlways>
+    </Compile>
+    <Compile Include="ITFs\iDelta.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ITFs\iRoute.TcIO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main1_1.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main2_1.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main3_1.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main4_1.TcTTO">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Main5_1.TcTTO">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station1%28Codian%29\Faults1.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\fbLoadMoves.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Functions\Delta.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Functions\FB_PuckPicked.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station1%28Codian%29\Functions\Route.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station1%28Codian%29\Forces1.TcPOU">
@@ -57,10 +156,34 @@
     <Compile Include="Station2%28XYmover%29\Sequence2.TcPOU">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_AddAllAxes.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_ConveyerTimer.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_PowerAll.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_ResetAllAxis.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station2%28XYmover%29\XY_FBs\FB_StopAll.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Station3%28Conveyor%29\Faults3.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station3%28Conveyor%29\Forces3.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Functions\FB_ClearConveyer.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Functions\FB_ConveyerStop.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Station3%28Conveyor%29\Functions\FB_PowerConveyer.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Station3%28Conveyor%29\Main3.TcPOU">
@@ -121,22 +244,42 @@
   <ItemGroup>
     <Folder Include="DUTs" />
     <Folder Include="GVLs" />
+    <Folder Include="ITFs" />
     <Folder Include="Station1%28Codian%29" />
+    <Folder Include="Station1%28Codian%29\Functions" />
     <Folder Include="Station2%28XYmover%29" />
+    <Folder Include="Station2%28XYmover%29\XY_FBs" />
     <Folder Include="Station3%28Conveyor%29" />
+    <Folder Include="Station3%28Conveyor%29\Functions" />
     <Folder Include="Station4%28xts1%29" />
     <Folder Include="Station5%28xts2%29" />
     <Folder Include="Station6%28Vision%29" />
     <Folder Include="VISUs" />
   </ItemGroup>
   <ItemGroup>
+    <PlaceholderReference Include="Tc2_ControllerToolbox">
+      <DefaultResolution>Tc2_ControllerToolbox, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_ControllerToolbox</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_Math">
+      <DefaultResolution>Tc2_Math, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_Math</Namespace>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc2_MC2">
       <DefaultResolution>Tc2_MC2, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_MC2</Namespace>
     </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_MC2_Drive">
+      <DefaultResolution>Tc2_MC2_Drive, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_MC2_Drive</Namespace>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc2_NCI">
       <DefaultResolution>Tc2_NCI, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_NCI</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_NcKinematicTransformation">
+      <DefaultResolution>Tc2_NcKinematicTransformation, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_NcKinematicTransformation</Namespace>
     </PlaceholderReference>
     <PlaceholderReference Include="Tc2_PlcInterpolation">
       <DefaultResolution>Tc2_PlcInterpolation, * (Beckhoff Automation GmbH)</DefaultResolution>
@@ -150,9 +293,29 @@
       <DefaultResolution>Tc2_System, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_System</Namespace>
     </PlaceholderReference>
+    <PlaceholderReference Include="Tc2_Utilities">
+      <DefaultResolution>Tc2_Utilities, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc2_Utilities</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_McCollisionAvoidance">
+      <DefaultResolution>Tc3_McCollisionAvoidance, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_McCollisionAvoidance</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_McCoordinatedMotion">
+      <DefaultResolution>Tc3_McCoordinatedMotion, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_McCoordinatedMotion</Namespace>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc3_Module">
       <DefaultResolution>Tc3_Module, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc3_Module</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_Vision">
+      <DefaultResolution>Tc3_Vision, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_Vision</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="Tc3_XTS_Utility">
+      <DefaultResolution>Tc3_XTS_Utility, * (Beckhoff Automation GmbH)</DefaultResolution>
+      <Namespace>Tc3_XTS_Utility</Namespace>
     </PlaceholderReference>
   </ItemGroup>
   <ItemGroup>

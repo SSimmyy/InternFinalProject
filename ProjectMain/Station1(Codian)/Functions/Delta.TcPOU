@@ -1,0 +1,1010 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="Delta" Id="{492a738f-fc6d-4715-b733-4ea1b08e2312}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK Delta
+VAR_INPUT
+	MotionParameters	: DeltaMotionParameters_typ;			// Motion parameters used by internal motion function blocks	
+	myMCSOverride: LREAL := 100.0;
+	xSetOverride: BOOL;
+	lrGrpOverride: MC_LREAL := 1.0;
+	fbMC_GroupSetOverride : MC_GroupSetOverride;
+	bTeaching				: BOOL;	
+END_VAR
+
+VAR_OUTPUT
+	
+	Ready				: BOOL;
+	Busy				: BOOL;
+	
+	Error				: BOOL;
+	ErrorID				: UDINT;
+	ErrorOrigin			: STRING;	
+		
+	internalKinChanNCtoPLC	AT %I* : NCTOPLC_NCICHANNEL_REF;
+	internalKinChanPLCtoNC	AT %Q* : PLCTONC_NCICHANNEL_REF;
+		btest2: BOOL;	
+	InKinematicsGroup		: BOOL;	
+	InCoordinatedGroup		: BOOL;
+	
+	InSyncWithConveyor		: BOOL;
+
+	//IdentInKinGroup			: UDINT;
+	//IdentInCMGroup			: UDINT; 	
+	
+	ACS_A_REF	: AXIS_REF;
+	ACS_B_REF	: AXIS_REF;
+	ACS_C_REF	: AXIS_REF;
+	
+	MCS_X_REF	: AXIS_REF;
+	MCS_Y_REF	: AXIS_REF;
+	MCS_Z_REF	: AXIS_REF;
+END_VAR
+VAR
+	
+	{attribute 'instance-path'}
+	{attribute 'no-init'}
+	InstancePath			: STRING;
+	btest: BOOL;
+	AirVariable				AT %Q* : BOOL;
+	
+	internalEnable			: BOOL;
+	internalDisable			: BOOL;
+	
+	//internalCurrentMoveType	: DeltaCommandType_enum;
+	
+	internalState			: DeltaState_enum;
+	
+	internalSetCoordTrafoDone	: BOOL;
+	internalMovePathDone		: BOOL;
+
+	
+	internalInitObjPos		: ARRAY [1..3] OF MC_LREAL := [0,0,0];
+	internalAxesList		: ST_KinAxes;
+	internalCMGroup			: AXES_GROUP_REF;
+	
+	internalTrackAxis		: REFERENCE TO AXIS_REF;
+	
+	internalPathBuffer		: ARRAY[0..32767] OF BYTE;
+	internalPathData		: MC_PATH_DATA_REF( ADR( internalPathBuffer ), SIZEOF( internalPathBuffer ));
+		
+	externalRoute			: REFERENCE TO Route;	
+
+	internalActiveCoordRef	: MC_COORD_REF;		
+
+	// Internal function blocks
+	fbReset_MCS_X			: MC_Reset;
+	fbReset_MCS_Y			: MC_Reset;
+	fbReset_MCS_Z			: MC_Reset;
+	
+	fbReset_ACS_A			: MC_Reset;
+	fbReset_ACS_B			: MC_Reset;
+	fbReset_ACS_C			: MC_Reset;
+	
+	fbPower_MCS_X			: MC_Power;
+	fbPower_MCS_Y			: MC_Power;
+	fbPower_MCS_Z			: MC_Power;
+	
+	fbPower_ACS_A			: MC_Power;
+	fbPower_ACS_B			: MC_Power;
+	fbPower_ACS_C			: MC_Power;	
+	
+	fbAddAxisToGrp			: ARRAY[0..2] OF MC_AddAxisToGroup;
+	fbGroupEnable			: MC_GroupEnable;
+	
+	fbKinConfigGroup		: FB_KinConfigGroup; 
+	fbKinResetGroup			: FB_KinResetGroup;
+	
+	fbTrackBelt				: MC_TrackConveyorBelt;
+	
+	fbSetCoordTrafo			: MC_SetCoordinateTransform;
+	fbMoveLinearPrep		: MC_MoveLinearAbsolutePreparation;
+	fbMovePath				: MC_MovePath;
+	fbMovePathExt			: MC_MovePath;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Folder Name="Methods" Id="{a2d46a1e-7a9e-44a1-9a9c-487d94df0d8d}" />
+    <Folder Name="Properties" Id="{68d119c4-1e71-4d9e-a63e-63c332a25cde}" />
+    <Method Name="Cyclic" Id="{08a56dcb-206a-41ec-ac0a-83b543ba62a8}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD Cyclic : BOOL
+VAR_IN_OUT
+END_VAR
+VAR
+	i: USINT;
+
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[CASE internalState OF
+	DL_IDLE:	// ------------------------------------------------------- idle state
+	
+		Ready		:= FALSE;
+		Busy		:= FALSE;
+		
+		internalDisable		:= FALSE;
+		IF internalEnable THEN
+			internalEnable		:= FALSE;
+			internalState		:= DL_RESET;
+		END_IF
+	
+	DL_RESET:	// ------------------------------------------------------- resets all axis objects
+	
+		fbReset_MCS_X.Execute		:= FALSE;
+		fbReset_MCS_Y.Execute		:= FALSE;
+		fbReset_MCS_Z.Execute		:= FALSE;	
+	
+		Ready		:= FALSE;
+		Busy		:= TRUE;
+		Error		:= FALSE;
+		ErrorID		:= 0;
+		
+		fbReset_MCS_X.Execute		:= TRUE;
+		fbReset_MCS_Y.Execute		:= TRUE;
+		fbReset_MCS_Z.Execute		:= TRUE;		
+		
+		fbReset_ACS_A.Execute		:= TRUE;
+		fbReset_ACS_B.Execute		:= TRUE;
+		fbReset_ACS_C.Execute		:= TRUE;
+		
+		IF fbReset_MCS_X.Done AND
+			fbReset_MCS_Y.Done AND
+			fbReset_MCS_Z.Done AND
+			fbReset_ACS_A.Done AND
+			fbReset_ACS_B.Done AND
+			fbReset_ACS_C.Done THEN
+			
+			fbReset_MCS_X.Execute		:= FALSE;
+			fbReset_MCS_Y.Execute		:= FALSE;
+			fbReset_MCS_Z.Execute		:= FALSE;		
+		
+			fbReset_ACS_A.Execute		:= FALSE;
+			fbReset_ACS_B.Execute		:= FALSE;
+			fbReset_ACS_C.Execute		:= FALSE;
+			
+			internalState	:= DL_POWER_AXES;
+			
+		ELSIF fbReset_MCS_X.Error OR
+			fbReset_MCS_Y.Error OR
+			fbReset_MCS_Z.Error OR
+			fbReset_ACS_A.Error OR
+			fbReset_ACS_B.Error OR
+			fbReset_ACS_C.Error THEN
+			
+			ErrorID; // TODO add whatever the error was for that block
+			ErrorOrigin		:= CONCAT( InstancePath, '.fbReset' );
+			internalState	:= DL_ERROR; 		
+		END_IF
+		
+	DL_POWER_AXES:	// --------------------------------------------------- energizes all axis objects
+	
+		Ready		:= FALSE;
+		Busy		:= TRUE;
+		Error		:= FALSE;
+		ErrorID		:= 0;
+
+			fbPower_MCS_X.Enable	:= TRUE;
+			fbPower_MCS_Y.Enable	:= TRUE;
+			fbPower_MCS_Z.Enable	:= TRUE;
+			
+			fbPower_MCS_X.Enable_Positive	:= TRUE;
+			fbPower_MCS_Y.Enable_Positive	:= TRUE;
+			fbPower_MCS_Z.Enable_Positive	:= TRUE;
+			
+			fbPower_MCS_X.Enable_Negative	:= TRUE;
+			fbPower_MCS_Y.Enable_Negative	:= TRUE;
+			fbPower_MCS_Z.Enable_Negative	:= TRUE;
+			
+			fbPower_ACS_A.Enable	:= TRUE;
+			fbPower_ACS_B.Enable	:= TRUE;
+			fbPower_ACS_C.Enable	:= TRUE;
+			
+			fbPower_ACS_A.Enable_Positive	:= TRUE;
+			fbPower_ACS_B.Enable_Positive	:= TRUE;
+			fbPower_ACS_C.Enable_Positive	:= TRUE;
+			
+			fbPower_ACS_A.Enable_Negative	:= TRUE;
+			fbPower_ACS_B.Enable_Negative	:= TRUE;
+			fbPower_ACS_C.Enable_Negative	:= TRUE;
+			
+			fbPower_MCS_X.Override		:= myMCSOverride;
+			fbPower_MCS_Y.Override		:= myMCSOverride;
+			fbPower_MCS_Z.Override		:= myMCSOverride;
+			
+			IF fbPower_MCS_X.Status AND
+				fbPower_MCS_Y.Status AND
+				fbPower_MCS_Z.Status AND
+				fbPower_ACS_A.Status AND
+				fbPower_ACS_B.Status AND
+				fbPower_ACS_C.Status THEN
+				
+				internalState	:= DL_SET_IK;
+				
+			ELSIF fbPower_MCS_X.Error OR
+				fbPower_MCS_Y.Error OR
+				fbPower_MCS_Z.Error OR
+				fbPower_ACS_A.Error OR
+				fbPower_ACS_B.Error OR
+				fbPower_ACS_C.Error THEN
+				
+				ErrorID;	// TODO add whatever the error was that block
+				ErrorOrigin		:= CONCAT( InstancePath, '.fbPower');
+				internalState	:= DL_ERROR;
+			END_IF
+
+	
+	DL_SET_IK:	// ------------------------------------------------------- enables the inverse kinematics transformation
+	
+		Ready		:= FALSE;
+		Busy		:= TRUE;
+		Error		:= FALSE;
+		ErrorID		:= 0;
+
+		internalAxesList.nAxisIdsAcs[1]		:= ACS_A_REF.NcToPlc.AxisId;
+		internalAxesList.nAxisIdsAcs[2]		:= ACS_B_REF.NcToPlc.AxisId;
+		internalAxesList.nAxisIdsAcs[3]		:= ACS_C_REF.NcToPlc.AxisId;
+		
+		internalAxesList.nAxisIdsMcs[1]		:= MCS_X_REF.NcToPlc.AxisId;
+		internalAxesList.nAxisIdsMcs[2]		:= MCS_Y_REF.NcToPlc.AxisId;
+		internalAxesList.nAxisIdsMcs[3]		:= MCS_Z_REF.NcToPlc.AxisId;
+		
+		fbKinConfigGroup.bExecute			:= TRUE;
+		fbKinConfigGroup.bCartesianMode		:= TRUE;
+	
+	
+		IF fbKinConfigGroup.bDone THEN
+		//	fbKinConfigGroup.bExecute		:= FALSE;
+			IF bTeaching THEN
+				internalState := DL_DEBUG;
+			ELSE
+				internalState	:= DL_ADD_AXES_TO_CM;
+			END_IF
+		ELSIF fbKinConfigGroup.bError THEN
+			ErrorID			:= fbKinConfigGroup.nErrorId;
+			ErrorOrigin		:= CONCAT(InstancePath,'.fbKinConfigGroup');
+			internalState	:= DL_ERROR;
+		END_IF;
+
+		
+	DL_ADD_AXES_TO_CM:	// ----------------------------------------------- adds MCS axes to CM Group
+	
+		Ready		:= FALSE;
+		Busy		:= TRUE;
+		Error		:= FALSE;
+		ErrorID		:= 0;
+
+			fbAddAxisToGrp[0].IdentInGroup	:= MCS_X;
+			// fbAddAxisToGrp[0].Axis			:= MCS_X_REF;
+			
+			fbAddAxisToGrp[1].IdentInGroup	:= MCS_Y;
+			// fbAddAxisToGrp[1].Axis			:= MCS_Y_REF;	
+			
+			fbAddAxisToGrp[2].IdentInGroup	:= MCS_Z;
+			// fbAddAxisToGrp[2].Axis			:= MCS_Z_REF;
+			
+			FOR i := 0 TO 2 DO
+				fbAddAxisToGrp[i].Execute		:= TRUE;
+			END_FOR
+			
+			IF fbAddAxisToGrp[0].Done AND
+				fbAddAxisToGrp[1].Done AND
+				fbAddAxisToGrp[2].Done THEN
+				
+				fbAddAxisToGrp[0].Execute	:= FALSE;
+				fbAddAxisToGrp[1].Execute	:= FALSE;
+				fbAddAxisToGrp[2].Execute	:= FALSE;
+				
+				internalState	:= DL_ENABLE_CM;
+				
+			ELSIF fbAddAxisToGrp[0].Error OR
+				fbAddAxisToGrp[1].Error OR
+				fbAddAxisToGrp[2].Error THEN
+				
+				fbAddAxisToGrp[0].Execute	:= FALSE;
+				fbAddAxisToGrp[1].Execute	:= FALSE;
+				fbAddAxisToGrp[2].Execute	:= FALSE;
+				
+				ErrorID;		// todo : add whichever block errored
+				ErrorOrigin		:= CONCAT(InstancePath,'.fbAddAxisToGrp');
+				internalState	:= DL_ERROR;
+			END_IF
+
+	DL_ENABLE_CM:	// ------------------------------------------------------- enables the coordinated motion group
+	
+		Ready		:= FALSE;
+		Busy		:= TRUE;
+		Error		:= FALSE;
+		ErrorID		:= 0;
+		
+			fbGroupEnable.Execute		:= TRUE;
+			
+			IF fbGroupEnable.Done THEN
+				internalState	:= DL_RUN;
+			ELSIF fbGroupEnable.Error THEN
+				ErrorID			:= fbGroupEnable.ErrorId;
+				ErrorOrigin		:= CONCAT(InstancePath,'.fbGroupEnable');
+				internalState	:= DL_ERROR;
+			END_IF
+		
+	DL_RUN:	// --------------------------------------------------------------- Delta running, ready for commands
+	
+		Ready		:= TRUE;
+		Busy		:= FALSE;
+		Error		:= FALSE;
+		ErrorID		:= 0;
+				
+		// reset all commanded function blocks when the execute is recieved
+		IF fbSetCoordTrafo.Busy OR fbSetCoordtrafo.CommandAborted THEN
+			fbSetCoordTrafo.Execute		:= FALSE;
+		ELSIF fbMovePath.Busy OR fbMovePath.CommandAborted THEN
+			fbMovePath.Execute			:= FALSE;
+		ELSIF fbMovePathEXT.Busy OR fbMovePathEXT.CommandAborted THEN
+			fbMovePath.Execute			:= FALSE;
+		ELSIF fbTrackBelt.Active OR fbTrackBelt.CommandAborted THEN
+			fbTrackBelt.Execute			:= FALSE;
+		END_IF
+		
+		// and catch all internal function block errors
+		IF fbSetCoordTrafo.Error THEN
+			ErrorID			:= fbSetCoordTrafo.ErrorId;
+			ErrorOrigin		:= CONCAT( InstancePath, '.fbSetCoordTrafo' );
+			internalState	:= DL_ERROR;
+		ELSIF fbMovePath.Error THEN
+			ErrorID			:= fbMovePath.ErrorId;
+			ErrorOrigin		:= CONCAT( InstancePath, '.fbMovePath' );
+			internalState	:= DL_ERROR;
+		ELSIF fbMovePathEXT.Error THEN
+			ErrorID			:= fbMovePathEXT.ErrorId;
+			ErrorOrigin		:= CONCAT( InstancePath, '.fbMovePathEXT' );
+			internalState	:= DL_ERROR;
+		ELSIF fbTrackBelt.Error THEN
+			ErrorID			:= fbMovePath.ErrorId;
+			ErrorOrigin		:= CONCAT( InstancePath, '.fbMovePath' );
+			internalState	:= DL_ERROR;
+		END_IF
+	
+	DL_ERROR:	// ----------------------------------------------------------- Error state
+	
+		Ready		:= FALSE;
+		Busy		:= FALSE;
+		Error		:= TRUE;
+	
+END_CASE
+
+fbReset_ACS_A( Axis := ACS_A_REF );
+fbReset_ACS_B( Axis := ACS_B_REF );
+fbReset_ACS_C( Axis := ACS_C_REF );
+fbReset_MCS_X( Axis := MCS_X_REF );
+fbReset_MCS_Y( Axis := MCS_Y_REF );
+fbReset_MCS_Z( Axis := MCS_Z_REF );
+
+fbPower_ACS_A( Axis := ACS_A_REF );
+fbPower_ACS_B( Axis := ACS_B_REF );
+fbPower_ACS_C( Axis := ACS_C_REF );
+fbPower_MCS_X( Axis := MCS_X_REF );
+fbPower_MCS_Y( Axis := MCS_Y_REF );
+fbPower_MCS_Z( Axis := MCS_Z_REF );
+
+fbAddAxisToGrp[0]( AxesGroup := internalCMGroup, Axis := MCS_X_REF );
+fbAddAxisToGrp[1]( AxesGroup := internalCMGroup, Axis := MCS_Y_REF );
+fbAddAxisToGrp[2]( AxesGroup := internalCMGroup, Axis := MCS_Z_REF );
+
+fbGroupEnable( AxesGroup := internalCMGroup );
+
+fbKinConfigGroup( stAxesList := internalAxesList, stKinRefIn := internalKinChanNCtoPLC );
+fbKinResetGroup( stKinRefIn := internalKinChanNCtoPLC, stAxesList := internalAxesList );
+
+fbSetCoordTrafo( AxesGroup := internalCMGroup );
+
+fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
+fbMovePathEXT( AxesGroup := internalCMGroup, PathData := externalRoute.PathData );
+
+fbMC_GroupSetOverride(
+	AxesGroup:= internalCMGroup, 
+	Enable:= xSetOverride, 
+	VelFactor:= lrGrpOverride, 
+	Enabled=> , 
+	Busy=> , 
+	Error=> , 
+	ErrorId=> , 
+	ActualVelFactor=> );
+	
+	]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Disable" Id="{f8852278-a902-41fb-8b1a-a53ea61cbd64}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD Disable : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="DisableAir" Id="{74258680-12ce-4520-8174-1e7920fb856e}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD DisableAir : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AirVariable	:= FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Enable" Id="{f4887e95-9084-4d7c-8994-4709154d6c02}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD Enable : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF internalState = DL_IDLE THEN
+	internalEnable		:= TRUE;
+END_IF;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="EnableAir" Id="{64a72ef1-4b6d-4e9c-8d63-cad412c5e0f0}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD EnableAir : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[AirVariable	:= TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ExecuteRoute" Id="{0f1c4d90-fa0e-4ee0-9899-a01e330415e2}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD ExecuteRoute : BOOL
+VAR_INPUT
+	Route		: REFERENCE TO Route;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[externalRoute			REF= Route;
+fbMovePathEXT.Execute	:= TRUE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="MoveDirectTo" Id="{610f0aa4-e8d8-4a0e-b42c-d66003cd2595}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD MoveDirectTo : BOOL
+VAR_INPUT
+	X			: LREAL;
+	Y			: LREAL;
+	Z			: LREAL;
+END_VAR
+VAR
+	posVector			: ARRAY[0..2] OF LREAL;
+	toleranceBall		: ARRAY[0..1] OF LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// clear any existing waypoints in the path buffer
+internalPathData.ClearPath();
+
+// add a single point at the destination
+posVector[0]	:= X;
+posVector[1]	:= Y;
+posVector[2]	:= Z;
+
+// blending radii follows a ratio recommendation from infosys
+toleranceBall[0]	:= 0.5 * MotionParameters.BlendingRadius;
+toleranceBall[1]	:= MotionParameters.BlendingRadius;
+
+fbMoveLinearPrep.Position			:= ADR( posVector );
+fbMoveLinearPrep.PositionCount		:= 3;
+fbMoveLinearPrep.Velocity			:= MotionParameters.Velocity;
+fbMoveLinearPrep.Acceleration		:= MotionParameters.Acceleration;
+fbMoveLinearPrep.Deceleration		:= MotionParameters.Deceleration;
+fbMoveLinearPrep.Jerk				:= MotionParameters.Jerk;
+fbMoveLinearPrep.BufferMode			:= mcBlendingPrevious;
+
+fbMoveLinearPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+fbMoveLinearPrep.TransitionParameter		:= ADR( toleranceBall );
+fbMoveLinearPrep.TransitionParameterCount	:= 2;
+fbMoveLinearPrep.InvokeId					:= 100;
+
+fbMoveLinearPrep( PathData := internalPathData );
+
+// execute mc_movepath
+fbMovePath.Execute	:= TRUE;
+
+fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="MovePathDone" Id="{dd8dbeba-3161-4047-8127-ea64b21675c1}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY MovePathDone : BOOL]]></Declaration>
+      <Get Name="Get" Id="{7df17e80-557a-41df-8651-9ebd7ef9a364}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[MovePathDone		:= fbMovePath.Done;
+
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Reset" Id="{53b97b6c-d929-489a-b91b-ad9f50847a2c}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD Reset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[internalState := DL_IDLE;
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReturnHome" Id="{4a762706-93bb-4e83-8b35-d2c1fae7dbb3}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD ReturnHome : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Zero is home, right?
+THIS^.MoveDirectTo( 0, 100, 50);]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetAcceleration" Id="{92321fb0-df12-41a8-a2c8-436a5c15bd2a}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetAcceleration : BOOL
+VAR_INPUT
+	Acceleration	: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// prevents a negative value from being accepted
+MotionParameters.Acceleration		:= LIMIT( 0, Acceleration, 1E300 );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetCoordTrafo" Id="{6bf0c707-36e2-400d-ba6a-1409a4ef623e}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetCoordTrafo : BOOL
+VAR_INPUT
+	CoordRef	: MC_COORD_REF;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Set the function block to change coordinate reference frame
+fbSetCoordTrafo.Execute				:= TRUE;
+fbSetCoordTrafo.CoordTransform		:= CoordRef;	
+
+internalActiveCoordRef				:= CoordRef;
+
+fbSetCoordTrafo( AxesGroup := internalCMGroup );]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="SetCoordTrafoDone" Id="{71fa1ee3-447a-48eb-933c-e282e4815b89}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY SetCoordTrafoDone : BOOL]]></Declaration>
+      <Get Name="Get" Id="{dca464b8-bfd9-4ed6-aeb3-8b7143978587}">
+        <Declaration><![CDATA[
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[SetCoordTrafoDone	:= fbSetCoordTrafo.Done;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="SetDeceleration" Id="{45bf2e83-ee20-441b-9e55-4922a9803644}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetDeceleration : BOOL
+VAR_INPUT
+	Deceleration		: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// prevent a negative value from being accepted
+MotionParameters.Deceleration	:= LIMIT( 0, Deceleration, 1E300 );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetJerk" Id="{4ef692c6-1a95-42ab-8a1b-79d9a2e89408}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetJerk : BOOL
+VAR_INPUT
+	Jerk		: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// Prevents a negative value from being accepted.
+MotionParameters.Jerk		:= LIMIT( 0, Jerk, 1E300 );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="SetVelocity" Id="{24facd4e-7d50-487f-9c83-08886c6f20a6}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD SetVelocity : BOOL
+VAR_INPUT
+	Velocity		: LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+// Prevents a negative value from being accepted
+MotionParameters.Velocity		:= LIMIT( 0, Velocity, 1E300 );]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="TrackConveyor" Id="{2816da83-ed23-43ce-a0b7-378371c4fed3}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD TrackConveyor : BOOL
+VAR_INPUT
+	MasterRefPos		: MC_LREAL;
+	TrackAxis			: REFERENCE TO AXIS_REF;
+	CoordFrame			: MC_COORD_REF;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+
+internalTrackAxis		REF= TrackAxis;
+
+//initialObjectPos[1]		:= 0;
+//initialObjectPos[2]		:= 0;
+//initialObjectPos[3]		:= 0;
+
+fbTrackBelt.CoordTransform			:= CoordFrame;
+fbTrackBelt.InitialObjectPos		:= ADR( internalInitObjPos );
+fbTrackBelt.InitialObjectPosCount	:= 3;
+fbTrackBelt.MasterRefPos			:= MasterRefPos;
+
+fbTrackBelt.Velocity		:= MotionParameters.Velocity;
+fbTrackBelt.Acceleration	:= MotionParameters.Acceleration;
+fbTrackBelt.Deceleration	:= MotionParameters.Deceleration;
+fbTrackBelt.Jerk			:= MotionParameters.Jerk;
+
+fbTrackBelt.Execute		:= TRUE;
+
+fbTrackBelt( AxesGroup := internalCMGroup, ConveyorBelt := internalTrackAxis );
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="TrackConveyorActive" Id="{f310fd5c-ce55-4c44-b116-740d45e473da}" FolderPath="Properties\">
+      <Declaration><![CDATA[PROPERTY TrackConveyorActive : BOOL]]></Declaration>
+      <Get Name="Get" Id="{6306f1a7-01b5-47a4-929e-037481165b52}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[TrackConveyorActive		:= fbTrackBelt.InSync;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="TraverseAtHeightTo" Id="{09ea2bd6-1601-4fea-823b-7e058bcdd11a}" FolderPath="Methods\">
+      <Declaration><![CDATA[METHOD TraverseAtHeightTo : BOOL
+VAR_INPUT
+	X			: LREAL;
+	Y			: LREAL;
+	Z			: LREAL;
+	TraverseZ	: LREAL;
+END_VAR
+VAR
+	posVector		: ARRAY[0..2] OF LREAL;
+	toleranceBall	: ARRAY[0..1] OF LREAL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// clear any existing waypoints in the path buffer
+internalPathData.ClearPath();
+
+toleranceBall[0]	:= 0.5 * MotionParameters.BlendingRadius;
+toleranceBall[1]	:= MotionParameters.BlendingRadius;
+
+fbMoveLinearPrep.PositionCount		:= 3;
+fbMoveLinearPrep.Velocity			:= MotionParameters.Velocity;
+fbMoveLinearPrep.Acceleration		:= MotionParameters.Acceleration;
+fbMoveLinearPrep.Deceleration		:= MotionParameters.Deceleration;
+fbMoveLinearPrep.Jerk				:= MotionParameters.Jerk;
+fbMoveLinearPrep.BufferMode			:= mcBlendingPrevious;
+
+fbMoveLinearPrep.TransitionMode				:= mcTransModeCornerDistanceAdvanced;
+fbMoveLinearPrep.TransitionParameter		:= ADR( toleranceBall );
+fbMoveLinearPrep.TransitionParameterCount	:= 2;
+fbMoveLinearPrep.InvokeId					:= 100;
+
+// add a vertical movement to the traverse height
+posVector[0]		:= MCS_X_REF.NcToPlc.ActPos; 
+posVector[1]		:= MCS_Y_REF.NcToPlc.ActPos;
+posVector[2]		:= TraverseZ;
+
+fbMoveLinearPrep.Position		:= ADR( posVector );
+fbMoveLinearPrep( PathData := internalPathData );
+
+// add a traversal move to a point above/below the destination
+posVector[0]		:= X;	// destination X
+posVector[1]		:= Y;	// destination Y
+posVector[2]		:= TraverseZ;	// traversal height
+
+fbMoveLinearPrep.Position		:= ADR( posVector );
+fbMoveLinearPrep( PathData := internalPathData );
+
+// add a vertical move to the destination itself
+posVector[0]		:= X;
+posVector[1]		:= Y;
+posVector[2]		:= Z;
+
+fbMoveLinearPrep.Position		:= ADR( posVector );
+fbMoveLinearPrep( PathData := internalPathData );
+
+// execute mc_movepath
+fbMovePath.Execute	:= TRUE;
+
+// Call once for Busy output
+fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
+
+
+
+
+
+
+
+
+
+
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="Delta">
+      <LineId Id="57" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.Cyclic">
+      <LineId Id="13" Count="13" />
+      <LineId Id="528" Count="1" />
+      <LineId Id="526" Count="1" />
+      <LineId Id="27" Count="26" />
+      <LineId Id="299" Count="1" />
+      <LineId Id="54" Count="10" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="136" Count="10" />
+      <LineId Id="336" Count="7" />
+      <LineId Id="147" Count="3" />
+      <LineId Id="352" Count="0" />
+      <LineId Id="346" Count="5" />
+      <LineId Id="344" Count="0" />
+      <LineId Id="353" Count="3" />
+      <LineId Id="151" Count="2" />
+      <LineId Id="155" Count="0" />
+      <LineId Id="385" Count="0" />
+      <LineId Id="157" Count="2" />
+      <LineId Id="170" Count="1" />
+      <LineId Id="160" Count="6" />
+      <LineId Id="168" Count="1" />
+      <LineId Id="167" Count="0" />
+      <LineId Id="154" Count="0" />
+      <LineId Id="496" Count="0" />
+      <LineId Id="67" Count="1" />
+      <LineId Id="129" Count="0" />
+      <LineId Id="70" Count="3" />
+      <LineId Id="118" Count="9" />
+      <LineId Id="132" Count="0" />
+      <LineId Id="446" Count="0" />
+      <LineId Id="445" Count="0" />
+      <LineId Id="172" Count="1" />
+      <LineId Id="515" Count="1" />
+      <LineId Id="518" Count="1" />
+      <LineId Id="174" Count="4" />
+      <LineId Id="368" Count="0" />
+      <LineId Id="500" Count="0" />
+      <LineId Id="198" Count="2" />
+      <LineId Id="204" Count="4" />
+      <LineId Id="220" Count="0" />
+      <LineId Id="227" Count="0" />
+      <LineId Id="225" Count="0" />
+      <LineId Id="222" Count="0" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="224" Count="0" />
+      <LineId Id="223" Count="0" />
+      <LineId Id="229" Count="0" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="209" Count="0" />
+      <LineId Id="230" Count="0" />
+      <LineId Id="213" Count="0" />
+      <LineId Id="231" Count="2" />
+      <LineId Id="235" Count="0" />
+      <LineId Id="420" Count="1" />
+      <LineId Id="423" Count="1" />
+      <LineId Id="422" Count="0" />
+      <LineId Id="237" Count="0" />
+      <LineId Id="246" Count="0" />
+      <LineId Id="239" Count="2" />
+      <LineId Id="425" Count="0" />
+      <LineId Id="427" Count="1" />
+      <LineId Id="426" Count="0" />
+      <LineId Id="242" Count="0" />
+      <LineId Id="244" Count="1" />
+      <LineId Id="243" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="494" Count="0" />
+      <LineId Id="189" Count="4" />
+      <LineId Id="117" Count="0" />
+      <LineId Id="247" Count="0" />
+      <LineId Id="249" Count="3" />
+      <LineId Id="254" Count="3" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="258" Count="1" />
+      <LineId Id="80" Count="0" />
+      <LineId Id="264" Count="0" />
+      <LineId Id="267" Count="2" />
+      <LineId Id="438" Count="0" />
+      <LineId Id="291" Count="0" />
+      <LineId Id="288" Count="1" />
+      <LineId Id="301" Count="1" />
+      <LineId Id="401" Count="1" />
+      <LineId Id="413" Count="0" />
+      <LineId Id="397" Count="0" />
+      <LineId Id="290" Count="0" />
+      <LineId Id="292" Count="3" />
+      <LineId Id="297" Count="1" />
+      <LineId Id="303" Count="3" />
+      <LineId Id="403" Count="3" />
+      <LineId Id="392" Count="3" />
+      <LineId Id="296" Count="0" />
+      <LineId Id="266" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="260" Count="3" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="307" Count="0" />
+      <LineId Id="82" Count="0" />
+      <LineId Id="308" Count="4" />
+      <LineId Id="316" Count="5" />
+      <LineId Id="313" Count="0" />
+      <LineId Id="277" Count="0" />
+      <LineId Id="83" Count="0" />
+      <LineId Id="278" Count="1" />
+      <LineId Id="329" Count="0" />
+      <LineId Id="328" Count="0" />
+      <LineId Id="286" Count="0" />
+      <LineId Id="84" Count="0" />
+      <LineId Id="370" Count="0" />
+      <LineId Id="369" Count="0" />
+      <LineId Id="85" Count="0" />
+      <LineId Id="399" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="400" Count="0" />
+      <LineId Id="105" Count="0" />
+      <LineId Id="469" Count="8" />
+      <LineId Id="507" Count="1" />
+    </LineIds>
+    <LineIds Name="Delta.Disable">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.DisableAir">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.Enable">
+      <LineId Id="7" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="11" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.EnableAir">
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.ExecuteRoute">
+      <LineId Id="17" Count="0" />
+      <LineId Id="20" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.MoveDirectTo">
+      <LineId Id="5" Count="0" />
+      <LineId Id="17" Count="0" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="32" Count="1" />
+      <LineId Id="48" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="34" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="36" Count="3" />
+      <LineId Id="41" Count="0" />
+      <LineId Id="40" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="49" Count="0" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="50" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="52" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="53" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.MovePathDone.Get">
+      <LineId Id="7" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.Reset">
+      <LineId Id="9" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.ReturnHome">
+      <LineId Id="10" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.SetAcceleration">
+      <LineId Id="9" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.SetCoordTrafo">
+      <LineId Id="10" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="13" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="18" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.SetCoordTrafoDone.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.SetDeceleration">
+      <LineId Id="10" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.SetJerk">
+      <LineId Id="10" Count="1" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.SetVelocity">
+      <LineId Id="10" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.TrackConveyor">
+      <LineId Id="7" Count="0" />
+      <LineId Id="30" Count="1" />
+      <LineId Id="15" Count="1" />
+      <LineId Id="18" Count="1" />
+      <LineId Id="8" Count="0" />
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="2" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.TrackConveyorActive.Get">
+      <LineId Id="2" Count="0" />
+    </LineIds>
+    <LineIds Name="Delta.TraverseAtHeightTo">
+      <LineId Id="5" Count="0" />
+      <LineId Id="10" Count="0" />
+      <LineId Id="29" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="46" Count="0" />
+      <LineId Id="48" Count="9" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="60" Count="3" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="31" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="92" Count="0" />
+      <LineId Id="81" Count="1" />
+      <LineId Id="85" Count="1" />
+      <LineId Id="88" Count="0" />
+      <LineId Id="87" Count="0" />
+      <LineId Id="89" Count="0" />
+      <LineId Id="93" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="94" Count="2" />
+      <LineId Id="98" Count="0" />
+      <LineId Id="97" Count="0" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="90" Count="0" />
+      <LineId Id="66" Count="1" />
+      <LineId Id="113" Count="0" />
+      <LineId Id="112" Count="0" />
+      <LineId Id="111" Count="0" />
+      <LineId Id="68" Count="11" />
+      <LineId Id="65" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

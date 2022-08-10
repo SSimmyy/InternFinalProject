@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_ConveyerStop" Id="{04a982e8-5fd2-40b7-9871-383eed3b678c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_ConveyerStop
+VAR_INPUT
+	Execute : BOOL;
+END_VAR
+VAR_OUTPUT
+	Done : BOOL;
+END_VAR
+VAR
+	fbStop : MC_Stop;
+	bConveyerStop: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[fbStop(
+			Axis := GVL_Conveyer.ConveyerAxis,
+			Execute := bConveyerStop
+			);
+			
+			
+bConveyerStop := FALSE;
+				
+IF Execute THEN
+		Done := FALSE;
+		GVL_Conveyer.ConveyerAxis.PlcToNc.ExtSetPos := GVL_Conveyer.ConveyerAxis.NcToPlc.ActPos;
+		bConveyerStop := TRUE;
+		Done := fbStop.Done;
+
+ELSE
+	Done := FALSE;
+	
+END_IF]]></ST>
+    </Implementation>
+    <LineIds Name="FB_ConveyerStop">
+      <LineId Id="55" Count="2" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="54" Count="0" />
+      <LineId Id="9" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="77" Count="0" />
+      <LineId Id="12" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="78" Count="0" />
+      <LineId Id="13" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

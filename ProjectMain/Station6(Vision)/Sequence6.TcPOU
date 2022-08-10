@@ -7,12 +7,342 @@ END_VAR
 VAR_OUTPUT
 END_VAR
 VAR
+		///	fb_Camera		: FB_VN_GevCameraControl;
+	fb_Camera: FB_VN_SimpleCameraControl;
+	CamState: ETcVNCameraState;
+	bNewImageIn: BOOL;
+	ImageInWidth: UDINT;
+	ImageInHeight: UDINT;
+	ImageWorkWidth: UDINT;
+	ImageWorkHeight: UDINT;
+	ImageBlobWidth: UDINT;
+	ImageBlobHeight: UDINT;
+	Roi_1Point: TcVnPOINT;
+	Roi_1OffsetPoint: TcVnPOINT;
+	Roi_2Point: TcVnPOINT;
+	/// Colors
+	aColorWhite: TcVnVector4_LREAL := [255, 255, 255, 255];
+	aColorBlack: TcVnVector4_LREAL := [0, 0, 0, 255];
+	aColorGreen: TcVnVector4_LREAL := [0, 175, 0, 255];
+	aColorBlue: TcVnVector4_LREAL := [0, 0, 255, 255];
+	aColorRed: TcVnVector4_LREAL := [255, 0, 0, 255];
+	aColorMagenta: TcVnVector4_LREAL := [255, 0, 255, 255];
+	hr: HRESULT;
+	hr1: HRESULT;
+	hr2: HRESULT;
+	hr_Software_Trig: HRESULT;
+	hr_OmittedImage: HRESULT;
+	ImageIn: ITcVNImage;
+	ImageInDisp: ITcVnDisplayableImage;
+	ImageWork: ITcVNImage;
+	ImageWorkRotated: ITcVNImage;
+	ImageWorkRotatedForDisp: ITcVNImage;
+	ImageResultsForDisp: ITcVNImage;
+	ImageBlob: ITcVNImage;
+	ImageBlobDisp: ITcVnDisplayableImage;
+	ImageResultsDisp: ITcVnDisplayableImage;
+	ImageWorkRotatedDisp: ITcVnDisplayableImage;
+	ImageInGvspInfo: Gvsp_Image_Info;
+	nImage_ID_Num: ULINT;
+	stImageInfo: TcVNImageInfo;
+	sImage_ID_NumText: STRING;
+	nInterpolationType: INT := 0;
+	/// F_VN_PutTextExp parameters
+	nX: UDINT := 20;
+	nY: UDINT := 50;
+	FontScale: LREAL := 1.5;
+	FontThickness: UDINT := 4;
+	/// Visualization control
+	bPB_CameraSoftwareTrigger: BOOL := FALSE;
+	bOSR_PbCamSwTrig: R_trig;
+	/// Image data
+	nImagePixelFormatChannels: BYTE;
+	nImageEffectivePixelSize: UINT;
+	nImagePixelEncoding: BYTE;
+	/// Watchdog
+	hrWD1: HRESULT;
+	tStop1: DINT := 20000;
+	tRest1: DINT;
+	hrWD2: HRESULT;
+	tStop2: DINT := 20000;
+	tRest2: DINT;
+	/// Output
+	sText: STRING;
+	sTextTime: STRING;
+	sTextReadInfo: STRING;
+	sTextNoReadInfo: STRING;
+	sTextCode: STRING;
+	nTextLength: INT;
+	nTextFind: INT;
+	sTextGoodReadCount: STRING;
+	sTextNoReadCount: STRING;
+	/// Other
+	nImagesOmitted: ULINT := 0;
+	nImageCount: UINT := 0;
+	nCountCamStateError: UINT;
+	nCountCamState0to5: UINT;
+	nCountCamStateTriggering: UINT;
+	nCountSwTrigger: UINT := 0;
+	nCountGoodReads: UINT := 0;
+	nCountNoReads: UINT := 0;
+	nCountNoReads1: UINT := 0;
+	nCountNoReads2: UINT := 0;
+	nDecodeSearchStrategy: UINT := 1;
+	ipDecodedDataList: ITcVnContainer;
+	ipDecodedDataContoursList: ITcVnContainer;
+	sCodeAsString: STRING(255);
+	ipElement: ITcVnImage;
+	aTransformationMatrix: TcVnMatrix2x3_LREAL;
+	fAngle: REAL := 45.0;
+	YOffset: LREAL;
+	HeightNew: UDINT;
+	WidthNew: UDINT;
+	HeightNew1: UDINT;
+	WidthNew1: UDINT;
+	Blob1Contours: ITcVnContainer;
+	Blob1Params: TcVnParamsBlobDetection;
+	Blob1Rect: TcVnRectangle_UDINT;
+	Blob1BoundingContour: ITcVnContainer;
+	Blob1CenterOfMassPoint: TcVnPoint2_LREAL;
+	Blob1CenterY: LREAL;
+	Blob2Contours: ITcVnContainer;
+	Blob2Params: TcVnParamsBlobDetection;
+	Blob2Rect: TcVnRectangle_UDINT;
+	Blob2BoundingContour: ITcVnContainer;
+	FirstScan: BOOL := TRUE;
+	BlobQty: ULINT;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[]]></ST>
+      <ST><![CDATA[(*
+Selection of image source for Vision1 is configured by:
+	In the Solution Explorer under PLC, PLC_Vision, double click on PLC_Vision Instance.
+	Select the Symbol Initialization tab.
+	Select the image source to use under "Value".
+
+This example has the GigE camera configured as follows:
+AOI Controls - Width - 800
+AOI Controls - Height - 1236
+AOI Controls - X Offset - 400
+AOI Controls - X Offset - 0
+Acquisition Mode set "Continuous"
+Image Format - Pixel Format - "Mono 8"
+
+For Camera Software Trigger images:
+Trigger Selector - Acquisition - Trigger Mode set "Off"
+Trigger Selector - Frame Start - Trigger Mode set "On"
+Trigger Selector - Frame Start - Trigger Source set "Software"
+*)
+
+IF FirstScan THEN
+	Blob1Params.bFilterByArea := TRUE;
+	Blob1Params.fMinArea := 200000;
+	Blob1Params.fMaxArea := 320000;
+	Blob1Params.eThresholdType := 0;
+	Blob1Params.fMinThreshold := 200;
+	Blob2Params.bFilterByArea := TRUE;
+	Blob2Params.fMinArea := 200000;
+	Blob2Params.fMaxArea := 320000;
+	Blob2Params.eThresholdType := 0;
+	Blob2Params.fMinThreshold := 200;
+END_IF
+
+// Camera State Control and Monitor for a New Image.
+CamState := fb_Camera.GetState();  // CamState must be constantly monitored when not processing an image.
+bNewImageIn := FALSE;
+CASE CamState OF
+-1: // ERROR
+	nCountCamStateError := nCountCamStateError +1;
+	hr := fb_Camera.Reset();
+0,1,2,3,4,5: // INITIAL, INITIALIZING, INITIALIZED, OPENING, OPENED, STARTACQUISITION
+	nCountCamState0to5 := nCountCamState0to5 +1;
+	hr := fb_Camera.StartAcquisition();
+6: // ACQUIRING
+//	hr := fb_Camera.GetCurrentImageWithGvspInfo(ImageIn,ImageInGvspInfo);
+	hr := fb_Camera.GetCurrentImage(ImageIn);
+	IF SUCCEEDED(hr) AND ImageIn <> 0 THEN
+		nImageCount := nImageCount +1;
+		bNewImageIn := TRUE;
+	END_IF
+9: // TRIGGERING
+	nCountCamStateTriggering := nCountCamStateTriggering +1;
+		// After a Software Trigger, Camera acquires an image and then enters Triggering Mode which is considered an Intermediate state
+		// The Software Trigger must be called again to complete the transition back to Acquiring mode
+		// This also applies to the File Source Control when in Trigger mode
+	hr := fb_Camera.TriggerImage();
+END_CASE
+
+
+IF bNewImageIn THEN // All image processing will be within or called from within this IF
+//	hr_OmittedImage := fb_Camera.GetOmittedImagesNum(nImagesOmitted); // Images discarded from the ImageQueue due to images arriving faster than they can be processed
+//	nImage_ID_Num := ImageInGvspInfo.BlockId; // Get Image Number from the Block ID of the camera image
+	nImage_ID_Num := nImageCount; // Get Image Number from counter
+
+ 	// ImageInDisp is a displayable copy of ImageIn
+	hr := F_VN_CopyIntoDisplayableImage(ImageIn, ImageInDisp, hr);
+	// Create a RGB version of ImageWork for placing color markings on
+	hr := F_VN_ConvertColorSpace(ImageIn, ImageResultsForDisp, TCVN_CST_GRAY_TO_RGB, hr);
+
+	hr := F_VN_GetImageWidth(ImageIn, ImageInWidth, hr);
+	hr := F_VN_GetImageHeight(ImageIn, ImageInHeight, hr);
+
+	hr := F_VN_CopyImage( ImageIn, ImageWork, hr);
+
+	hr := F_VN_DetectBlobs( ImageWork, Blob1Contours, Blob1Params, hr);
+	hr := F_VN_GetNumberOfElements( Blob1Contours, BlobQty, hr);
+	hr := F_VN_DrawContours( Blob1Contours, -1, ImageResultsForDisp, aColorBlue, 3, hr);
+
+	hr := F_VN_GetAt_ITcVnContainer( Blob1Contours, Blob1BoundingContour, 0, hr);
+	hr := F_VN_UprightBoundingRectangle( Blob1BoundingContour, Blob1Rect, hr);
+	hr := F_VN_DrawRectangle_TcVnRectangle_UDINT( Blob1Rect, ImageResultsForDisp, aColorMagenta, 3, hr);
+
+	hr := F_VN_ContourCenterOfMass( Blob1BoundingContour, Blob1CenterOfMassPoint, hr);
+	Blob1CenterY := Blob1Rect.nY + ( Blob1Rect.nHeight / 2 );
+
+	// If rail is detected as part of the carrier then the blob upright enclosing rectangle will be taller than it is wide
+	// This code corrects that size to get better read rates
+	IF Blob1CenterY -20 > Blob1CenterOfMassPoint[1] THEN
+		//Trim bottom
+		Blob1Rect.nHeight := Blob1Rect.nWidth;
+	ELSIF Blob1CenterY +20 < Blob1CenterOfMassPoint[1] THEN
+		//Trim top
+		Blob1Rect.nY := Blob1Rect.nY + Blob1Rect.nHeight - Blob1Rect.nWidth;
+		Blob1Rect.nHeight := Blob1Rect.nWidth;
+	END_IF
+
+	Roi_1Point[0] := Blob1Rect.nX;
+	Roi_1Point[1] := Blob1Rect.nY;
+
+	hr := S_OK;
+	hr := F_VN_CopyImageRegion( ImageWork, Blob1Rect.nX, Blob1Rect.nY, Blob1Rect.nWidth, Blob1Rect.nHeight, ImageBlob, hr);
+	hr := F_VN_GetImageWidth( ImageBlob, ImageBlobWidth, hr);
+	hr := F_VN_GetImageHeight( ImageBlob, ImageBlobHeight, hr);
+	hr := F_VN_CopyIntoDisplayableImage(ImageBlob, ImageBlobDisp, hr);
+
+	hrWD1 := F_VN_StartRelWatchdog( tStop1, S_OK);
+	hr1 := F_VN_ReadDataMatrixCodeExp( ImageBlob, ipDecodedDataList, ipDecodedDataContoursList, 1, nDecodeSearchStrategy, hr);
+	hrWD1 := F_VN_StopWatchdog( hrWD1, tRest => tRest1);
+
+	// Check if the function was executed successfully
+	IF hr1 = S_OK THEN
+		nCountGoodReads := nCountGoodReads + 1;
+		tRest2 := tStop2;  // If second read is not tp be run, reset tRest time from last run
+		// Export Code into String
+		hr := F_VN_ExportSubContainer_String( ipDecodedDataList, 0, sCodeAsString, 255, hr);
+		nTextLength := LEN( sCodeAsString);
+		nTextFind := FIND( sCodeAsString, '$N');
+		sText := DELETE( sCodeAsString, 1 + nTextLength - nTextFind, nTextFind);
+
+		// Write Code into Result Image
+		sTextCode := CONCAT( 'Label: ', sText);
+		hr := F_VN_PutLabelExp( sTextCode, ImageResultsForDisp, 20, 200, FontScale, FontThickness, TCVN_FT_HERSHEY_SIMPLEX, aColorGreen, aColorWhite, ETcVnLineType.TCVN_LT_8_CONNECTED, hr);
+
+		// Draw Code Contour into Result Image
+		hr := F_VN_DrawContoursExp( ipDecodedDataContoursList, 0, ImageResultsForDisp, aColorGreen, 3, 4, 0, 1, Roi_1Point, hr);
+
+		GVL_Vision.PuckValue := STRING_TO_INT(sText);
+		GVL_Vision.outputValid := TRUE;
+
+	ELSE
+		// If the code was not read on the first try, copy the tray (white blob) region to ImageBlob, rotate it 45 degrees and try to read again
+		hr := S_OK;
+		nCountNoReads1 := nCountNoReads1 + 1;
+
+		YOffset := ImageBlobWidth * SIN(fAngle*PI/180);
+		WidthNew1 := LREAL_TO_UDINT(( ImageBlobHeight * SIN(fAngle*PI/180)) + (ImageBlobWidth * COS(fAngle*PI/180)));
+		HeightNew1 := LREAL_TO_UDINT( YOffset + (ImageBlobHeight * COS(fAngle*PI/180)));
+		WidthNew := MAX( WidthNew1, ImageBlobWidth , 400);
+		HeightNew := MAX( HeightNew1, ImageBlobHeight , 400);
+		hr := F_VN_CreateImageAndSetPixels( ImageWorkRotated, WidthNew, HeightNew, 0, 1, aColorBlack, S_OK);
+		hr := F_VN_CopyImageRegionToRegion( ImageBlob, 0, 0, ImageBlobWidth, ImageBlobHeight, ImageWorkRotated, 0, 0, hr);
+
+		// Rotate ImageWorkRotated
+		hr := S_OK;
+		hr := F_VN_GenerateAffineTransformationUnitMatrix2D ( aTransformationMatrix, hr);
+		hr := F_VN_ApplyRotationToAffineTransformation( aTransformationMatrix, fAngle*PI/180.0, hr);
+		hr := F_VN_ApplyTranslationToAffineTransformation( aTransformationMatrix, 0, YOffset, hr);
+		hr := F_VN_WarpAffine( ImageWorkRotated, ImageWorkRotated, aTransformationMatrix, hr);
+		hr := F_VN_CopyIntoDisplayableImage( ImageWorkRotated, ImageWorkRotatedDisp, hr);
+
+		hr := F_VN_ConvertColorSpace( ImageWorkRotated, ImageWorkRotatedForDisp, TCVN_CST_GRAY_TO_RGB, hr);
+
+		Roi_2Point[0] := 100;
+		Roi_2Point[1] := 100;
+
+	hr := F_VN_SetRoi( Roi_2Point[0], Roi_2Point[1], WidthNew -200, HeightNew -200, ImageWorkRotated, hr);
+	hrWD2 := F_VN_StartRelWatchdog( tStop2, S_OK);
+		hr2 := F_VN_ReadDataMatrixCodeExp( ImageWorkRotated,ipDecodedDataList, ipDecodedDataContoursList, 1, nDecodeSearchStrategy, hr);
+	hrWD2 := F_VN_StopWatchdog( hrWD2, tRest => tRest2);
+		hr := F_VN_ResetRoi( ImageWorkRotated, hr);
+
+		// Check if the function was executed successfully
+		IF hr2 = S_OK THEN
+			nCountGoodReads := nCountGoodReads + 1;
+			// Export Code into String
+			hr := F_VN_ExportSubContainer_String(ipDecodedDataList, 0, sCodeAsString, 255, hr);
+			nTextLength := LEN( sCodeAsString);
+			nTextFind := FIND( sCodeAsString, '$N');
+			sText := DELETE( sCodeAsString, 1 + nTextLength - nTextFind, nTextFind);
+
+			// Write Code into Result Image
+			sTextCode := CONCAT( 'Label: ', sText);
+			hr := F_VN_PutLabelExp( sTextCode, ImageResultsForDisp, 20, 200, FontScale, FontThickness, TCVN_FT_HERSHEY_SIMPLEX, aColorGreen, aColorWhite, ETcVnLineType.TCVN_LT_8_CONNECTED, hr);
+
+			// Draw Code Contour into Result Image
+			hr := F_VN_DrawContoursExp(ipDecodedDataContoursList, 0, ImageWorkRotatedForDisp, aColorGreen, 3, 4, 0, 1, Roi_2Point,hr);
+			hr := F_VN_CopyIntoDisplayableImage( ImageWorkRotatedForDisp, ImageWorkRotatedDisp, hr);
+
+			GVL_Vision.PuckValue := STRING_TO_INT(sText);
+			GVL_Vision.outputValid := TRUE;
+
+		ELSE
+			hr := S_OK;
+			nCountNoReads2 := nCountNoReads2 + 1;
+			nCountNoReads := nCountNoReads2;
+			GVL_Vision.outputValid := TRUE;
+			GVL_Vision.PuckValue := 0;
+			GVL_Vision.noRead := TRUE;
+
+			// Write HRESULT into Result Image
+			hr := F_VN_PutLabelExp( 'No Read', ImageResultsForDisp, 20, 200, FontScale, FontThickness, TCVN_FT_HERSHEY_SIMPLEX, aColorRed, aColorWhite, ETcVnLineType.TCVN_LT_8_CONNECTED, hr);
+		END_IF
+	END_IF
+
+	// Place Good/No read count info on results image
+	sTextGoodReadCount := UINT_TO_STRING(nCountGoodReads);
+	sTextNoReadCount := UINT_TO_STRING(nCountNoReads);
+	sTextReadInfo := CONCAT( 'Read Count: ', sTextGoodReadCount);
+	sTextNoReadInfo := CONCAT( 'No Read Count: ', sTextNoReadCount);
+	hr := F_VN_PutLabelExp( sTextReadInfo, ImageResultsForDisp, 20, 50, FontScale, FontThickness, TCVN_FT_HERSHEY_SIMPLEX, aColorBlack, aColorWhite, ETcVnLineType.TCVN_LT_8_CONNECTED, hr);
+	hr := F_VN_PutLabelExp( sTextNoReadInfo, ImageResultsForDisp, 20, 100, FontScale, FontThickness, TCVN_FT_HERSHEY_SIMPLEX, aColorBlack, aColorWhite, ETcVnLineType.TCVN_LT_8_CONNECTED, hr);
+
+	// Write Code Reading proceeded time into Result Image
+	sTextTime := CONCAT(CONCAT( 'Time: ', DINT_TO_STRING((tStop1 + tStop2 - tRest1 - tRest2)/1000)), 'ms');
+	hr := F_VN_PutLabelExp( sTextTime, ImageResultsForDisp, 20, 150, FontScale, FontThickness, TCVN_FT_HERSHEY_SIMPLEX, aColorBlack, aColorWhite, ETcVnLineType.TCVN_LT_8_CONNECTED, hr);
+
+	hr := F_VN_CopyIntoDisplayableImage( ImageResultsForDisp, ImageResultsDisp, hr);
+
+END_IF
+
+IF GVL_Vision.cmdTrigCamera = TRUE THEN
+	GVL_Vision.noRead := FALSE;
+	GVL_Vision.outputValid := FALSE;
+	GVL_Vision.PuckValue := 0;
+END_IF
+
+// Generate Software Trigger from visualization (Camera must be configured for Software Trigger)
+bOSR_PbCamSwTrig(CLK:=GVL_Vision.cmdTrigCamera); // From GVL camera trigger
+IF bOSR_PbCamSwTrig.Q THEN
+	nCountSwTrigger := nCountSwTrigger +1;
+	hr_Software_Trig := fb_Camera.TriggerImage();
+	GVL_Vision.cmdTrigCamera := FALSE;
+END_IF
+
+FirstScan := FALSE;
+]]></ST>
     </Implementation>
     <LineIds Name="Sequence6">
+      <LineId Id="17" Count="224" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>

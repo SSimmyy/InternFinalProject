@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <DUT Name="DeltaState_enum" Id="{480d8c5d-d71c-4b67-b78a-4bf6573a4a3f}">
+    <Declaration><![CDATA[{attribute 'strict'}
+TYPE DeltaState_enum :
+(
+	DL_IDLE				:= 0,	// Delta is idle, ungrouped, disabled
+	DL_RESET			:= 10,	// Axes are reset to clear errors
+	DL_POWER_AXES		:= 20,	// Axes are powered
+	DL_SET_IK			:= 30,	// Inverse kinematics enabled
+	DL_ADD_AXES_TO_CM	:= 40,	// Coordinated Motion group assembled
+	DL_ENABLE_CM		:= 50,	// Enable CM Group
+	DL_RUN				:= 60,	// Run Mode, ready for commands
+	DL_DEBUG			:= 3113,
+		
+	DL_ERROR			:= 999
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

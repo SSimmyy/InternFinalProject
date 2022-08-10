@@ -3,108 +3,90 @@
   <POU Name="Sequence3" Id="{e15a6fb5-808f-4738-8ea3-952c583c643e}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Sequence3
 VAR_INPUT
-	bReadyToMove : BOOL;
+	Execute : BOOL;
+	nState : INT;
 END_VAR
 VAR_OUTPUT
-	bMoveError : BOOL;
-	bHaltError : BOOL;
-	bReadyToPick : BOOL;
-	bSequenceError : BOOL;
+	Error : BOOL;
 END_VAR
 VAR
-	bSensor : BOOL;
-	nState : INT;
 	
 	fbMoveVelocity: MC_MoveVelocity;
-	fbHalt: MC_Halt;
+	bStopExecute: BOOL;
+	bResetExecute: BOOL;
+	bPowerExecute: BOOL;
+	bVelocityExecute : BOOL;
+	MC_MoveAbsolute1: MC_MoveAbsolute;
+	fbStop: MC_Stop;
 END_VAR
 VAR_IN_OUT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[CASE nState OF
-	
-0:
-	IF NOT bSensor THEN
+      <ST><![CDATA[IF Execute THEN
+			
 		fbMoveVelocity(
-			Axis:= GVL.ConveyerAxis, 
-			Execute:= TRUE, 
-			Velocity:= 10, 
-			Direction:= MC_Positive_Direction, 
-			BufferMode:= , 
-			InVelocity=> , 
-			Busy=> , 
-			Active=> , 
-			CommandAborted=> , 
-			Error=> bMoveError, 
-			ErrorID=>);
+			Axis:= GVL_Conveyer.ConveyerAxis, 
+			Execute:= bVelocityExecute, 
+			Velocity:= 800, 
+			Direction := MC_Negative_Direction
+			);
+		
+		fbStop(
+			Axis:= GVL_Conveyer.ConveyerAxis, 
+			Execute:= bStopExecute);	
 			
-			IF bMoveError THEN
-				nState := 999;
-			END_IF
-			
-		ELSE
-			bReadyToPick := TRUE;
-			nState := 1;
+CASE nState OF
+	
+0: // Call velocity move
+	IF NOT GVL_Conveyer.bSensor THEN
+		bVelocityExecute := TRUE;
+		nState := 1;
 	END_IF
 	
-1:
-	IF NOT bReadyToMove THEN
-		fbHalt(
-			Axis:= GVL.ConveyerAxis, 
-			Execute:= TRUE, 
-			Done=> , 
-			Busy=> , 
-			Active=> , 
-			CommandAborted=> , 
-			Error=> bHaltError, 
-			ErrorID=> );
-		ELSE
-			bReadyToPick := FALSE;
-			nState := 0;
-			
+1: // Set vel move low
+	IF (GVL_Conveyer.ConveyerAxis.NcToPlc.ActVelo > 1) OR (GVL_Conveyer.ConveyerAxis.NcToPlc.ActVelo < -1) THEN
+		bVelocityExecute := FALSE;
+		nState := 5;
 	END_IF
 	
-999:
-	IF NOT bMoveError AND NOT bHaltError THEN
+5: // Call stop movement when something is there
+	IF GVL_Conveyer.bSensor THEN
+		GVL_Conveyer.bConveyerReadyToPick := TRUE;
+		bStopExecute := TRUE;
+		nState := 10;
+	END_IF
+	
+10: // Check if stop is complete
+	IF fbStop.Done THEN
+		nState := 15;
+		bStopExecute := FALSE;
+	END_IF
+	
+15: // If sensor low, then call ready to move high
+	IF NOT GVL_Conveyer.bSensor AND GVL_conveyer.bConveyerReadyToMove THEN
+		GVL_Conveyer.bConveyerReadyToPick := FALSE;
+		
 		nState := 0;
-		bSequenceError := FALSE;
-	ELSE
-		bSequenceError := TRUE;
 	END_IF
-END_CASE]]></ST>
+			
+999:
+	IF NOT fbMoveVelocity.Error AND NOT fbStop.Error THEN
+		
+		nState := 0;
+		Error := FALSE;
+	ELSE
+		Error := TRUE;
+	END_IF
+END_CASE
+ELSE
+	nState := 0;
+END_IF]]></ST>
     </Implementation>
     <LineIds Name="Sequence3">
-      <LineId Id="37" Count="0" />
-      <LineId Id="219" Count="0" />
-      <LineId Id="225" Count="0" />
-      <LineId Id="262" Count="0" />
-      <LineId Id="265" Count="10" />
-      <LineId Id="263" Count="0" />
-      <LineId Id="334" Count="0" />
-      <LineId Id="330" Count="0" />
-      <LineId Id="332" Count="1" />
-      <LineId Id="331" Count="0" />
-      <LineId Id="276" Count="0" />
-      <LineId Id="309" Count="0" />
-      <LineId Id="277" Count="0" />
-      <LineId Id="264" Count="0" />
-      <LineId Id="242" Count="0" />
-      <LineId Id="224" Count="0" />
-      <LineId Id="293" Count="0" />
-      <LineId Id="298" Count="7" />
-      <LineId Id="296" Count="0" />
-      <LineId Id="307" Count="0" />
-      <LineId Id="311" Count="0" />
-      <LineId Id="308" Count="0" />
-      <LineId Id="306" Count="0" />
-      <LineId Id="297" Count="0" />
-      <LineId Id="335" Count="1" />
-      <LineId Id="338" Count="1" />
-      <LineId Id="344" Count="0" />
-      <LineId Id="341" Count="1" />
-      <LineId Id="340" Count="0" />
-      <LineId Id="220" Count="0" />
+      <LineId Id="823" Count="55" />
+      <LineId Id="899" Count="1" />
+      <LineId Id="611" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

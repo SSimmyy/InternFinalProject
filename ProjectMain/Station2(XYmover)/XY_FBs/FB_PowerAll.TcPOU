@@ -1,0 +1,75 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_PowerAll" Id="{d3e6d2d4-b215-4a84-8022-bf06b4a82234}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PowerAll
+VAR_INPUT
+	Enable 		: BOOL;
+END_VAR
+VAR_OUTPUT
+	Status		: BOOL;
+	Error		: BOOL;
+	Done		: BOOL;
+END_VAR
+VAR
+	fbPower 		: ARRAY [1..GVL_XY.cAxesCount] OF MC_Power;
+	i				: UINT;
+	fbPowerSlave 	: ARRAY [1..GVL_XY.cAxesSlaveCount] OF MC_Power;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF Enable THEN
+	Status := TRUE;
+	Error := FALSE;
+	Done := FALSE;
+	
+	FOR i:=1 TO GVL_XY.cAxesCount DO
+		fbPower[i](Axis:=GVL_XY.stAxis[i],
+			Enable			:= Enable,
+			Enable_Positive	:= Enable,
+			Enable_Negative	:= Enable
+		);
+		
+		Status := Status AND fbPower[i].Status; 
+		Error := Error OR fbPower[i].Error;
+	END_FOR
+	
+	FOR i:= 1 TO GVL_XY.cAxesSlaveCount DO
+		fbPowerSlave[i](
+			Axis := GVL_XY.stSlaveAxis[i],
+			Enable			:= Enable,
+			Enable_Positive	:= Enable,
+			Enable_Negative	:= Enable	
+			);
+			
+		Status := Status AND fbPowerSlave[i].Status; 
+		Error := Error OR fbPowerSlave[i].Error;
+	END_FOR
+	
+	IF Status AND NOT Error THEN
+		Done := TRUE;
+	END_IF
+	
+ELSE
+	Done := FALSE;
+END_IF
+		]]></ST>
+    </Implementation>
+    <LineIds Name="FB_PowerAll">
+      <LineId Id="100" Count="0" />
+      <LineId Id="3" Count="1" />
+      <LineId Id="99" Count="0" />
+      <LineId Id="5" Count="10" />
+      <LineId Id="72" Count="1" />
+      <LineId Id="76" Count="4" />
+      <LineId Id="74" Count="0" />
+      <LineId Id="81" Count="2" />
+      <LineId Id="75" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="65" Count="0" />
+      <LineId Id="69" Count="1" />
+      <LineId Id="115" Count="2" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="2" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
