@@ -13,6 +13,7 @@ TYPE MainState_enum :
 	MS_STOPPING					:= 60,
 	MS_DISABLING				:= 70,
 	MS_ERROR					:= 80,
+	MS_STOPPED					:= 90,
 	MS_DEBUG					:= 1000
 );
 END_TYPE]]></Declaration>

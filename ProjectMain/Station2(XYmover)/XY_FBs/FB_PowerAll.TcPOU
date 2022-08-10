@@ -48,6 +48,9 @@ END_VAR
 	IF Status AND NOT Error THEN
 		Done := TRUE;
 	END_IF
+	
+ELSE
+	Done := FALSE;
 END_IF
 		]]></ST>
     </Implementation>
@@ -64,6 +67,7 @@ END_IF
       <LineId Id="68" Count="0" />
       <LineId Id="65" Count="0" />
       <LineId Id="69" Count="1" />
+      <LineId Id="115" Count="2" />
       <LineId Id="66" Count="0" />
       <LineId Id="2" Count="0" />
     </LineIds>

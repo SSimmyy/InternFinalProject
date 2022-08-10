@@ -3,23 +3,82 @@
   <POU Name="Main4" Id="{1f59f9a7-d9e9-4ba7-9582-5be5c950cb6a}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main4
 VAR
-	Sequence:Sequence4;
-	Forces:Forces4;
-	Reset:Reset4;
-	Faults:Faults4;
+	MainState		: MainState_enum;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[//Cyclic Call to the Station FBs 
-Sequence();
-Forces();
-Reset();
-Faults();
-]]></ST>
+      <ST><![CDATA[
+CASE MainState OF
+	MS_DISABLED:
+			GVL_XTS.XTS_Start := FALSE;
+			GVL_XTS.XTS_Stop := FALSE;
+			
+			IF GVL_XTS.XTS_Enable THEN
+				GVL_XTS.XTS_Disable := FALSE;
+				MainState := MS_Enabled;
+			END_IF
+
+	MS_ENABLED:
+			GVL_XTS.XTS_Stop := FALSE;
+			
+			IF GVL_XTS.XTS_Start THEN
+				MainState := MS_RUN;
+			ELSIF GVL_XTS.XTS_Disable THEN
+				GVL_XTS.XTS_Enable := FALSE;
+				MainState := MS_DISABLED;
+			END_IF
+			
+	MS_RUN:
+			IF GVL_XTS.XTS_Stop THEN
+				GVL_XTS.XTS_Start := FALSE;
+				MainState := MS_STOPPED;
+			ELSIF GVL_XTS.XTS_Disable THEN
+				GVL_XTS.XTS_Enable := FALSE;
+				GVL_XTS.XTS_Start := FALSE;
+				GVL_XTS.XTS_Stop := FALSE;
+				MainState := MS_DISABLED;
+			END_IF
+			
+	MS_STOPPED:
+			IF GVL_XTS.XTS_Start THEN
+				GVL_XTS.XTS_Stop := FALSE;
+				MainState := MS_RUN;
+				
+			ELSIF GVL_XTS.XTS_Disable THEN
+				GVL_XTS.XTS_Enable := FALSE;
+				GVL_XTS.XTS_Start := FALSE;
+				GVL_XTS.XTS_Stop := FALSE;
+				MainState := MS_DISABLED;
+			END_IF
+			
+END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Main4">
-      <LineId Id="9" Count="4" />
+      <LineId Id="9" Count="0" />
       <LineId Id="5" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="32" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="33" Count="1" />
+      <LineId Id="36" Count="1" />
+      <LineId Id="35" Count="0" />
+      <LineId Id="38" Count="0" />
+      <LineId Id="27" Count="0" />
+      <LineId Id="40" Count="3" />
+      <LineId Id="45" Count="1" />
+      <LineId Id="71" Count="0" />
+      <LineId Id="44" Count="0" />
+      <LineId Id="47" Count="3" />
+      <LineId Id="52" Count="5" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="58" Count="3" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="63" Count="1" />
+      <LineId Id="67" Count="2" />
+      <LineId Id="66" Count="0" />
+      <LineId Id="62" Count="0" />
+      <LineId Id="39" Count="0" />
+      <LineId Id="25" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

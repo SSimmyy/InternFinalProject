@@ -31,6 +31,9 @@ END_VAR
 	IF NOT Error THEN
 		Done := TRUE;
 	END_IF
+	
+ELSE
+	Done := FALSE;
 END_IF
 		]]></ST>
     </Implementation>
@@ -40,6 +43,7 @@ END_IF
       <LineId Id="18" Count="0" />
       <LineId Id="21" Count="1" />
       <LineId Id="65" Count="2" />
+      <LineId Id="83" Count="2" />
       <LineId Id="43" Count="0" />
       <LineId Id="9" Count="0" />
     </LineIds>

@@ -3,127 +3,76 @@
   <POU Name="Reset1" Id="{2268c0fe-288a-4490-aa7d-0ba072bf20b2}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Reset1
 VAR_INPUT
+	Execute : BOOL;
 END_VAR
 VAR_OUTPUT
+	Done : BOOL;
 END_VAR
 VAR
 	PickParams: PickPars_typ;
-	loadTon: TON;
 	gState: INT;
-	xSendTwo: BOOL;
-	DeltaState: UINT;
+	iMovementNumber: INT;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(*CASE DeltaState OF
-300: // Dump Puck
-
-		Delta.MoveDirectTo( PickParams.DumpPos.x, PickParams.DumpPos.y, PickParams.DumpPos.z);	
-		loadTon(IN:= FALSE, PT:=PickParams.UnloadTime , Q=> , ET=> );		
-		gState := 330;
+      <ST><![CDATA[Done := FALSE;
+(*
+IF Execute THEN
+	CASE gState OF
+	300: // Dump Puck
+			iMovementNumber := 8;
+			Delta.MoveDirectTo( GVL.DeltaCoords[iMovementNumber].x, GVL.DeltaCoords[iMovementNumber].y, GVL.DeltaCoords[iMovementNumber].z);		
+			gState := 330;
+			iMovementNumber := 9;
+		
+	330:
+			IF Delta.MovePathDone THEN
+			Delta.MoveDirectTo( GVL.DeltaCoords[iMovementNumber].x, GVL.DeltaCoords[iMovementNumber].y, GVL.DeltaCoords[iMovementNumber].z);			
+				gState := 332;	
+			END_IF
+	332:
 	
-330:
-		IF Delta.MovePathDone THEN
-			Delta.DisableAir();	
-			gState := 332;	
-		END_IF
-332:
-		loadTon(IN:= TRUE, PT:=PickParams.UnloadTime , Q=> , ET=> );
-		IF loadTon.Q THEN
-			gState := 335;
-		END_IF
-		
-335:
-		Delta.MoveDirectTo( PickParams.DumpPos.x, PickParams.DumpPos.y, PickParams.DumpPos.z + 20 );	
-		gState := 340;
-340:
-		IF Delta.MovePathDone THEN
-		//	SystemCommands.MoverRelease := TRUE;
-			gState := 10;			
-		END_IF	
-		
-400: // go home
-		Delta.MoveDirectTo( PickParams.HomePos.x, PickParams.HomePos.y, PickParams.HomePos.z);	
-		gState := 430;
-	
-430:
-		IF Delta.MovePathDone THEN	
-		Delta.EnableAir();
-			gState := 200;			
-		END_IF	
-		
-1000: // Check if in sync
-		Delta.MoveDirectTo( 0, 0, 0);
-		
-		gState := 1005;	
-	
-1005: // Wait for move to complete
-	IF Delta.MovePathDone THEN	
-		Delta.MoveDirectTo( 0, 0, 20);
-		gState := 1015;
-	END_IF	
-	
-1015: // Wait for move to complete
-	IF Delta.MovePathDone THEN	
-		Delta.SetCoordTrafo(WORLD_FRAME);
-			gState := 1020;			
-	END_IF	
-
-1020: // Check if trafo is complete then go to home
-	IF Delta.SetCoordTrafoDone THEN
-		gState := 1025;
-	END_IF
-	
-1025: // Check if a mover is in position
-	IF GVL_XTS.mover0InPosition THEN
-			gState := 1030; // Go to place on conveyor
-		ELSE
-			gState := 300; // Dump
-	END_IF
-	
-1030:
-		Delta.MoveDirectTo( PickParams.PlaceXTS.x, PickParams.PlaceXTS.y, PickParams.PlaceXTS.z);	
-		loadTon(IN:= FALSE, PT:=PickParams.UnloadTime , Q=> , ET=> );		
-		gState := 1035;
-
-1035:
-		IF Delta.MovePathDone THEN
-			Delta.DisableAir();	
-			gState := 1040;	
-		END_IF
-1040:
-		loadTon(IN:= TRUE, PT:=PickParams.UnloadTime , Q=> , ET=> );
-		IF loadTon.Q THEN
-			gState := 1045;
-		END_IF
-		
-1045:
-		Delta.MoveDirectTo( PickParams.PlaceXTS.x, PickParams.PlaceXTS.y, PickParams.PlaceXTS.z + 20 );	
-		gState := 1050;
-		
-1050:
-		IF Delta.MovePathDone THEN
-			GVL_XTS.bDeltaRelease := TRUE;
-			gState := 1060;			
-		END_IF	
-		
-1060:
-		IF GVL_XTS.bDeltaReleased THEN
-			GVL_XTS.bDeltaReleased := FALSE;
-			gSTate := 10;
-		END_IF
-END_CASE*)
-	]]></ST>
+			IF Delta.MovePathDone THEN
+				Delta.DisableAir();
+				gState := 335;
+			END_IF
+			
+	335:
+			Delta.MoveDirectTo( GVL.DeltaCoords[iMovementNumber].x, GVL.DeltaCoords[iMovementNumber].y, GVL.DeltaCoords[iMovementNumber].z + 25);			
+			gState := 340;
+	340:
+			IF Delta.MovePathDone THEN
+			//	SystemCommands.MoverRelease := TRUE;
+				Done := TRUE;		
+			END_IF	
+	END_CASE
+ELSE
+	gState := 300;
+	Done := FALSE;
+END_IF	*)]]></ST>
     </Implementation>
     <LineIds Name="Reset1">
-      <LineId Id="127" Count="0" />
-      <LineId Id="17" Count="86" />
-      <LineId Id="107" Count="2" />
-      <LineId Id="130" Count="3" />
-      <LineId Id="135" Count="0" />
-      <LineId Id="134" Count="0" />
+      <LineId Id="258" Count="0" />
+      <LineId Id="260" Count="0" />
+      <LineId Id="259" Count="0" />
+      <LineId Id="151" Count="3" />
+      <LineId Id="156" Count="0" />
+      <LineId Id="253" Count="0" />
+      <LineId Id="157" Count="2" />
+      <LineId Id="250" Count="0" />
+      <LineId Id="161" Count="2" />
+      <LineId Id="254" Count="0" />
+      <LineId Id="164" Count="0" />
+      <LineId Id="166" Count="0" />
+      <LineId Id="255" Count="0" />
+      <LineId Id="167" Count="2" />
+      <LineId Id="256" Count="0" />
+      <LineId Id="171" Count="3" />
+      <LineId Id="262" Count="0" />
+      <LineId Id="176" Count="0" />
       <LineId Id="129" Count="0" />
-      <LineId Id="9" Count="0" />
+      <LineId Id="263" Count="2" />
+      <LineId Id="261" Count="0" />
     </LineIds>
   </POU>
 </TcPlcObject>

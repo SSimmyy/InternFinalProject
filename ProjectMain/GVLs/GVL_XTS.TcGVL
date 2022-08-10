@@ -9,6 +9,12 @@ VAR_GLOBAL
 	moversInPosition	AT %I* : ARRAY [1..3] OF BOOL;
 	moversReleased		AT %I* : ARRAY [1..3] OF BOOL;
 	moversRelease		AT %Q* : ARRAY [1..3] OF BOOL;
+	
+	XTS_Enable				AT %Q* : BOOL;
+	XTS_Start				AT %Q* : BOOL;
+	XTS_Stop				AT %Q* : BOOL;
+	XTS_Disable				AT %Q* : BOOL;
+	
 END_VAR]]></Declaration>
   </GVL>
 </TcPlcObject>

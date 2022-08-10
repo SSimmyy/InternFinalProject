@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.11">
+  <POU Name="FB_PuckPicked" Id="{a49f97a5-9545-4118-b081-f0deafa36c9c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_PuckPicked
+VAR_INPUT
+	Execute : BOOL;
+END_VAR
+VAR_OUTPUT
+	Done : BOOL;
+END_VAR
+VAR
+	i: INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF Execute THEN
+	
+	FOR i := 0 TO 38 DO
+		memCpy(
+			destAddr 	:= ADR(GVL.Pucks[i]),
+			srcAddr 	:= ADR(GVL.Pucks[i+1]),
+			n 			:= SIZEOF(GVL.Pucks[i+1])	
+		);
+	END_FOR
+
+	IF GVL.puckIncrement < 1 THEN
+		GVL.puckIncrement := GVL.puckIncrement;
+	ELSE
+		GVL.puckIncrement := GVL.puckIncrement - 1;
+	END_IF
+	Done := TRUE;
+ELSE
+	Done := FALSE;
+END_IF
+]]></ST>
+    </Implementation>
+    <LineIds Name="FB_PuckPicked">
+      <LineId Id="16" Count="0" />
+      <LineId Id="47" Count="0" />
+      <LineId Id="51" Count="0" />
+      <LineId Id="38" Count="5" />
+      <LineId Id="56" Count="0" />
+      <LineId Id="55" Count="0" />
+      <LineId Id="58" Count="0" />
+      <LineId Id="57" Count="0" />
+      <LineId Id="18" Count="0" />
+      <LineId Id="44" Count="1" />
+      <LineId Id="49" Count="1" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="14" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>

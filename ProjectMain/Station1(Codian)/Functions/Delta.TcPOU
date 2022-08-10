@@ -130,6 +130,10 @@ END_VAR]]></Declaration>
 	
 	DL_RESET:	// ------------------------------------------------------- resets all axis objects
 	
+		fbReset_MCS_X.Execute		:= FALSE;
+		fbReset_MCS_Y.Execute		:= FALSE;
+		fbReset_MCS_Z.Execute		:= FALSE;	
+	
 		Ready		:= FALSE;
 		Busy		:= TRUE;
 		Error		:= FALSE;
@@ -738,7 +742,10 @@ fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
       <LineId Id="57" Count="0" />
     </LineIds>
     <LineIds Name="Delta.Cyclic">
-      <LineId Id="13" Count="40" />
+      <LineId Id="13" Count="13" />
+      <LineId Id="528" Count="1" />
+      <LineId Id="526" Count="1" />
+      <LineId Id="27" Count="26" />
       <LineId Id="299" Count="1" />
       <LineId Id="54" Count="10" />
       <LineId Id="66" Count="0" />

@@ -3,6 +3,7 @@
   <POU Name="Sequence1" Id="{e6254890-a34f-4cc7-947f-9cf6cbf57e21}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK Sequence1
 VAR_INPUT
+	
 END_VAR
 VAR_OUTPUT
 END_VAR
@@ -10,6 +11,7 @@ VAR
 	
 	Delta					: Delta;
 	myRoute					: Route;	// test Route;
+	fbPuckPicked			: FB_PuckPicked;
 	
 	// ========= Example Application Variables =========
 	
@@ -23,60 +25,25 @@ VAR
 	// ========= Helper, State, & Index Variables =========
 	
 	i						: UINT;					// index variable; gets reused in various FOR loops
-	n						: UINT;					// secondary index variable, for enabling movers
-	allMoversEnabled		: BOOL;					// helper flag for verifying enable status of all movers
-	
+	n						: UINT;					// secondary index variable, for enabling movers	
 	MainState				: MainState_enum;		// enumeration for the Main state machine
 	MainCommands			: MainCommands_typ;		// command struct for cycling thru the state machine
 	
 	SystemCommands			: SystemCommands_typ;	// command struct for system-wide XTS & Delta commands
 	
-		
-	// ========= Linked NC Variables & References =========
-	XTS_CA_GroupRef			: AXES_GROUP_REF;							// linked to the Collision Avoidance group and passed cyclically to every Mover object
-	
-	// ========== Conveyor Tracking Objects ==========
-
-	{attribute 'tcinitsymbol'}	TRACK_FRAME	: MC_COORD_REF;
-	{attribute 'tcinitsymbol'}	WORLD_FRAME : MC_COORD_REF;
-
 	ReleaseTimer: TON;
-	DeltaState: UINT;
-	VisuPars: Visu_typ;
 	
-	one: BOOL;
-	two: BOOL;
-	zero: BOOL;
-	xStart :BOOL;
-	DwellTimer: TON;
-	PickParams: PickPars_typ;
+	bStartDelta : BOOL;
 	
-	xTempMoveMover: BOOL;
-	PickFromXTS: INT;
 	gState: INT;
-	loadTon: TON;
-	xstoploop: BOOL;
 	bTest: BOOL;
-	xTest: LREAL;
-	yTest: LREAL;
-	zTest: LREAL;
-	iNumBuffered: INT;
-	iNumToSend : INT:=3;
-	xSTop : bool;
-	
-	xDoQue: BOOL;
-	xSendTwo: BOOL;
-	bSendMover: BOOL;
-	bTrack: BOOL;
-	WorkTon:TON;
-	iCounter: INT;
 	bEnableDelta: BOOL;
 	bResetDelta: BOOL;
 	FB_CoEWrite1: FB_CoEWrite;
 	FB_CoEWrite2: FB_CoEWrite;
 	FB_CoEWrite3: FB_CoEWrite;
 	FB_CoEWrite4: FB_CoEWrite;
-	bExecute: BOOL;
+	bWritesComplete: BOOL := FALSE;
 	rValue1:REAL := 3.2;
 	rValue2:REAL := 9.6;
 	F_Trig1:F_TRIG;
@@ -90,6 +57,13 @@ VAR
 	bTeach:BOOL;
 	sNewName:STRING;
 	bAirRelease: BOOL;
+	bPuckPicked: BOOL;
+	bLockDelta: BOOL;
+	bEnable: BOOL;
+	bStopDelta: BOOL;
+	bDisableDelta: BOOL;
+	WriteSymbols: BOOL;
+	caseStop: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
@@ -97,6 +71,14 @@ END_VAR
 ReleaseTimer(
 				IN := bAirRelease,
 				PT:= T#0.2S);
+				
+fbPuckPicked(
+		Execute := bPuckPicked,
+	);
+	
+	IF bPuckPicked THEN
+		bPuckPicked := FALSE;
+	END_IF
 				
 IF bTeach THEN
 	GVL.DeltaCoords[GVL.iMovementNumber].x := Delta.MCS_X_REF.NcToPlc.ActPos;
@@ -113,7 +95,7 @@ FB_CoEWrite1(
 	SubIndex:= 1, 
 	pSrcBuf:= ADR(rValue1), 
 	BufLen:= SIZEOF(rValue1), 
-	Execute:= bExecute);
+	Execute:= WriteSymbols);
 
 FB_CoEWrite2(
 	Axis:= Delta.ACS_B_REF, 
@@ -122,7 +104,7 @@ FB_CoEWrite2(
 	SubIndex:= 2, 
 	pSrcBuf:= ADR(rValue2), 
 	BufLen:= SIZEOF(rValue2), 
-	Execute:= bExecute);
+	Execute:= WriteSymbols);
 
 FB_CoEWrite3(
 	Axis:= Delta.ACS_C_REF, 
@@ -131,7 +113,7 @@ FB_CoEWrite3(
 	SubIndex:= 1, 
 	pSrcBuf:= ADR(rValue1), 
 	BufLen:= SIZEOF(rValue1), 
-	Execute:= bExecute);
+	Execute:= WriteSymbols);
 
 FB_CoEWrite4(
 	Axis:= Delta.ACS_C_REF, 
@@ -140,7 +122,7 @@ FB_CoEWrite4(
 	SubIndex:= 2, 
 	pSrcBuf:= ADR(rValue2), 
 	BufLen:= SIZEOF(rValue2), 
-	Execute:= bExecute);
+	Execute:= bEnable);
 
 F_Trig1(CLK:= FB_CoEWrite1.Busy);
 F_Trig2(CLK:= FB_CoEWrite2.Busy);
@@ -163,24 +145,31 @@ IF F_Trig4.Q THEN
 	bWrite4Complete := TRUE;
 END_IF
 
+Delta.MotionParameters.Velocity			:= 1500;
+		Delta.MotionParameters.Acceleration		:= 11000;
+		Delta.MotionParameters.Deceleration		:= 11000;
+		Delta.MotionParameters.Jerk				:= 50000;
+		Delta.MotionParameters.BlendingRadius	:= 5;
+
 //On init, call execute to write, then reset
-IF bExecute AND bWrite1Complete AND bWrite2Complete AND bWrite3Complete AND bWrite4Complete THEN
-	bExecute := FALSE;
+IF bEnable THEN
+	WriteSymbols := TRUE;
 END_IF
 
-	Delta.MotionParameters.Velocity			:= 1500;
-	Delta.MotionParameters.Acceleration		:= 11000;
-	Delta.MotionParameters.Deceleration		:= 11000;
-	Delta.MotionParameters.Jerk				:= 50000;
-	Delta.MotionParameters.BlendingRadius	:= 5;	
-	
+IF bWrite1Complete AND bWrite2Complete AND bWrite3Complete AND bWrite4Complete THEN
+	bWritesComplete := TRUE;
+	WriteSymbols := FALSE;
+END_IF	
 
 Delta.Cyclic();
 
-IF bEnableDelta THEN
-	bEnableDelta := FALSE;
-	Delta.Enable();
-END_IF
+
+IF bEnable AND bWritesComplete THEN
+		bResetDelta := FALSE;
+		Delta.Enable();
+		bEnable := FALSE;
+	END_IF
+
 
 IF bResetDelta THEN
 	bResetDelta := FALSE;
@@ -194,139 +183,184 @@ END_IF
 
 //This is where you would call the Delta logic and interact with the XTS
 
-CASE gState OF
-	
-0: IF xStart THEN
-		gState := 100;
-		GVL.iMovementNumber := 1; // Load pick xy pos
+IF bDisableDelta THEN
+	bResetDelta := TRUE;
+	gState := 0;
+ELSE
+	bResetDelta := FALSE;
+END_IF
+
+IF Delta.MovePathDone THEN
+	IF bStopDelta THEN
+		caseStop := TRUE;
 	END_IF
+ELSIF (NOT Delta.MovePathDone) AND (NOT bStopDelta) THEN
+	caseStop := FALSE;
+	bStartDelta := TRUE;
+END_IF
 
-100: // Move to Pick Position over Conveyer
-		IF GVL_Conveyer.bSensor AND NOT GVL.bLoadNewPuck THEN
-			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-			gState := 106;
-		ELSIF GVL.bLoadNewPuck THEN
-			GVL.bLoadNewPuck := FALSE;
-			GVL.iMovementNumber := 7;
-			gState := 101;
+
+IF NOT caseStop THEN
+
+	CASE gState OF
+	
+	0: IF bStartDelta THEN
+			gState := 100;
+			bStartDelta := FALSE;
+			GVL.iMovementNumber := 1; // Load pick xy pos
 		END_IF
-
-101: // Call Movement
-	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-	gState := 102;
-
-102: // Wait for movement to be done
-	IF Delta.MovePathDone THEN
+	
+	100: // Move to Pick Position over Conveyer
+			IF GVL_Conveyer.bSensor AND NOT GVL.bLoadNewPuck THEN
+				GVL.iMovementNumber := 2;
+				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.Pucks[0].y, GVL.DeltaCoords[GVL.iMovementNumber].z +20);	
+				gState := 106;
+			ELSIF GVL.bLoadNewPuck THEN
+				GVL.bLoadNewPuck := FALSE;
+				GVL.iMovementNumber := 7;
+				gState := 101;
+			END_IF
+	
+	101: // Call Movement Above Load Station
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z + 30);	
+		gState := 102;
+	
+	102: // Call Movement
+		IF Delta.MovePathDone THEN
 			Delta.EnableAir();
-			GVL.iMovementNumber := 7;
-			gState := 103;
-	END_IF		
-	
-103: // Move up Z
-	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z + 40);	
-	gState := 104;
-	
-104: // Wait for movement to be done and move to state 130
-	IF Delta.MovePathDone THEN	
-		GVL.iMovementNumber := 4;	
-		gState := 130;
-	END_IF;
-		
-106: //WAit for move to xy to complete then move to Z pick
-		IF Delta.MovePathDone THEN
-			GVL.iMovementNumber := 2;
-			Delta.EnableAir();		
-			gState := 110;
+			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+			gState := 103;	
 		END_IF
 		
-110: // Move to Z pick
-	IF GVL_XTS.mover0InPosition THEN
-	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-	gState := 115;
-	END_IF
+	103: // Wait for movement to be done
+		IF Delta.MovePathDone THEN
+				
+				GVL.iMovementNumber := 7;
+				gState := 104;
+		END_IF	
 	
-115: //Wait for move to complete and load traverse pos
-		IF Delta.MovePathDone THEN
-			GVL.iMovementNumber := 3;	
-			gState := 120;
-		END_IF
-			
-120: //Call traverse Move
-		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-		gState := 125;
 		
-125: // Wait for move to complete
-		IF Delta.MovePathDone THEN
-			GVL_Conveyer.bConveyerReadyToMove := TRUE;
+	104:// Move up Z
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z + 40);	
+			gState := 105;
+		
+	105: // Wait for movement to be done and move to state 130
+		IF Delta.MovePathDone THEN	
 			GVL.iMovementNumber := 4;	
 			gState := 130;
-		END_IF
+		END_IF;
 		
-130: // Call move to place xy
-		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-		gState := 135;
-		
-135: // Wait for move to complete
-		IF Delta.MovePathDone THEN
-			GVL.iMovementNumber := 5;	
-			gState := 140;
-		END_IF
-		
-140: //Place Z
-		IF GVL_XTS.mover0InPosition THEN
-			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-			gState := 145;
-		END_IF
-
-145: // Wait for move to compelte
-		IF Delta.MovePathDone THEN
-			Delta.DisableAir();
-			GVL.iMovementNumber := 6;	
-			gState := 150;
-		END_IF
-		
-150: //Traverse Z
-			bAirRelease := TRUE;
-			IF ReleaseTimer.Q THEN
-				bAirRelease := FALSE;
-				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-				gState := 155;
+			
+	106: //WAit for move to xy to complete then move to Z pick
+			IF Delta.MovePathDone THEN
+				GVL.iMovementNumber := 2;
+				Delta.EnableAir();		
+				gState := 110;
 			END_IF
 			
+	110: // Move to Z pick
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x - GVL.Pucks[0].xOffset, GVL.Pucks[0].y, (GVL.DeltaCoords[GVL.iMovementNumber].z - GVL.Pucks[0].zOffset) );	
+		gState := 115;
 		
-155: // Wait for move to complete
-	IF Delta.MovePathDone THEN
-		GVL_XTS.bDeltaRelease := TRUE;
-		GVL.iMovementNumber := 0;
-		gState := 160;
-	END_IF
+	115: //Wait for move to complete and load traverse pos
+			IF Delta.MovePathDone THEN
+					GVL.iMovementNumber := 3;	
+					gState := 120;
+				END_IF
+				
+	120: //Call traverse Move
+				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+				gState := 125;
 	
-160: // Call move home
-	GVL_XTS.bDeltaRelease := FALSE;
-	Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
-	gState := 165;
-		
-165: //Send release signal to XTS
+	125: // Wait for move to complete
+			IF Delta.MovePathDone THEN
+				IF GVL_Conveyer.bSensor THEN
+					GVL.bPuckMissed := TRUE;
+						bLockDelta := TRUE;
+				END_IF
+					
+				IF NOT bLockDelta AND NOT GVL_Conveyer.bSensor THEN
+					bPuckPicked := TRUE;
+					GVL_Conveyer.bConveyerReadyToMove := TRUE;
+					GVL.iPucksPicked := GVL.iPucksPicked + 1;
+					GVL.iMovementNumber := 4;	
+						gState := 130;
+				END_IF
+			END_IF
+			
+				IF bLockDelta THEN
+					IF NOT GVL.bPuckMissed THEN
+						bPuckPicked := TRUE;
+						bLockDelta := FALSE;
+						GVL.bPuckMissed := FALSE;
+						GVL.iMissedPucks := GVL.iMissedPucks + 1;
+						gState := 100;
+					END_IF
+				END_IF
+				
+			
+	130: // Call move to place xy
+			Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+			gState := 135;
+			
+	135: // Wait for move to complete
+			IF Delta.MovePathDone THEN
+				GVL.iMovementNumber := 5;	
+				gState := 140;
+			END_IF
+			
+	140: //Place Z
+			IF GVL_XTS.mover0InPosition THEN
+				Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+				gState := 145;
+			END_IF
+	
+	145: // Wait for move to compelte
+			IF Delta.MovePathDone THEN
+				Delta.DisableAir();
+				GVL.iMovementNumber := 6;	
+				gState := 150;
+			END_IF
+			
+	150: //Traverse Z
+				bAirRelease := TRUE;
+				IF ReleaseTimer.Q THEN
+					bAirRelease := FALSE;
+					Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+					gState := 155;
+				END_IF
+				
+			
+	155: // Wait for move to complete
 		IF Delta.MovePathDone THEN
-			gState := 170;
+			GVL_XTS.bDeltaRelease := TRUE;
+			GVL.iMovementNumber := 0;
+			gState := 160;
 		END_IF
 		
-170: // Release Mover
-	gState := 100; // Change this to go to 175
-	GVL.iMovementNumber := 1;// Remove this when you call it to go to 175
-	//Add code here to communicate to the xts to tell it to release
-		
-175: //Confirm mover was released
-		IF GVL_XTS.bDeltaReleased THEN	
-			GVL_XTS.bDeltaReleased := FALSE;		
-			gState := 100;
-			GVL.iMovementNumber := 1;
-		END_IF
-END_CASE
-
-
-
-
+	160: // Call move home
+		GVL_XTS.bDeltaRelease := FALSE;
+		Delta.MoveDirectTo( GVL.DeltaCoords[GVL.iMovementNumber].x, GVL.DeltaCoords[GVL.iMovementNumber].y, GVL.DeltaCoords[GVL.iMovementNumber].z);	
+		gState := 165;
+			
+	165: //Send release signal to XTS
+			IF Delta.MovePathDone THEN
+				gState := 170;
+			END_IF
+			
+	170: // Release Mover
+		gState := 100; // Change this to go to 175
+		GVL.iMovementNumber := 1;// Remove this when you call it to go to 175
+		//Add code here to communicate to the xts to tell it to release
+			
+	175: //Confirm mover was released
+			IF GVL_XTS.bDeltaReleased THEN	
+				GVL_XTS.bDeltaReleased := FALSE;		
+				gState := 100;
+				GVL.iMovementNumber := 1;
+			END_IF
+	END_CASE
+END_IF
 
 
 
@@ -335,142 +369,18 @@ END_CASE
 ]]></ST>
     </Implementation>
     <LineIds Name="Sequence1">
-      <LineId Id="957" Count="0" />
-      <LineId Id="1231" Count="1" />
-      <LineId Id="1229" Count="0" />
-      <LineId Id="1233" Count="0" />
-      <LineId Id="959" Count="1" />
-      <LineId Id="963" Count="1" />
-      <LineId Id="962" Count="0" />
-      <LineId Id="966" Count="0" />
-      <LineId Id="961" Count="0" />
-      <LineId Id="958" Count="0" />
-      <LineId Id="864" Count="7" />
-      <LineId Id="886" Count="7" />
-      <LineId Id="885" Count="0" />
-      <LineId Id="895" Count="7" />
-      <LineId Id="894" Count="0" />
-      <LineId Id="904" Count="7" />
-      <LineId Id="903" Count="0" />
-      <LineId Id="920" Count="0" />
-      <LineId Id="918" Count="0" />
-      <LineId Id="926" Count="2" />
-      <LineId Id="933" Count="0" />
-      <LineId Id="932" Count="0" />
-      <LineId Id="934" Count="1" />
-      <LineId Id="941" Count="2" />
-      <LineId Id="940" Count="0" />
-      <LineId Id="945" Count="2" />
-      <LineId Id="944" Count="0" />
-      <LineId Id="949" Count="2" />
-      <LineId Id="948" Count="0" />
-      <LineId Id="954" Count="0" />
-      <LineId Id="916" Count="0" />
-      <LineId Id="919" Count="0" />
-      <LineId Id="952" Count="1" />
-      <LineId Id="839" Count="0" />
-      <LineId Id="761" Count="4" />
-      <LineId Id="759" Count="1" />
-      <LineId Id="410" Count="0" />
-      <LineId Id="589" Count="0" />
-      <LineId Id="588" Count="0" />
-      <LineId Id="747" Count="0" />
-      <LineId Id="590" Count="1" />
-      <LineId Id="671" Count="1" />
-      <LineId Id="674" Count="0" />
-      <LineId Id="673" Count="0" />
-      <LineId Id="670" Count="0" />
-      <LineId Id="48" Count="11" />
-      <LineId Id="971" Count="0" />
-      <LineId Id="485" Count="2" />
-      <LineId Id="498" Count="0" />
-      <LineId Id="496" Count="1" />
-      <LineId Id="1324" Count="1" />
-      <LineId Id="1330" Count="0" />
-      <LineId Id="1326" Count="0" />
-      <LineId Id="499" Count="0" />
-      <LineId Id="1329" Count="0" />
-      <LineId Id="1327" Count="0" />
-      <LineId Id="1338" Count="1" />
-      <LineId Id="1332" Count="0" />
-      <LineId Id="1331" Count="0" />
-      <LineId Id="1334" Count="0" />
-      <LineId Id="1336" Count="0" />
-      <LineId Id="1346" Count="0" />
-      <LineId Id="1337" Count="0" />
-      <LineId Id="88" Count="0" />
-      <LineId Id="1342" Count="0" />
-      <LineId Id="1344" Count="1" />
-      <LineId Id="1347" Count="2" />
-      <LineId Id="1351" Count="0" />
-      <LineId Id="1355" Count="0" />
-      <LineId Id="1354" Count="0" />
-      <LineId Id="1350" Count="0" />
-      <LineId Id="1328" Count="0" />
-      <LineId Id="89" Count="0" />
-      <LineId Id="484" Count="0" />
-      <LineId Id="975" Count="0" />
-      <LineId Id="92" Count="1" />
-      <LineId Id="483" Count="0" />
-      <LineId Id="972" Count="1" />
-      <LineId Id="1123" Count="0" />
-      <LineId Id="974" Count="0" />
-      <LineId Id="976" Count="0" />
-      <LineId Id="1124" Count="0" />
-      <LineId Id="978" Count="0" />
-      <LineId Id="980" Count="2" />
-      <LineId Id="984" Count="0" />
-      <LineId Id="979" Count="0" />
-      <LineId Id="107" Count="3" />
-      <LineId Id="985" Count="1" />
-      <LineId Id="988" Count="0" />
-      <LineId Id="1031" Count="0" />
-      <LineId Id="989" Count="1" />
-      <LineId Id="987" Count="0" />
-      <LineId Id="991" Count="5" />
-      <LineId Id="998" Count="2" />
-      <LineId Id="997" Count="0" />
-      <LineId Id="967" Count="0" />
-      <LineId Id="111" Count="0" />
-      <LineId Id="1452" Count="0" />
-      <LineId Id="113" Count="1" />
-      <LineId Id="1453" Count="0" />
-      <LineId Id="115" Count="1" />
-      <LineId Id="1001" Count="0" />
-      <LineId Id="1004" Count="0" />
-      <LineId Id="1002" Count="1" />
-      <LineId Id="119" Count="0" />
-      <LineId Id="968" Count="0" />
-      <LineId Id="120" Count="0" />
-      <LineId Id="1223" Count="1" />
-      <LineId Id="1228" Count="0" />
-      <LineId Id="1225" Count="0" />
-      <LineId Id="1227" Count="0" />
-      <LineId Id="1226" Count="0" />
-      <LineId Id="1005" Count="0" />
-      <LineId Id="1007" Count="1" />
-      <LineId Id="1010" Count="0" />
-      <LineId Id="1215" Count="0" />
-      <LineId Id="1012" Count="1" />
-      <LineId Id="1009" Count="0" />
-      <LineId Id="1018" Count="1" />
-      <LineId Id="1216" Count="0" />
-      <LineId Id="1020" Count="1" />
-      <LineId Id="138" Count="1" />
-      <LineId Id="1014" Count="0" />
-      <LineId Id="1017" Count="0" />
-      <LineId Id="505" Count="0" />
-      <LineId Id="1022" Count="2" />
-      <LineId Id="1029" Count="0" />
-      <LineId Id="1025" Count="0" />
-      <LineId Id="970" Count="0" />
-      <LineId Id="142" Count="0" />
-      <LineId Id="506" Count="0" />
-      <LineId Id="146" Count="1" />
-      <LineId Id="1026" Count="0" />
-      <LineId Id="507" Count="0" />
-      <LineId Id="330" Count="0" />
-      <LineId Id="337" Count="8" />
+      <LineId Id="2302" Count="84" />
+      <LineId Id="2595" Count="2" />
+      <LineId Id="2593" Count="0" />
+      <LineId Id="2387" Count="1" />
+      <LineId Id="2599" Count="0" />
+      <LineId Id="2389" Count="24" />
+      <LineId Id="2738" Count="0" />
+      <LineId Id="2415" Count="8" />
+      <LineId Id="2671" Count="0" />
+      <LineId Id="2667" Count="0" />
+      <LineId Id="2673" Count="0" />
+      <LineId Id="2424" Count="168" />
       <LineId Id="9" Count="0" />
     </LineIds>
   </POU>

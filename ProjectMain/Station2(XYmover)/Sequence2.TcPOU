@@ -6,8 +6,8 @@ VAR_INPUT
 	Execute: BOOL;
 	bUserIncrementStep		: BOOL; 		// user can go to next step
 	bUserInfiniteMovement 	: BOOL :=FALSE; // user can decide if only one movement is executed or infinite movement.
-	
 	fVelFactor				: LREAL := 1.0;
+	
 END_VAR
 VAR_OUTPUT
 	Error					: BOOL;
@@ -41,7 +41,6 @@ VAR
 	
 	fbConveyerTimer			: FB_ConveyerTimer;
 	
-	puckIncrement			: INT;
 	bMovePrepError			: BOOL;
 	bPickCycle				: BOOL := TRUE;
 	bExecutePath			: BOOL := TRUE;
@@ -57,6 +56,7 @@ VAR
 	groupEnableErrorID: UDINT;
 	iPickStation: INT := 1;
 	airTimer				: TON;
+	random		: drand;
 
 	
 	bUserInput: BOOL;
@@ -212,20 +212,34 @@ IF Execute THEN
 				ELSIF iPickStation = 3 AND GVL_XTS.moversInPosition[3] THEN
 					iPickStation := 1;
 					//Prepare table (MC_MoveLinearAbsolutePreparation)
+					
 					A_PreparePathPick_3();
 					IF NOT bMovePrepError THEN
 						bPathPrepared := TRUE;
 					END_IF
 				END_IF
 			ELSE
-					GVL_XTS.moversRelease[1] := FALSE;
-					GVL_XTS.moversRelease[2] := FALSE;
-					GVL_XTS.moversRelease[3] := FALSE;
-				//Prepare table (MC_MoveLinearAbsolutePreparation)	
-				A_PreparePathPlace();
-				IF NOT bMovePrepError THEN
+					
+				//Prepare table (MC_MoveLinearAbsolutePreparation)		
+				IF GVL_XTS.moversRelease[1] OR GVL_XTS.moversRelease[2] OR GVL_XTS.moversRelease[3] THEN
+					random.Seed := 1;
+					random();
+					placePos := (random.Num * 70);
+					GVL.Pucks[GVL.puckIncrement].y := (-((placePos / 70) * 55) - 10);
+					
+					GVL.Pucks[GVL.puckIncrement].zOffset := ((random.Num) * 10);
+					GVL.Pucks[GVL.puckIncrement].xOffset := (random.Num * 10);
+
+					A_PreparePathPlace();
+					
+					IF NOT bMovePrepError THEN
 						bPathPrepared := TRUE;
 					END_IF
+				END_IF
+
+				GVL_XTS.moversRelease[1] := FALSE;
+				GVL_XTS.moversRelease[2] := FALSE;
+				GVL_XTS.moversRelease[3] := FALSE;
 			END_IF
 	
 			bPickCycle := NOT bPickCycle;
@@ -276,8 +290,13 @@ IF Execute THEN
 				nState := nState + 1;
 			END_IF
 			
-		ELSIF fbConveyerTimer.bReadyToPlace THEN
+		ELSIF fbConveyerTimer.bReadyToPlace AND NOT GVL.bClearPuck THEN
 			GVL_XY.bAirEnable := FALSE;
+			IF GVL.puckIncrement < 50 THEN
+				GVL.puckIncrement := GVL.puckIncrement + 1;
+			ELSE
+				GVL.puckIncrement := 0;
+			END_IF
 			nState := 0;
 		END_IF
 		
@@ -385,7 +404,10 @@ IF Execute THEN
 	IF bUserForceReset THEN
 		nState := 80;
 		bUserForceReset := FALSE;
-	END_IF 
+	END_IF
+
+ELSE
+	nState := -4; 
 END_IF]]></ST>
     </Implementation>
     <Action Name="A_PreparePathPick_1" Id="{dcb08973-a115-429b-89e2-ef77d8cbb861}">
@@ -481,12 +503,8 @@ fbMoveLinPrep.Acceleration					:= MC_DEFAULT;
 fbMoveLinPrep.Deceleration					:= MC_DEFAULT;
 fbMoveLinPrep.Jerk							:= MC_DEFAULT;
 
-placePos := (drand.Num * 87);
-
-GVL.PuckPositions[puckIncrement] := placePos;
-
 aTargetPos[1]				:= 150;
-aTargetPos[2]				:= 298 + placePos;
+aTargetPos[2]				:= 300 + placePos;
 				
 aTransitionParam[1]			:= 0; //blending distance on previous segment, no influence here
 aTransitionParam[2]			:= 0; //blending distance on this segment, no influence here
@@ -522,18 +540,37 @@ bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error; ]]></ST>
       <LineId Id="418" Count="0" />
       <LineId Id="208" Count="3" />
       <LineId Id="487" Count="1" />
-      <LineId Id="212" Count="5" />
+      <LineId Id="212" Count="4" />
+      <LineId Id="620" Count="0" />
+      <LineId Id="217" Count="0" />
       <LineId Id="489" Count="1" />
       <LineId Id="218" Count="2" />
-      <LineId Id="523" Count="1" />
       <LineId Id="522" Count="0" />
-      <LineId Id="221" Count="1" />
-      <LineId Id="491" Count="1" />
-      <LineId Id="223" Count="1" />
+      <LineId Id="221" Count="0" />
+      <LineId Id="627" Count="0" />
+      <LineId Id="632" Count="0" />
+      <LineId Id="634" Count="0" />
+      <LineId Id="636" Count="0" />
+      <LineId Id="628" Count="0" />
+      <LineId Id="643" Count="1" />
+      <LineId Id="787" Count="0" />
+      <LineId Id="631" Count="0" />
+      <LineId Id="630" Count="0" />
+      <LineId Id="639" Count="0" />
+      <LineId Id="641" Count="1" />
+      <LineId Id="640" Count="0" />
+      <LineId Id="629" Count="0" />
+      <LineId Id="626" Count="0" />
+      <LineId Id="624" Count="1" />
+      <LineId Id="623" Count="0" />
+      <LineId Id="224" Count="0" />
       <LineId Id="414" Count="0" />
       <LineId Id="226" Count="0" />
       <LineId Id="415" Count="0" />
-      <LineId Id="227" Count="101" />
+      <LineId Id="227" Count="47" />
+      <LineId Id="598" Count="3" />
+      <LineId Id="597" Count="0" />
+      <LineId Id="275" Count="53" />
       <LineId Id="411" Count="0" />
       <LineId Id="329" Count="8" />
       <LineId Id="339" Count="0" />
@@ -543,6 +580,9 @@ bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error; ]]></ST>
       <LineId Id="347" Count="20" />
       <LineId Id="398" Count="1" />
       <LineId Id="368" Count="16" />
+      <LineId Id="716" Count="0" />
+      <LineId Id="715" Count="0" />
+      <LineId Id="717" Count="0" />
       <LineId Id="9" Count="0" />
     </LineIds>
     <LineIds Name="Sequence2.A_PreparePathPick_1">
@@ -566,9 +606,7 @@ bMovePrepError := bMovePrepError OR fbMoveLinPrep.Error; ]]></ST>
       <LineId Id="1" Count="0" />
     </LineIds>
     <LineIds Name="Sequence2.A_PreparePathPlace">
-      <LineId Id="2" Count="10" />
-      <LineId Id="59" Count="3" />
-      <LineId Id="13" Count="2" />
+      <LineId Id="2" Count="13" />
       <LineId Id="50" Count="4" />
     </LineIds>
   </POU>

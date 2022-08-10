@@ -15,299 +15,15 @@ VAR
 	mainCommands			: MainCommands_typ;
 	XYParamaters			: XYParams_typ;
 	
+	nSequenceState			: INT;
 	bStopAll: BOOL;
 	bPowerEnable: BOOL;
-	
-	//Test Variables
-	
-	
-	{attribute 'instance-path'}
-	{attribute 'no-init'}
-	InstancePath			: STRING;
-	btest: BOOL;
-	AirVariable				AT %Q* : BOOL;
-	
-	internalEnable			: BOOL;
-	internalDisable			: BOOL;
-	
-	//internalCurrentMoveType	: DeltaCommandType_enum;
-	
-	internalState			: DeltaState_enum;
-	
-	internalSetCoordTrafoDone	: BOOL;
-	internalMovePathDone		: BOOL;
-
-	
-	internalInitObjPos		: ARRAY [1..3] OF MC_LREAL := [0,0,0];
-	internalAxesList		: ST_KinAxes;
-	internalCMGroup			: AXES_GROUP_REF;
-	
-	internalTrackAxis		: REFERENCE TO AXIS_REF;
-	
-	internalPathBuffer		: ARRAY[0..32767] OF BYTE;
-	internalPathData		: MC_PATH_DATA_REF( ADR( internalPathBuffer ), SIZEOF( internalPathBuffer ));
-		
-	externalRoute			: REFERENCE TO Route;	
-
-	internalActiveCoordRef	: MC_COORD_REF;		
-
-	// Internal function blocks
-	fbReset_X			: MC_Reset;
-	fbReset_Y			: MC_Reset;
-
-	fbPower_X			: MC_Power;
-	fbPower_Y			: MC_Power;
-	
-	fbPower_MCS_X		: MC_Power;
-	fbPower_MCS_Y		: MC_Power;
-	
-	fbAddAxisToGrp			: ARRAY[0..2] OF MC_AddAxisToGroup;
-	fbGroupEnable			: MC_GroupEnable;
-	
-	fbSetCoordTrafo			: MC_SetCoordinateTransform;
-	fbMoveLinearPrep		: MC_MoveLinearAbsolutePreparation;
-	fbMovePath				: MC_MovePath;
-	fbMovePathExt			: MC_MovePath;
-	
-	//Input Variables
-	MotionParameters	: DeltaMotionParameters_typ;			// Motion parameters used by internal motion function blocks	
-	myMCSOverride: LREAL := 100.0;
-	xSetOverride: BOOL;
-	lrGrpOverride: MC_LREAL := 1.0;
-	fbMC_GroupSetOverride : MC_GroupSetOverride;
-	bTeaching				: BOOL;
-	
-	//Outputs
-	Ready				: BOOL;
-	Busy				: BOOL;
-	
-	Error				: BOOL;
-	ErrorID				: UDINT;
-	ErrorOrigin			: STRING;
-	i: INT;
-	
-	fbGearIn1:  MC_GearIn;
-	bGearIn: BOOL;
 END_VAR]]></Declaration>
     <Implementation>
-      <ST><![CDATA[(*CASE internalState OF
-	DL_IDLE:	// ------------------------------------------------------- idle state
-	
-		Ready		:= FALSE;
-		Busy		:= FALSE;
-		
-		internalDisable		:= FALSE;
-		IF internalEnable THEN
-			internalEnable		:= FALSE;
-			internalState		:= DL_RESET;
-		END_IF
-	
-	DL_RESET:	// ------------------------------------------------------- resets all axis objects
-	
-		Ready		:= FALSE;
-		Busy		:= TRUE;
-		Error		:= FALSE;
-		ErrorID		:= 0;
-		
-		fbReset_X.Execute		:= TRUE;
-		fbReset_Y.Execute		:= TRUE;
-		
-		IF fbReset_X.Done AND
-			fbReset_Y.Done THEN
-			
-			fbReset_X.Execute		:= FALSE;
-			fbReset_Y.Execute		:= FALSE;
-			
-			internalState	:= DL_POWER_AXES;
-			
-		ELSIF fbReset_X.Error OR
-			fbReset_Y.Error THEN
-			
-			ErrorID; // TODO add whatever the error was for that block
-			ErrorOrigin		:= CONCAT( InstancePath, '.fbReset' );
-			internalState	:= DL_ERROR; 		
-		END_IF
-		
-	DL_POWER_AXES:	// --------------------------------------------------- energizes all axis objects
-	
-		Ready		:= FALSE;
-		Busy		:= TRUE;
-		Error		:= FALSE;
-		ErrorID		:= 0;
-
-			fbPower_X.Enable	:= TRUE;
-			fbPower_Y.Enable	:= TRUE;
-
-			fbPower_X.Enable_Positive	:= TRUE;
-			fbPower_Y.Enable_Positive	:= TRUE;
-			
-			fbPower_X.Enable_Negative	:= TRUE;
-			fbPower_Y.Enable_Negative	:= TRUE;
-			
-			fbPower_X.Override		:= myMCSOverride;
-			fbPower_Y.Override		:= myMCSOverride;
-			
-			IF fbPower_X.Status AND
-				fbPower_Y.Status THEN
-				
-				internalState	:= DL_ADD_AXES_TO_CM;
-				
-			ELSIF fbPower_X.Error OR
-				fbPower_Y.Error THEN
-				
-				ErrorID;	// TODO add whatever the error was that block
-				ErrorOrigin		:= CONCAT( InstancePath, '.fbPower');
-				internalState	:= DL_ERROR;
-			END_IF
-		
-	DL_ADD_AXES_TO_CM:	// ----------------------------------------------- adds MCS axes to CM Group
-	
-		Ready		:= FALSE;
-		Busy		:= TRUE;
-		Error		:= FALSE;
-		ErrorID		:= 0;
-
-			fbAddAxisToGrp[0].IdentInGroup	:= MCS_X;
-			
-			fbAddAxisToGrp[1].IdentInGroup	:= MCS_Y;
-			
-			FOR i := 0 TO 1 DO
-				fbAddAxisToGrp[i].Execute		:= TRUE;
-			END_FOR
-			
-			IF fbAddAxisToGrp[0].Done AND
-				fbAddAxisToGrp[1].Done THEN
-				
-				fbAddAxisToGrp[0].Execute	:= FALSE;
-				fbAddAxisToGrp[1].Execute	:= FALSE;
-				
-				internalState	:= DL_ENABLE_CM;
-				
-			ELSIF fbAddAxisToGrp[0].Error THEN
-				fbAddAxisToGrp[0].Execute	:= FALSE;
-				fbAddAxisToGrp[1].Execute	:= FALSE;
-				
-				ErrorID;		// todo : add whichever block errored
-				ErrorOrigin		:= CONCAT(InstancePath,'.fbAddAxisToGrp1');
-				internalState	:= DL_ERROR;
-			ELSIF fbAddAxisToGrp[1].Error THEN
-				
-				fbAddAxisToGrp[0].Execute	:= FALSE;
-				fbAddAxisToGrp[1].Execute	:= FALSE;
-				
-				ErrorID;		// todo : add whichever block errored
-				ErrorOrigin		:= CONCAT(InstancePath,'.fbAddAxisToGrp2');
-				internalState	:= DL_ERROR;
-			END_IF
-
-	DL_ENABLE_CM:	// ------------------------------------------------------- enables the coordinated motion group
-	
-		Ready		:= FALSE;
-		Busy		:= TRUE;
-		Error		:= FALSE;
-		ErrorID		:= 0;
-		
-			fbGroupEnable.Execute		:= TRUE;
-			
-			IF fbGroupEnable.Done THEN
-				internalState	:= DL_RUN;
-			ELSIF fbGroupEnable.Error THEN
-				ErrorID			:= fbGroupEnable.ErrorId;
-				ErrorOrigin		:= CONCAT(InstancePath,'.fbGroupEnable');
-				internalState	:= DL_ERROR;
-			END_IF
-		
-	DL_RUN:	// --------------------------------------------------------------- Delta running, ready for commands
-	
-		Ready		:= TRUE;
-		Busy		:= FALSE;
-		Error		:= FALSE;
-		ErrorID		:= 0;
-				
-		// reset all commanded function blocks when the execute is recieved
-		IF fbSetCoordTrafo.Busy OR fbSetCoordtrafo.CommandAborted THEN
-			fbSetCoordTrafo.Execute		:= FALSE;
-		ELSIF fbMovePath.Busy OR fbMovePath.CommandAborted THEN
-			fbMovePath.Execute			:= FALSE;
-		ELSIF fbMovePathEXT.Busy OR fbMovePathEXT.CommandAborted THEN
-			fbMovePath.Execute			:= FALSE;
-		END_IF
-		
-		// and catch all internal function block errors
-		IF fbSetCoordTrafo.Error THEN
-			ErrorID			:= fbSetCoordTrafo.ErrorId;
-			ErrorOrigin		:= CONCAT( InstancePath, '.fbSetCoordTrafo' );
-			internalState	:= DL_ERROR;
-		ELSIF fbMovePath.Error THEN
-			ErrorID			:= fbMovePath.ErrorId;
-			ErrorOrigin		:= CONCAT( InstancePath, '.fbMovePath' );
-			internalState	:= DL_ERROR;
-		ELSIF fbMovePathEXT.Error THEN
-			ErrorID			:= fbMovePathEXT.ErrorId;
-			ErrorOrigin		:= CONCAT( InstancePath, '.fbMovePathEXT' );
-			internalState	:= DL_ERROR;
-		END_IF
-	
-	DL_ERROR:	// ----------------------------------------------------------- Error state
-	
-		Ready		:= FALSE;
-		Busy		:= FALSE;
-		Error		:= TRUE;
-	
-END_CASE
-
-fbReset_X( Axis := GVL_XY.stAxis[1] );
-fbReset_Y( Axis := GVL_XY.stAxis[2] );
-
-fbPower_X( Axis := GVL_XY.stAxis[1] );
-fbPower_Y( Axis := GVL_XY.stAxis[2] );
-
-(*fbPower_MCS_X( Axis := GVL_XY.stAxis[1] );
-fbPower_MCS_Y( Axis := GVL_XY.stAxis[2] );*)
-
-fbAddAxisToGrp[0]( AxesGroup := internalCMGroup, Axis := GVL_XY.stAxis[1] );
-fbAddAxisToGrp[1]( AxesGroup := internalCMGroup, Axis := GVL_XY.stAxis[2] );
-
-fbGroupEnable( AxesGroup := internalCMGroup );
-
-fbSetCoordTrafo( AxesGroup := internalCMGroup );
-
-fbMovePath( AxesGroup := internalCMGroup, PathData := internalPathData );
-fbMovePathEXT( AxesGroup := internalCMGroup, PathData := externalRoute.PathData );
-
-fbMC_GroupSetOverride(
-	AxesGroup:= internalCMGroup, 
-	Enable:= xSetOverride, 
-	VelFactor:= lrGrpOverride, 
-	Enabled=> , 
-	Busy=> , 
-	Error=> , 
-	ErrorId=> , 
-	ActualVelFactor=> );
-	
-fbGearIn1(
-	Master:= GVL_XY.stAxis[1], 
-	Slave:= GVL_XY.stSlaveAxis[1], 
-	Execute:= bGearIn, 
-	RatioNumerator:= 1, 
-	RatioDenominator:= 1, 
-	Acceleration:= , 
-	Deceleration:= , 
-	Jerk:= , 
-	BufferMode:= , 
-	Options:= , 
-	InGear=> , 
-	Busy=> , 
-	Active=> , 
-	CommandAborted=> , 
-	Error=> , 
-	ErrorID=> );
-	
-	*)
-Sequence2(
-	Execute := bSequenceExecute,
-	bUserIncrementStep := XYParamaters.bUserIncrementStep,
-	bUserInfiniteMovement := XYParamaters.bUserInfiniteMovement,
+      <ST><![CDATA[Sequence2(
+	Execute 				:= bSequenceExecute,
+	bUserIncrementStep 		:= XYParamaters.bUserIncrementStep,
+	bUserInfiniteMovement 	:= XYParamaters.bUserInfiniteMovement,
 );
 
 fbPowerAll(
@@ -319,9 +35,10 @@ Reset2(
 	);
 	
 fbStopAll(
-		Execute := bStopAll
+		Execute := //bStopAll
 		);
-
+		
+		
 CASE MainState OF
 	
 	MSA_DISABLED:
@@ -337,6 +54,9 @@ CASE MainState OF
 		XYParamaters.bUserIncrementStep := FALSE;
 		XYParamaters.bUserInfiniteMovement := TRUE;
 		XYParamaters.fVelFactor := 1.0;
+		GVL_XTS.moversRelease[1] := TRUE;
+		GVL_XTS.moversRelease[2] := TRUE;
+		GVL_XTS.moversRelease[3] := TRUE;
 		
 		IF MainCommands.Disable THEN
 			MainCommands.Enable		:=FALSE;
@@ -345,26 +65,35 @@ CASE MainState OF
 			MainCommands.Stop		:=FALSE;
 			MainCommands.Disable	:=TRUE;
 			MainCommands.Start		:=FALSE;
-			MainState	:= MS_DISABLED;
+			MainState	:= MS_DISABLED;			
+			
 		ELSIF MainCommands.Enable THEN
+			IF GVL_XTS.moversRelease[1] AND GVL_XTS.moversRelease[2] AND GVL_XTS.moversRelease[3] THEN
+				GVL_XTS.moversRelease[1] := FALSE;
+				GVL_XTS.moversRelease[2] := FALSE;
+				GVL_XTS.moversRelease[3] := FALSE;
+				bResetExecute := FALSE;
+				bPowerEnable := FALSE;
         	MainState 	:= MSA_ENABLING;
+		END_IF
 		END_IF
 		
 	MSA_ENABLING:
 		bResetExecute := TRUE;
 			IF MainCommands.Disable THEN
+				bResetExecute := FALSE;
 				MainCommands.Enable		:=FALSE;
             	MainState	:= MSA_DISABLED;
 			ELSIF MainCommands.Stop	 THEN
+				bResetExecute := FALSE;
 				MainCommands.Start		:=FALSE;
 				MainState	:= MSA_STOPPING;
 			ELSIF MainCommands.Enable THEN
 				IF Reset2.Done THEN
-					bResetExecute := FALSE;
+					
 					bPowerEnable := TRUE;
-					IF fbPowerAll.Done THEN
-						bPowerEnable := FALSE;
-						MainState 	:= MSA_ENABLED;
+					IF fbPowerAll.Done THEN	
+							MainState 	:= MSA_ENABLED;	
 					END_IF	
 				END_IF	
 			END_IF
@@ -381,19 +110,30 @@ CASE MainState OF
         END_IF
 			
 	MSA_RUN:
-		bSequenceExecute := TRUE;
-		
-		IF Sequence2.Error THEN
-			MainState := MSA_STOPPING;
+	IF GVL_XY.stAxis[1].NcToPlc.ErrorCode = 0 AND GVL_XY.stAxis[2].NcToPlc.ErrorCode = 0 AND GVL_XY.stSlaveAxis[1].NcToPlc.ErrorCode = 0 THEN
+			bSequenceExecute := TRUE;
+			
+			IF Sequence2.Error THEN
+				MainState := MSA_STOPPING;
+			END_IF
+			
+			IF MainCommands.Stop THEN
+				bSequenceExecute := FALSE;
+				MainCommands.Start := FALSE;
+				MainState          := MSA_STOPPING;
+			ELSIF MainCommands.Disable THEN
+				bSequenceExecute := FALSE;
+				MainCommands.Enable := FALSE;
+				MainState           := MSA_STOPPING;
+			END_IF
+		ELSE
+			MainCommands.Enable := FALSE;
+			MainCommands.Enable := FALSE;
+			MainCommands.Disable := TRUE;
+			bSequenceExecute := FALSE;
+			MainState := MSA_DISABLED;
 		END_IF
 		
-		IF MainCommands.Stop THEN
-            MainCommands.Start := FALSE;
-            MainState          := MSA_STOPPING;
-        ELSIF MainCommands.Disable THEN
-            MainCommands.Enable := FALSE;
-            MainState           := MSA_STOPPING;
-        END_IF
 		
 	MSA_STOPPING:
 		bUserInfiniteMovement := FALSE;
@@ -402,7 +142,8 @@ CASE MainState OF
 		
 		bStopAll := TRUE;
 		
-		IF fbStopAll.Done THEN
+		IF bStopAll THEN
+			bStopAll := FALSE;
 			MainState := MSA_STOPPED;
 		END_IF
 		
@@ -417,8 +158,8 @@ CASE MainState OF
         END_IF
 		
 	MSA_DISABLING:
-		bPowerEnable := FALSE;
-		bUserIncrementStep := TRUE;
+			bPowerEnable := FALSE;
+			bUserIncrementStep := TRUE;
 			bUserIncrementStep := FALSE;
 			bSequenceExecute := FALSE;
 			
@@ -432,40 +173,6 @@ CASE MainState OF
 END_CASE]]></ST>
     </Implementation>
     <LineIds Name="Main2">
-      <LineId Id="2246" Count="20" />
-      <LineId Id="2272" Count="2" />
-      <LineId Id="2279" Count="2" />
-      <LineId Id="2287" Count="3" />
-      <LineId Id="2295" Count="15" />
-      <LineId Id="2312" Count="2" />
-      <LineId Id="2316" Count="2" />
-      <LineId Id="2332" Count="2" />
-      <LineId Id="2336" Count="1" />
-      <LineId Id="2342" Count="4" />
-      <LineId Id="2351" Count="5" />
-      <LineId Id="2391" Count="8" />
-      <LineId Id="2401" Count="1" />
-      <LineId Id="2407" Count="6" />
-      <LineId Id="2415" Count="2" />
-      <LineId Id="2419" Count="3" />
-      <LineId Id="2651" Count="4" />
-      <LineId Id="2649" Count="1" />
-      <LineId Id="2425" Count="2" />
-      <LineId Id="2429" Count="36" />
-      <LineId Id="2468" Count="14" />
-      <LineId Id="2487" Count="8" />
-      <LineId Id="2499" Count="2" />
-      <LineId Id="2647" Count="1" />
-      <LineId Id="2646" Count="0" />
-      <LineId Id="2506" Count="2" />
-      <LineId Id="2510" Count="2" />
-      <LineId Id="2514" Count="1" />
-      <LineId Id="2519" Count="14" />
-      <LineId Id="2623" Count="0" />
-      <LineId Id="2629" Count="15" />
-      <LineId Id="2627" Count="0" />
-      <LineId Id="2245" Count="0" />
-      <LineId Id="2628" Count="0" />
       <LineId Id="2030" Count="4" />
       <LineId Id="2178" Count="1" />
       <LineId Id="2181" Count="0" />
@@ -478,6 +185,7 @@ END_CASE]]></ST>
       <LineId Id="2155" Count="1" />
       <LineId Id="2154" Count="0" />
       <LineId Id="2043" Count="0" />
+      <LineId Id="2893" Count="0" />
       <LineId Id="2028" Count="0" />
       <LineId Id="2046" Count="0" />
       <LineId Id="2049" Count="0" />
@@ -488,17 +196,29 @@ END_CASE]]></ST>
       <LineId Id="2063" Count="0" />
       <LineId Id="2067" Count="0" />
       <LineId Id="2069" Count="1" />
+      <LineId Id="2756" Count="1" />
+      <LineId Id="2755" Count="0" />
       <LineId Id="2074" Count="0" />
-      <LineId Id="2079" Count="9" />
+      <LineId Id="2079" Count="7" />
+      <LineId Id="2744" Count="0" />
+      <LineId Id="2087" Count="0" />
+      <LineId Id="2933" Count="4" />
+      <LineId Id="2932" Count="0" />
+      <LineId Id="2088" Count="0" />
+      <LineId Id="2938" Count="0" />
       <LineId Id="2078" Count="0" />
       <LineId Id="2075" Count="2" />
-      <LineId Id="2095" Count="6" />
+      <LineId Id="2095" Count="0" />
+      <LineId Id="2888" Count="0" />
+      <LineId Id="2096" Count="2" />
+      <LineId Id="2889" Count="0" />
+      <LineId Id="2099" Count="2" />
       <LineId Id="2104" Count="0" />
       <LineId Id="2240" Count="0" />
       <LineId Id="2201" Count="0" />
       <LineId Id="2123" Count="0" />
-      <LineId Id="2242" Count="0" />
-      <LineId Id="2124" Count="1" />
+      <LineId Id="2750" Count="0" />
+      <LineId Id="2125" Count="0" />
       <LineId Id="2106" Count="0" />
       <LineId Id="2103" Count="0" />
       <LineId Id="2107" Count="0" />
@@ -507,10 +227,17 @@ END_CASE]]></ST>
       <LineId Id="2117" Count="2" />
       <LineId Id="2116" Count="0" />
       <LineId Id="2108" Count="0" />
-      <LineId Id="2120" Count="1" />
-      <LineId Id="2126" Count="3" />
-      <LineId Id="2132" Count="0" />
-      <LineId Id="2134" Count="5" />
+      <LineId Id="2120" Count="0" />
+      <LineId Id="2905" Count="0" />
+      <LineId Id="2853" Count="6" />
+      <LineId Id="2890" Count="0" />
+      <LineId Id="2860" Count="2" />
+      <LineId Id="2891" Count="0" />
+      <LineId Id="2863" Count="1" />
+      <LineId Id="2851" Count="0" />
+      <LineId Id="2906" Count="0" />
+      <LineId Id="2908" Count="4" />
+      <LineId Id="2907" Count="0" />
       <LineId Id="2133" Count="0" />
       <LineId Id="2130" Count="0" />
       <LineId Id="2140" Count="0" />
@@ -518,7 +245,9 @@ END_CASE]]></ST>
       <LineId Id="2144" Count="0" />
       <LineId Id="2141" Count="0" />
       <LineId Id="2147" Count="0" />
-      <LineId Id="2158" Count="4" />
+      <LineId Id="2158" Count="2" />
+      <LineId Id="2848" Count="0" />
+      <LineId Id="2161" Count="1" />
       <LineId Id="2148" Count="0" />
       <LineId Id="2163" Count="0" />
       <LineId Id="2165" Count="6" />

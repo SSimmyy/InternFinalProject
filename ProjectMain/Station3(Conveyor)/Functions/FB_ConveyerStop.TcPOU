@@ -10,28 +10,44 @@ VAR_OUTPUT
 END_VAR
 VAR
 	fbStop : MC_Stop;
+	bConveyerStop: BOOL;
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF Execute THEN
-Done := TRUE;	
-	fbStop(
-		Axis := GVL_Conveyer.ConveyerAxis,
-		Execute := Execute
-		);
+      <ST><![CDATA[fbStop(
+			Axis := GVL_Conveyer.ConveyerAxis,
+			Execute := bConveyerStop
+			);
+			
+			
+bConveyerStop := FALSE;
+				
+IF Execute THEN
+		Done := FALSE;
+		GVL_Conveyer.ConveyerAxis.PlcToNc.ExtSetPos := GVL_Conveyer.ConveyerAxis.NcToPlc.ActPos;
+		bConveyerStop := TRUE;
+		Done := fbStop.Done;
 
-Done := fbStop.Done;
-
+ELSE
+	Done := FALSE;
+	
 END_IF]]></ST>
     </Implementation>
     <LineIds Name="FB_ConveyerStop">
+      <LineId Id="55" Count="2" />
+      <LineId Id="53" Count="0" />
+      <LineId Id="65" Count="1" />
+      <LineId Id="64" Count="0" />
+      <LineId Id="54" Count="0" />
       <LineId Id="9" Count="0" />
+      <LineId Id="68" Count="0" />
+      <LineId Id="91" Count="0" />
+      <LineId Id="70" Count="0" />
+      <LineId Id="73" Count="0" />
+      <LineId Id="77" Count="0" />
       <LineId Id="12" Count="0" />
-      <LineId Id="15" Count="0" />
-      <LineId Id="24" Count="0" />
-      <LineId Id="26" Count="1" />
-      <LineId Id="18" Count="1" />
-      <LineId Id="28" Count="0" />
+      <LineId Id="79" Count="0" />
+      <LineId Id="78" Count="0" />
       <LineId Id="13" Count="0" />
     </LineIds>
   </POU>

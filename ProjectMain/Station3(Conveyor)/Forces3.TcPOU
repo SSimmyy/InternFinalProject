@@ -4,7 +4,7 @@
     <Declaration><![CDATA[FUNCTION_BLOCK Forces3
 VAR_INPUT
 	fOvr			: LREAL;
-	bEnable 		: BOOL;
+	Execute 		: BOOL;
 END_VAR
 VAR_OUTPUT
 	AxisReady		: BOOL;
@@ -27,14 +27,10 @@ END_VAR
     <Implementation>
       <ST><![CDATA[fbPower(
 	Axis:= GVL_Conveyer.ConveyerAxis, 
-	Enable:= bEnable, 
-	Enable_Positive:= bEnable, 
-	Enable_Negative:= bEnable, 
-	Override:= fOvr, 
-	Busy=> PowerAxis1Out.Busy, 
-	Active=> PowerAxis1Out.Active, 
-	Error=> PowerAxis1Out.Error, 
-	ErrorID=> PowerAxis1Out.ErrorID);
+	Enable:= Execute, 
+	Enable_Positive:= Execute, 
+	Enable_Negative:= Execute, 
+	Override:= fOvr, );
 	
 fbMoveVelocity(
 			Axis:= GVL_Conveyer.ConveyerAxis, 
@@ -49,16 +45,8 @@ fbReset(
 ]]></ST>
     </Implementation>
     <LineIds Name="Forces3">
-      <LineId Id="13" Count="5" />
-      <LineId Id="22" Count="2" />
-      <LineId Id="9" Count="0" />
-      <LineId Id="39" Count="0" />
-      <LineId Id="84" Count="4" />
-      <LineId Id="66" Count="0" />
-      <LineId Id="95" Count="0" />
-      <LineId Id="97" Count="0" />
-      <LineId Id="99" Count="0" />
-      <LineId Id="98" Count="0" />
+      <LineId Id="144" Count="5" />
+      <LineId Id="154" Count="10" />
       <LineId Id="92" Count="0" />
     </LineIds>
   </POU>

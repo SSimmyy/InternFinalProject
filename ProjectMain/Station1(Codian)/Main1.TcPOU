@@ -3,28 +3,165 @@
   <POU Name="Main1" Id="{d4cb2f5e-1b25-4772-ac9c-f411bc2a3341}" SpecialFunc="None">
     <Declaration><![CDATA[PROGRAM Main1
 VAR
-	Sequence:Sequence1;
+	Sequence1:Sequence1;
 	Forces:Forces1;
-	Reset:Reset1;
+	Reset1:Reset1;
 	Faults:Faults1;	
 
+	MainState 				: MainStateAxis_enum;
+	mainCommands			: MainCommands_typ;
+	
+	
 	bExecute: BOOL;
 	FB_CoEAX8000SetPositionOffset1:FB_CoEAX8000SetPositionOffset;
 	FB_CoEAX8000SetPositionOffset2:FB_CoEAX8000SetPositionOffset;
 	FB_CoEAX8000SetPositionOffset3:FB_CoEAX8000SetPositionOffset;
 	bExecute2: BOOL;
 	bExecute3: BOOL;
+	bSequenceExecute: BOOL;
+	bResetExecute: BOOL;
 END_VAR]]></Declaration>
     <Implementation>
       <ST><![CDATA[//Cyclic Call to the Station FBs 
-Sequence();
-Forces();
-Reset();
-Faults();
-]]></ST>
+
+Sequence1();
+
+(*
+CASE MainState OF
+	
+	MSA_DISABLED:
+		mainCommands.Start := FALSE;
+		mainCommands.Stop := FALSE;
+		
+	IF mainCommands.Enable THEN
+		mainCommands.Disable := FALSE;
+		mainState := MSA_INITIALIZING;
+	END_IF
+		
+	MSA_INITIALIZING:
+		
+		
+	
+		IF MainCommands.Disable THEN
+			MainCommands.Enable		:=FALSE;
+			MainState:= MS_DISABLED;
+		ELSIF MainCommands.Stop THEN
+			MainCommands.Stop		:=FALSE;
+			MainCommands.Disable	:=TRUE;
+			MainCommands.Start		:=FALSE;
+			MainState	:= MS_DISABLED;			
+			
+		ELSIF MainCommands.Enable THEN
+        	MainState 	:= MSA_ENABLING;
+		END_IF
+		
+	MSA_ENABLING:
+			IF MainCommands.Disable THEN
+				bResetExecute := FALSE;
+				MainCommands.Enable		:=FALSE;
+            	MainState	:= MSA_DISABLED;
+			ELSIF MainCommands.Stop	 THEN
+				bResetExecute := FALSE;
+				MainCommands.Start		:=FALSE;
+				MainState	:= MSA_STOPPING;
+			ELSIF MainCommands.Enable THEN
+					
+					MainState 	:= MSA_ENABLED;	
+			END_IF
+
+	MSA_ENABLED:
+		
+		MainCommands.Stop := FALSE;
+		
+		IF MainCommands.Start THEN
+			MainState := MSA_RUN;
+		ELSIF MainCommands.Disable THEN
+            MainCommands.Enable := FALSE;
+            MainState           := MSA_STOPPING;
+        END_IF
+			
+	MSA_RUN:
+	IF Delta.MCS_X_REF.NcToPlc.ErrorCode = 0 AND Delta.MCS_Y_REF.NcToPlc.ErrorCode = 0 AND Delta.MCS_Z_REF.NcToPlc.ErrorCode = 0 THEN
+			
+			IF GVL.bDumpPuck THEN
+				bSequenceExecute := FALSE;
+				bResetExecute := TRUE;
+				IF Reset1.Done THEN
+					bResetExecute := FALSE;
+					GVL.bDumpPuck := FALSE;
+				END_IF
+			ELSE
+				bSequenceExecute := TRUE;
+			END_IF
+
+			
+			IF MainCommands.Stop THEN
+				bSequenceExecute := FALSE;
+				MainCommands.Start := FALSE;
+				MainState          := MSA_STOPPING;
+			ELSIF MainCommands.Disable THEN
+				bSequenceExecute := FALSE;
+				MainCommands.Enable := FALSE;
+				MainState           := MSA_STOPPING;
+			END_IF
+		ELSE
+			MainCommands.Enable := FALSE;
+			MainCommands.Enable := FALSE;
+			MainCommands.Disable := TRUE;
+			bSequenceExecute := FALSE;
+			MainState := MSA_DISABLED;
+		END_IF
+		
+		
+	MSA_STOPPING:
+		bSequenceExecute := FALSE;
+			MainState := MSA_STOPPED;
+		
+	MSA_STOPPED:
+		IF MainCommands.Disable THEN
+            MainCommands.Enable := FALSE;
+			MainCommands.Start:=FALSE;
+            MainState           := MSA_DISABLING;
+        ELSIF MainCommands.Start THEN
+            MainCommands.Stop := FALSE;
+            MainState         := MSA_INITIALIZING;
+        END_IF
+		
+	MSA_DISABLING:
+			bSequenceExecute := FALSE;
+				Delta.Disable();
+				MainState := MSA_DISABLED;
+		
+END_CASE *)]]></ST>
     </Implementation>
     <LineIds Name="Main1">
-      <LineId Id="103" Count="4" />
+      <LineId Id="103" Count="0" />
+      <LineId Id="306" Count="0" />
+      <LineId Id="104" Count="0" />
+      <LineId Id="124" Count="1" />
+      <LineId Id="129" Count="11" />
+      <LineId Id="147" Count="0" />
+      <LineId Id="263" Count="1" />
+      <LineId Id="148" Count="13" />
+      <LineId Id="163" Count="8" />
+      <LineId Id="174" Count="0" />
+      <LineId Id="181" Count="0" />
+      <LineId Id="186" Count="15" />
+      <LineId Id="273" Count="1" />
+      <LineId Id="278" Count="1" />
+      <LineId Id="282" Count="0" />
+      <LineId Id="280" Count="1" />
+      <LineId Id="276" Count="1" />
+      <LineId Id="275" Count="0" />
+      <LineId Id="272" Count="0" />
+      <LineId Id="206" Count="19" />
+      <LineId Id="228" Count="0" />
+      <LineId Id="234" Count="0" />
+      <LineId Id="236" Count="11" />
+      <LineId Id="251" Count="0" />
+      <LineId Id="283" Count="0" />
+      <LineId Id="257" Count="0" />
+      <LineId Id="259" Count="0" />
       <LineId Id="5" Count="0" />
     </LineIds>
   </POU>

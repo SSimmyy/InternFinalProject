@@ -4,6 +4,7 @@
     <Declaration><![CDATA[FUNCTION_BLOCK Reset3
 VAR_INPUT
 		Execute : BOOL;
+		nState : INT := 0;
 END_VAR
 VAR_OUTPUT
 	Done : BOOL;
@@ -16,7 +17,6 @@ VAR
 	ResetOut: ST_McOutputs;
 	fbMoveRelative: MC_MoveRelative;
 	RelativeOut : ST_McOutputs;
-	nState : INT;
 	bResetExecute: BOOL;
 	bPowerExecute: BOOL;
 END_VAR
@@ -24,7 +24,9 @@ VAR_IN_OUT
 END_VAR
 ]]></Declaration>
     <Implementation>
-      <ST><![CDATA[IF Execute THEN
+      <ST><![CDATA[Done := FALSE;
+
+IF Execute THEN
 fbReset(
 		Axis:= GVL_Conveyer.ConveyerAxis, 
 		Execute:= bResetExecute, 
@@ -71,6 +73,7 @@ CASE nState OF
 	nState := 3;
 	
 3: 
+	
 	IF Execute THEN
 		nState := 0;
 	END_IF
@@ -90,11 +93,14 @@ END_IF
 ]]></ST>
     </Implementation>
     <LineIds Name="Reset3">
+      <LineId Id="429" Count="1" />
       <LineId Id="301" Count="18" />
       <LineId Id="376" Count="1" />
       <LineId Id="320" Count="20" />
       <LineId Id="361" Count="1" />
-      <LineId Id="399" Count="5" />
+      <LineId Id="399" Count="2" />
+      <LineId Id="428" Count="0" />
+      <LineId Id="402" Count="2" />
       <LineId Id="363" Count="12" />
       <LineId Id="30" Count="0" />
     </LineIds>
